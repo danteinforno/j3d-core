@@ -325,6 +325,7 @@
   </target>
 
   <target name="compile-debug" depends="setupPlatform">
+<!--	<ant dir="${vecmath_home}" target="jar-debug"/>-->
 	<ant dir="src/classes" target="compile-debug"/>
         <antcall target="compile-debug-native"/>
   </target>
@@ -334,6 +335,7 @@
   </target>
 
   <target name="compile-opt" depends="setupPlatform">
+<!--	<ant dir="${vecmath_home}" target="jar-opt"/>-->
 	<ant dir="src/classes" target="compile-opt"/>
         <antcall target="compile-opt-native"/>
   </target>
@@ -477,7 +479,7 @@
         <delete dir="${build}/${platform}/opt/lib/ext"/>
   </target>
 
-  <target name="install-debug" depends="setupPlatform">
+  <target name="install-debug" depends="jar-debug">
 	<ant dir="src/classes" target="install-debug"/>
   </target>
 

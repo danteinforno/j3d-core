@@ -306,7 +306,7 @@
 	 basedir="${build}/${platform}/javadocs/docs-public"/>
   </target>
 
-  <target name="install-debug" depends="jar-debug">
+  <target name="install-debug">
     <copy todir="${java.home}/lib/ext">
         <fileset dir="${build}/${platform}/debug/lib/ext" includes="*.jar"/>
         <fileset dir="${vecmath_home}/build/opt/lib/ext" includes="vecmath.jar"/>
