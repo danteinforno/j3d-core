@@ -4,7 +4,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -57,7 +57,7 @@
   * The following property specifies the beta revision of the current
   * Java 3D version being built. It is ignored for non-beta builds.
   -->
-  <property name="version_betastr"    value="beta2"/>
+  <property name="version_betastr"    value="beta3"/>
 
   <!--
   * The following property specifies the patch revision of the current
