@@ -72,8 +72,8 @@
   * separated by "periods ("."). The version_base_file property must
   * be the same version number as version_base with "_" replacing ".".
   -->
-  <property name="version_base"       value="1.3.3"/>
-  <property name="version_base_file"  value="1_3_3"/>
+  <property name="version_base"       value="1.4.0"/>
+  <property name="version_base_file"  value="1_4_0"/>
 
 
   <!-- ************************************* -->
