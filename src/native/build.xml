@@ -104,6 +104,9 @@
      	     srcfile="${javahCoreSrc}/Canvas3D.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_Canvas3D.h"/>
 	    <uptodate
+     	     srcfile="${javahCoreSrc}/CgShaderProgram.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_CgShaderProgram.h"/>
+	    <uptodate
      	     srcfile="${javahCoreSrc}/ColoringAttributes.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_ColoringAttributes.h"/>
 	    <uptodate
@@ -295,6 +298,7 @@
 	
 	<class name="javax.media.j3d.Background"/>
 	<class name="javax.media.j3d.Canvas3D"/>
+	<class name="javax.media.j3d.CgShaderProgram"/>
 	<class name="javax.media.j3d.ColoringAttributes"/>
 	<class name="javax.media.j3d.ColoringAttributesRetained"/>
 	<class name="javax.media.j3d.CompressedGeometryRetained"/>
