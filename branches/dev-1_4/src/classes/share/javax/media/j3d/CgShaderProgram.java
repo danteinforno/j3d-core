@@ -46,24 +46,24 @@ public class CgShaderProgram extends ShaderProgram {
     }
 
     private native void updateNative(long ctx,
-				     byte[] vtxShader,
-				     byte[] fragShader);
+				     String vtxShader,
+				     String fragShader);
 
     void updateNative(long ctx) {
 	/*
 	System.err.println("CgShaderProgram.updateNative(ctx)");
 	*/
 
-	byte[] vertexShaderBytes = null;
-	byte[] fragmentShaderBytes = null;
+	String vertexShaderStr = null;
+	String fragmentShaderStr = null;
 
-	if (vertexShader != null && vertexShader.getShaderSource() != null) {
-	    vertexShaderBytes = vertexShader.getShaderSource().getBytes();
+	if (vertexShader != null) {
+	    vertexShaderStr = vertexShader.getShaderSource();
 	}
-	if (fragmentShader != null && fragmentShader.getShaderSource() != null) {
-	    fragmentShaderBytes = fragmentShader.getShaderSource().getBytes();
+	if (fragmentShader != null) {
+	    fragmentShaderStr = fragmentShader.getShaderSource();
 	}
 
-	updateNative(ctx, vertexShaderBytes, fragmentShaderBytes);
+	updateNative(ctx, vertexShaderStr, fragmentShaderStr);
     }
 }
