@@ -1062,6 +1062,9 @@ public class VirtualUniverse extends Object {
      *@since Java 3D 1.4
      */
     void notifyStructureChangeListeners(Object oldParent, Object newParent, BranchGroup child) {
+        if (structureChangeListenerList==null)
+            return;
+
         synchronized(structureChangeListenerList) {
             Iterator it = structureChangeListenerList.iterator();
             while(it.hasNext()) {
