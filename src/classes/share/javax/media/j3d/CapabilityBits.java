@@ -241,6 +241,10 @@ class CapabilityBits extends Object {
     static final int ALTERNATE_APPEARANCE_ALLOW_SCOPE_READ		= 16;
     static final int ALTERNATE_APPEARANCE_ALLOW_SCOPE_WRITE		= 17;
 
+    // Additional Node bits (must go after all existing Node subclass bits)
+    static final int NODE_ALLOW_PARENT_READ			        = 46;
+
+
     // NodeComponent extends SceneGraphObject
 
     // Appearance extends NodeComponent 

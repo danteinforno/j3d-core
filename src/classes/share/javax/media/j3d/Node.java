@@ -109,7 +109,15 @@ public abstract class Node extends SceneGraphObject {
      */
     public static final int
     ALLOW_LOCAL_TO_VWORLD_READ = CapabilityBits.NODE_ALLOW_LOCAL_TO_VWORLD_READ;
-    
+
+    /**
+     * Specifies that this Node allows read access to its parent Group node.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+	ALLOW_PARENT_READ = CapabilityBits.NODE_ALLOW_PARENT_READ;
+
     // for checking for cycles
     private boolean visited = false;
 
@@ -128,15 +136,24 @@ public abstract class Node extends SceneGraphObject {
     }
 
     /**
-     * Retrieves the parent of this Node.  This method is only valid
-     * during the construction of the scene graph.
+     * Retrieves the parent of this Node.
      * @return the parent of this node, or null if this node has no parent
-     * @exception RestrictedAccessException if this object is part of live
-     * or compiled scene graph
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
      */
     public Node getParent() {
-	if (isLiveOrCompiled())
-            throw new RestrictedAccessException(J3dI18N.getString("Node0"));
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_PARENT_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("Node0"));
+	    }
+	}
+
+	// TODO: remove this check once we add code to inhibit certain
+	// compile-time optimizations (e.g., graph flattening) when a
+	// any of a group node's children allow their parent to be read
+	if (isCompiled()) {
+	    throw new RuntimeException("Reading parent of compiled nodes not implemented");
+	}
 
 	NodeRetained nr = ((NodeRetained)this.retained).getParent();
 	return (nr == null ? null :  (Node) nr.getSource());
