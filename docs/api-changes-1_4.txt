@@ -57,6 +57,7 @@ I. New/deprecated fields, constructors, methods
     New fields:
 	public static final int ALLOW_PARENT_READ
 	public static final int ALLOW_LOCALE_READ
+
     New methods:
 	public Locale getLocale()
 
@@ -87,9 +88,7 @@ I. New/deprecated fields, constructors, methods
 
 II. Reparented classes
 
-    <EXISTINGCLASS>
-    ---------------
-	<EXISTINGCLASS> now extends <NEWSUPERCLASS> (used to extend <OLDSUPERCLASS>)
+    NONE
 
 
 III. New classes and interfaces (in javax.media.j3d)
@@ -165,6 +164,7 @@ III. New classes and interfaces (in javax.media.j3d)
     GraphStructureChangeListener
     ----------------------------
 	public interface GraphStructureChangeListener
+
 
 IV. Deprecated classes and interfaces (in javax.media.j3d)
 
