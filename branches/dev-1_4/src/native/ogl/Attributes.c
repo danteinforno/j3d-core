@@ -17,6 +17,9 @@
 #include <jni.h>
 
 #include "gldefs.h"
+/* KCR: BEGIN CG SHADER HACK */
+#include <Cg/cgGL.h>
+/* KCR: END CG SHADER HACK */
 
 #ifdef DEBUG
 /* Uncomment the following for VERBOSE debug messages */
@@ -3503,3 +3506,215 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
      * texture unit state.
      */ 
 }
+
+
+/* KCR: BEGIN CG SHADER HACK */
+/* TODO: these need to be instance variables in the Java class */
+static CGcontext vContext = 0;
+static CGprogram vShader = 0;
+static CGprofile vProfile = 0;
+static CGcontext fContext = 0;
+static CGprogram fShader = 0;
+static CGprofile fProfile = 0;
+
+
+static void
+cgErrorCallback(void)
+{
+    CGerror LastError = cgGetError();
+
+    if(LastError) {
+        const char *Listing = cgGetLastListing(vContext);
+	fprintf(stderr, "\n---------------------------------------------------\n");
+        fprintf(stderr, "%s\n\n", cgGetErrorString(LastError));
+        fprintf(stderr, "%s\n", Listing);
+        fprintf(stderr, "---------------------------------------------------\n");
+        fprintf(stderr, "Cg error, exiting...\n");
+        exit(1);
+    }
+}
+
+
+/*
+ * Class:     javax_media_j3d_CgShaderProgram
+ * Method:    updateNative
+ * Signature: (J[B[B)V
+ */
+JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jbyteArray vertexShader,
+    jbyteArray fragmentShader)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+    /* Vertex shader */
+    jsize vtxLen;
+    jbyte *vertexShaderBytes;		/* Array of bytes */
+    char *vertexShaderString = NULL;	/* Null-terminated "C" string */
+
+    /* Fragment shader */
+    jsize fragLen;
+    jbyte *fragmentShaderBytes;	/* Array of bytes */
+    char *fragmentShaderString = NULL;	/* Null-terminated "C" string */
+
+    /* Process vertex shader */
+    /*
+    fprintf(stderr, "    vertexShader == 0x%x\n", vertexShader);
+    */
+    if (vertexShader != 0) {
+	vtxLen = (*(table->GetArrayLength))(env, vertexShader);
+
+	vertexShaderString = (char *)malloc(vtxLen + 1);
+	if (vertexShaderString == NULL) {
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "malloc");
+	    }
+	    return;
+	}
+
+	vertexShaderBytes =
+	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, vertexShader, NULL);
+	if (vertexShaderBytes == NULL) {
+	    free(vertexShaderString);
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
+	    }
+	    return;
+	}
+
+	memcpy(vertexShaderString, vertexShaderBytes, vtxLen);
+	vertexShaderString[vtxLen] = '\0';
+	(*(table->ReleasePrimitiveArrayCritical))(env, vertexShader,
+						  vertexShaderBytes, JNI_ABORT);
+
+	/*
+	 * TODO: need to check whether the shader has changed and free up the
+	 * old shader before allocating a new one (like we do for texture)
+	 */
+	if (vContext == 0) {
+	    /* Use GL_ARB_vertex_program extension if supported by video card */
+	    if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1)) {
+		fprintf(stderr, "Using CG_PROFILE_ARBVP1\n");
+		vProfile = CG_PROFILE_ARBVP1;
+	    }
+	    else if (cgGLIsProfileSupported(CG_PROFILE_VP20)) {
+		fprintf(stderr, "Using CG_PROFILE_VP20\n");
+		vProfile = CG_PROFILE_VP20;
+	    }
+	    else {
+		fprintf(stderr,
+			"ERROR: Vertex programming extensions (GL_ARB_vertex_program or\n"
+			"GL_NV_vertex_program) not supported, exiting...\n");
+		return;
+	    }
+
+	    cgSetErrorCallback(cgErrorCallback);
+
+	    vContext = cgCreateContext();
+
+	    /* create the vertex shader */
+	    fprintf(stderr,
+		    "CgShaderProgram_updateNative: create vertex shader program\n");
+	    vShader = cgCreateProgram(vContext,
+				      CG_SOURCE, vertexShaderString,
+				      vProfile, NULL, NULL);
+	}
+	free(vertexShaderString);
+
+	/*
+	fprintf(stderr,
+		"CgShaderProgram_updateNative: load/bind/enable vertex shader program\n");
+	*/
+	cgGLLoadProgram(vShader);
+	cgGLBindProgram(vShader);
+	cgGLEnableProfile(vProfile);
+    }
+    else {
+	if (vProfile != 0) {
+	    cgGLDisableProfile(vProfile);
+	}
+    }
+
+    /* Process fragment shader */
+    /*
+    fprintf(stderr, "    fragmentShader == 0x%x\n", fragmentShader);
+    */
+    if (fragmentShader != 0) {
+	fragLen = (*(table->GetArrayLength))(env, fragmentShader);
+
+	fragmentShaderString = (char *)malloc(fragLen + 1);
+	if (fragmentShaderString == NULL) {
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "malloc");
+	    }
+	    return;
+	}
+
+	fragmentShaderBytes =
+	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, fragmentShader, NULL);
+	if (fragmentShaderBytes == NULL) {
+	    free(fragmentShaderString);
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
+	    }
+	    return;
+	}
+
+	memcpy(fragmentShaderString, fragmentShaderBytes, fragLen);
+	fragmentShaderString[fragLen] = '\0';
+	(*(table->ReleasePrimitiveArrayCritical))(env, fragmentShader,
+						  fragmentShaderBytes, JNI_ABORT);
+
+	/*
+	 * TODO: need to check whether the shader has changed and free up the
+	 * old shader before allocating a new one (like we do for texture)
+	 */
+	if (fContext == 0) {
+	    /* Use GL_ARB_fragment_program extension if supported by video card */
+	    if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1)) {
+		fprintf(stderr, "Using CG_PROFILE_ARBFP1\n");
+		fProfile = CG_PROFILE_ARBFP1;
+	    }
+	    else if (cgGLIsProfileSupported(CG_PROFILE_FP20)) {
+		fprintf(stderr, "Using CG_PROFILE_FP20\n");
+		fProfile = CG_PROFILE_FP20;
+	    }
+	    else {
+		fprintf(stderr,
+			"Fragment programming extensions (GL_ARB_fragment_program or\n"
+			"GL_NV_fragment_program) not supported, exiting...\n");
+		return;
+	    }
+
+	    cgSetErrorCallback(cgErrorCallback);
+
+	    fContext = cgCreateContext();
+
+	    /* create the fragment shader */
+	    fprintf(stderr,
+		    "CgShaderProgram_updateNative: create fragment shader program\n");
+	    fShader = cgCreateProgram(fContext,
+				      CG_SOURCE, fragmentShaderString,
+				      fProfile, NULL, NULL);
+	}
+	free(fragmentShaderString);
+
+	cgGLLoadProgram(fShader);
+	cgGLBindProgram(fShader);
+	/*
+	fprintf(stderr,
+		"CgShaderProgram_updateNative: load/bind/enable fragment shader program\n");
+	*/
+	cgGLEnableProfile(fProfile);
+    }
+    else {
+	if (fProfile != 0) {
+	    cgGLDisableProfile(fProfile);
+	}
+    }
+
+}
+/* KCR: END CG SHADER HACK */

@@ -702,6 +702,24 @@ class AppearanceRetained extends NodeComponentRetained {
     }
 
 
+    /* KCR: BEGIN CG SHADER HACK */
+    // TODO: Change this to ShaderProgramRetained shaderProgram ...
+    ShaderProgram shaderProgram = null;
+    /* KCR: END CG SHADER HACK */
+
+    /**
+     * Set the shader program object to the specified object.
+     * @param shaderProgram object that specifies the desired shader program
+     *
+     */
+    void setShaderProgram(ShaderProgram shaderProgram) {
+	/* KCR: BEGIN CG SHADER HACK */
+	// TODO: implement this for real once we have a ShaderProgramRetained object
+	this.shaderProgram = shaderProgram;
+	/* KCR: END CG SHADER HACK */
+    }
+
+
     synchronized void createMirrorObject() {
 	if (mirror == null) {
 	    // we can't check isStatic() since it sub-NodeComponent
@@ -724,6 +742,10 @@ class AppearanceRetained extends NodeComponentRetained {
 
 	mirrorApp.source = source;
 	mirrorApp.sgApp = this;
+
+	/* KCR: BEGIN CG SHADER HACK */
+	mirrorApp.shaderProgram = shaderProgram;
+	/* KCR: END CG SHADER HACK */
 
 	// Fix for Issue 33: copy the changedFrequent mask to mirror
 	mirrorApp.changedFrequent = changedFrequent;
