@@ -580,7 +580,42 @@ public class Locale extends Object {
 
 
     /**
-     * Returns a sorted array of references to all the Pickable items
+     * Returns an array unsorted references to all the PickInfo objects that are pickable 
+     * below this <code>Locale</code> that intersect with PickShape. 
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified via a 
+     * masked variable, flags, indicating which components are present in each 
+     * returned PickInfo object. This is specified as one or more individual flags 
+     * that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @exception IllegalStateException if this Locale has been
+     * removed from its VirtualUniverse.
+     *
+     * @see BranchGroup#pickAll
+     */
+    public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAll method not implemented yet");
+
+    }
+
+    /**
+     * Returns a sorted array of references to all the pickable items
      * that intersect with the pickShape. Element [0] references the
      * item closest to <i>origin</i> of PickShape successive array
      * elements are further from the <i>origin</i>
@@ -603,6 +638,42 @@ public class Locale extends Object {
 	return Picking.pickAllSorted( this, pickShape );
     }
 
+    /**
+     * Returns a sorted array of PickInfo references to all the pickable
+     * items that intersect with the pickShape. Element [0] references 
+     * the item closest to <i>origin</i> of PickShape successive array
+     * elements are further from the <i>origin</i>
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @exception IllegalStateException if this Locale has been
+     * removed from its VirtualUniverse.
+     *
+     * @see BranchGroup#pickAllSorted
+     */
+    public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
 
     /**
      * Returns a SceneGraphPath which references the pickable item
@@ -628,6 +699,41 @@ public class Locale extends Object {
 
 
     /**
+     * Returns a PickInfo which references the pickable item
+     * which is closest to the origin of <code>pickShape</code>.
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.  
+     *
+     * @exception IllegalStateException if this Locale has been
+     * removed from its VirtualUniverse.
+     *
+     * @see BranchGroup#pickClosest
+     */
+    public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
+
+    /**
      * Returns a reference to any item that is Pickable below this
      * Locale which intersects with <code>pickShape</code>.
      *
@@ -646,6 +752,40 @@ public class Locale extends Object {
 	return Picking.pickAny( this, pickShape );
     }
 
+    /**
+     * Returns a PickInfo which references the pickable item  below this
+     * Locale which intersects with <code>pickShape</code>.
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.  
+     *
+     * @exception IllegalStateException if this Locale has been
+     * removed from its VirtualUniverse.
+     *
+     * @see BranchGroup#pickAny
+     */
+    public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
 
     /**
      * Cleans up resources associated with this Locale

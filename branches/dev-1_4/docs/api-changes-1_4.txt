@@ -69,6 +69,24 @@ I. New/deprecated fields, constructors, methods
 	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
 
 
+    Locale
+    ------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
+    BranchGroup
+    -----------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
     Sensor
     ------
     Deprecated fields:
@@ -165,6 +183,14 @@ III. New classes and interfaces (in javax.media.j3d)
     ----------------------------
 	public interface GraphStructureChangeListener
 
+    PickInfo
+    --------
+	public class PickInfo extends Object
+
+    PickInfo.IntersectionInfo
+    -------------------------
+	public class PickInfo.IntersectionInfo extends Object
+
 
 IV. Deprecated classes and interfaces (in javax.media.j3d)
 
@@ -172,5 +198,3 @@ IV. Deprecated classes and interfaces (in javax.media.j3d)
     CompressedGeometryHeader
     PickPoint
     Morph
-
-
