@@ -25,6 +25,8 @@ package javax.media.j3d;
 public class GLSLShaderProgram extends ShaderProgram {
     private GLSLVertexShader vertexShader = null;
     private GLSLFragmentShader fragmentShader = null;
+    private int shaderProgramId = 0;
+
 
     public GLSLShaderProgram() {
     }
@@ -45,38 +47,49 @@ public class GLSLShaderProgram extends ShaderProgram {
 	return fragmentShader;
     }
 
-    private native void updateNative(long ctx,
-				     String vtxShader,
-				     String fragShader);
+    private native int updateNative(long ctx,
+				    int shaderProgram,
+				    String vtxShader,
+				    String fragShader);
 
     private native void setUniform1i(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     int value);
     private native void setUniform1f(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     float value);
     private native void setUniform2i(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     int[] value);
     private native void setUniform2f(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     float[] value);
     private native void setUniform3i(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     int[] value);
     private native void setUniform3f(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     float[] value);
     private native void setUniform4i(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     int[] value);
     private native void setUniform4f(long ctx,
+				     int shaderProgram,
 				     String attrName,
 				     float[] value);
     private native void setUniformMatrix3f(long ctx,
+					   int shaderProgram,
 					   String attrName,
 					   float[] value);
     private native void setUniformMatrix4f(long ctx,
+					   int shaderProgram,
 					   String attrName,
 					   float[] value);
 
@@ -91,7 +104,10 @@ public class GLSLShaderProgram extends ShaderProgram {
 	    fragmentShaderStr = fragmentShader.getShaderSource();
 	}
 
-	updateNative(ctx, vertexShaderStr, fragmentShaderStr);
+	shaderProgramId = updateNative(ctx,
+				       shaderProgramId,
+				       vertexShaderStr,
+				       fragmentShaderStr);
     }
 
     /**
@@ -101,12 +117,14 @@ public class GLSLShaderProgram extends ShaderProgram {
 	switch (sav.classType) {
 	case ShaderAttributeObject.TYPE_INTEGER:
 	    setUniform1i(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 ((int[])sav.attrWrapper.getRef())[0]);
 	    break;
 
 	case ShaderAttributeObject.TYPE_FLOAT:
 	    setUniform1f(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 ((float[])sav.attrWrapper.getRef())[0]);
 	    break;
@@ -116,12 +134,14 @@ public class GLSLShaderProgram extends ShaderProgram {
 
 	case ShaderAttributeObject.TYPE_TUPLE2I:
 	    setUniform2i(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (int[])sav.attrWrapper.getRef());
 	    break;
 
 	case ShaderAttributeObject.TYPE_TUPLE2F:
 	    setUniform2f(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (float[])sav.attrWrapper.getRef());
 	    break;
@@ -131,12 +151,14 @@ public class GLSLShaderProgram extends ShaderProgram {
 
 	case ShaderAttributeObject.TYPE_TUPLE3I:
 	    setUniform3i(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (int[])sav.attrWrapper.getRef());
 	    break;
 
 	case ShaderAttributeObject.TYPE_TUPLE3F:
 	    setUniform3f(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (float[])sav.attrWrapper.getRef());
 	    break;
@@ -146,12 +168,14 @@ public class GLSLShaderProgram extends ShaderProgram {
 
 	case ShaderAttributeObject.TYPE_TUPLE4I:
 	    setUniform4i(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (int[])sav.attrWrapper.getRef());
 	    break;
 
 	case ShaderAttributeObject.TYPE_TUPLE4F:
 	    setUniform4f(ctx,
+			 shaderProgramId,
 			 sav.getAttributeName(),
 			 (float[])sav.attrWrapper.getRef());
 	    break;
@@ -163,6 +187,7 @@ public class GLSLShaderProgram extends ShaderProgram {
 	    throw new RuntimeException("not implemented");
 	    /*
 	    setUniformMatrix3f(ctx,
+			 shaderProgramId,
 			       sav.getAttributeName(),
 			       (float[])sav.attrWrapper.getRef());
 	    break;
@@ -173,6 +198,7 @@ public class GLSLShaderProgram extends ShaderProgram {
 	    throw new RuntimeException("not implemented");
 	    /*
 	    setUniformMatrix4f(ctx,
+			 shaderProgramId,
 			       sav.getAttributeName(),
 			       (float[])sav.attrWrapper.getRef());
 	    break;

@@ -3768,10 +3768,6 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
 
 #ifdef COMPILE_GLSL_SHADERS
 /* KCR: BEGIN GLSL SHADER HACK */
-/* TODO: these need to be instance variables in the Java class */
-static GLhandleARB glVertexShader = 0;
-static GLhandleARB glFragmentShader = 0;
-static GLhandleARB glShaderProgram = 0;
 
 /* TODO: these need to be fields in the ctxInfo struct */
 PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB = NULL;
@@ -3829,10 +3825,11 @@ printInfoLog(GLhandleARB obj) {
  * Method:    updateNative
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
+JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgramId,
     jstring vertexShader,
     jstring fragmentShader)
 {
@@ -3842,11 +3839,15 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	fprintf(stderr, "Java 3D ERROR : GLSLShader code not compiled\n");
 	firstTime = GL_FALSE;
     }
-    return;
+    return 0;
 #endif /* !COMPILE_GLSL_SHADERS */
 
 #ifdef COMPILE_GLSL_SHADERS
     GLint status;
+
+    GLhandleARB glVertexShader = 0;
+    GLhandleARB glFragmentShader = 0;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgramId;
 
     /* Null-terminated "C" strings */
     GLcharARB *vertexShaderString = NULL;
@@ -3939,7 +3940,28 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     }
 
     if (pfnglCreateShaderObjectARB == NULL) {
-	return;
+	return 0;
+    }
+
+    /*
+     * If the vertexProgram and fragment program are both NULL, then
+     * disable shading by binding to program 0
+     */
+    if (vertexShader == 0 && fragmentShader == 0) {
+	/*
+	fprintf(stderr, "    vertexShader and fragmentShader are NULL\n");
+	*/
+	pfnglUseProgramObjectARB(0);
+	return 0;
+    }
+
+    /* If already created, just bind the shader program */
+    if (glShaderProgram != 0) {
+	/*
+	fprintf(stderr, "    glUseProgramObject(%d)\n", glShaderProgram);
+	*/
+	pfnglUseProgramObjectARB(glShaderProgram);
+	return glShaderProgram;
     }
 
     /* Process vertex shader */
@@ -3949,7 +3971,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     if (vertexShader != 0) {
 	vertexShaderString = (GLcharARB *)strJavaToC(env, vertexShader);
 	if (vertexShaderString == NULL) {
-	    return;
+	    return 0;
 	}
 
 	/*
@@ -3966,7 +3988,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	    pfnglGetObjectParameterivARB(glVertexShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
-	    fprintf(stderr, "COMPILE ");
+	    fprintf(stderr, "COMPILE : glVertexShader = %d -- ", glVertexShader);
 	    if (status) {
 		fprintf(stderr, "SUCCESSFUL\n");
 	    }
@@ -3985,7 +4007,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     if (fragmentShader != 0) {
 	fragmentShaderString = (GLcharARB *)strJavaToC(env, fragmentShader);
 	if (fragmentShaderString == NULL) {
-	    return;
+	    return 0;
 	}
 
 	/*
@@ -4002,7 +4024,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	    pfnglGetObjectParameterivARB(glFragmentShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
-	    fprintf(stderr, "COMPILE ");
+	    fprintf(stderr, "COMPILE : glFragmentShader = %d -- ", glFragmentShader);
 	    if (status) {
 		fprintf(stderr, "SUCCESSFUL\n");
 	    }
@@ -4014,42 +4036,34 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	free(fragmentShaderString);
     }
 
-    /*
-     * Enable shader if we have either a vertex or a fragment shader.
-     * TODO: change this
-     */
-    if (vertexShader != 0 || fragmentShader != 0) {
-	/* Link the shader (if first time) */
-	if (glShaderProgram == 0) {
-	    fprintf(stderr,
-		    "GLSLShaderProgram_updateNative: link shader program\n");
-	    glShaderProgram = pfnglCreateProgramObjectARB();
-	    if (vertexShader != 0) {
-		pfnglAttachObjectARB(glShaderProgram, glVertexShader);
-	    }
-	    if (fragmentShader != 0) {
-		pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
-	    }
-	    pfnglLinkProgramARB(glShaderProgram);
-
-	    pfnglGetObjectParameterivARB(glShaderProgram,
-				      GL_OBJECT_LINK_STATUS_ARB,
-				      &status);
-	    fprintf(stderr, "LINK ");
-	    if (status) {
-		fprintf(stderr, "SUCCESSFUL\n");
-	    }
-	    else {
-		fprintf(stderr, "FAILED\n");
-		printInfoLog(glShaderProgram);
-	    }
-	}
-
-	pfnglUseProgramObjectARB(glShaderProgram);
+    /* Link the shader (if first time) */
+    fprintf(stderr,
+	    "GLSLShaderProgram_updateNative: link shader program\n");
+    glShaderProgram = pfnglCreateProgramObjectARB();
+    if (vertexShader != 0) {
+	pfnglAttachObjectARB(glShaderProgram, glVertexShader);
+    }
+    if (fragmentShader != 0) {
+	pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
+    }
+    pfnglLinkProgramARB(glShaderProgram);
+    
+    pfnglGetObjectParameterivARB(glShaderProgram,
+				 GL_OBJECT_LINK_STATUS_ARB,
+				 &status);
+    fprintf(stderr, "LINK : glShaderProgram = %d -- ", glShaderProgram);
+    if (status) {
+	fprintf(stderr, "SUCCESSFUL\n");
     }
     else {
+	fprintf(stderr, "FAILED\n");
+	printInfoLog(glShaderProgram);
 	pfnglUseProgramObjectARB(0);
+	return 0;
     }
+
+    pfnglUseProgramObjectARB(glShaderProgram);
+    return glShaderProgram;
 #endif /* !COMPILE_GLSL_SHADERS */
 }
 
@@ -4059,6 +4073,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jint value)
 {
@@ -4067,6 +4082,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1i(
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4098,6 +4114,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jfloat value)
 {
@@ -4106,6 +4123,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1f(
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4137,6 +4155,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jintArray varray)
 {
@@ -4146,6 +4165,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2i(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jint *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4187,6 +4207,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jfloatArray varray)
 {
@@ -4196,6 +4217,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2f(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4237,6 +4259,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jintArray varray)
 {
@@ -4246,6 +4269,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3i(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jint *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4287,6 +4311,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jfloatArray varray)
 {
@@ -4296,6 +4321,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3f(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4337,6 +4363,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform4i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jintArray varray)
 {
@@ -4346,6 +4373,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform4i(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jint *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -4387,6 +4415,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform4f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
+    jint shaderProgram,
     jstring attrName,
     jfloatArray varray)
 {
@@ -4396,6 +4425,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform4f(
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
     GLint loc = -1;
+    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
