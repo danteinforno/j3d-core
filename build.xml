@@ -152,27 +152,32 @@
   <target name="setupSolaris" if="isSolarisOnSparc">	
     <property name="ostype" value="solaris"/>
     <property name="platform" value="solaris-sparc-${build.comp}"/>
+    <property name="install.bin" value="lib/sparc"/>
   </target>
 
   <target name="setupLinux" if="isLinuxOnX86">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-i586"/>
+    <property name="install.bin" value="lib/i386"/>
   </target>
 
   <target name="setupLinuxAmd64" if="isLinuxOnAmd64">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-amd64"/>
+    <property name="install.bin" value="lib/amd64"/>
   </target>
 
   <target name="setupLinuxIA64" if="isLinuxOnIA64">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-ia64"/>
+    <property name="install.bin" value="lib/ia64"/>
   </target>
 
   <!-- win32 should be rename as windows -->
   <target name="setupWindows" if="isWindowsOnX86">	
     <property name="ostype" value="win32"/>
     <property name="platform" value="windows-i586-${build.comp}"/>
+    <property name="install.bin" value="bin"/>
   </target>
 
   <target name="setupPlatform"
@@ -472,6 +477,14 @@
         <delete dir="${build}/${platform}/opt/lib/ext"/>
   </target>
 
+  <target name="install-debug" depends="setupPlatform">
+	<ant dir="src/classes" target="install-debug"/>
+  </target>
+
+  <target name="uninstall" depends="setupPlatform">
+	<ant dir="src/classes" target="uninstall"/>
+  </target>
+
   <description>
 The following ant targets are available ("jar-opt" is the default):
 
@@ -535,5 +548,9 @@ The following ant targets are available ("jar-opt" is the default):
 
       rpm            - creates a i586 rpm for installation in /usr/java/jdk1.5.0
                       the rpm is placed in dist/rpm
+                      
+      install-debug  - installs the debug build into the JDK pointed to by JAVA_HOME
+      
+      uninstall      - uninstalls Java 3D from the JDK pointed to by JAVA_HOME
   </description>
 </project>
