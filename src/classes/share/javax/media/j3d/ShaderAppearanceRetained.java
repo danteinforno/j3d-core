@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -32,6 +32,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     // TODO: Change this to ShaderProgramRetained shaderProgram ...
     // Shader program  object
     ShaderProgram shaderProgram = null;
+    ShaderAttributeSet shaderAttributeSet = null;
     /* KCR: END CG SHADER HACK */
 
     /*
@@ -89,6 +90,20 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     }
 
 
+    /**
+     * Sets the ShaderAttributeSet object to the specified object.  Setting it to
+     * null is equivalent to specifying an empty set of attributes.
+     *
+     * @param shaderAttributeSet object that specifies the desired shader attributes
+     */
+    void setShaderAttributeSet(ShaderAttributeSet shaderAttributeSet) {
+	/* KCR: BEGIN CG SHADER HACK */
+	// TODO: implement this for real once we have a ShaderAttributeSetRetained object
+	this.shaderAttributeSet = shaderAttributeSet;
+	/* KCR: END CG SHADER HACK */
+    }
+
+
     synchronized void createMirrorObject() {
 	if (mirror == null) {
 	    // we can't check isStatic() since it sub-NodeComponent
@@ -113,6 +128,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
 	/* KCR: BEGIN CG SHADER HACK */
 	mirrorApp.shaderProgram = shaderProgram;
+	mirrorApp.shaderAttributeSet = shaderAttributeSet;
 	/* KCR: END CG SHADER HACK */
     }
 

@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -24,7 +24,7 @@ import java.util.Hashtable;
  * <li>Shader program - specifies the shader program...</li>
  *
  * <p></p>
- * <li>Shader attributes - specifies the shader parameters, both as
+ * <li>Shader attribute set - specifies the shader parameters, both as
  * explicit attributes and as implicit bindings to Java 3D
  * state...</li>
  * </ul>
@@ -67,7 +67,7 @@ import java.util.Hashtable;
  * </ul>
  *
  * @see ShaderProgram
- * @see ShaderAttributes
+ * @see ShaderAttributeSet
  *
  * @since Java 3D 1.4
  */
@@ -90,19 +90,19 @@ public class ShaderAppearance extends Appearance {
 
     /**
      * Specifies that this ShaderAppearance object allows reading its
-     * ShaderAttributes component information.
+     * ShaderAttributeSet component information.
      */
     public static final int
-	ALLOW_SHADER_ATTRIBUTES_READ =
-	CapabilityBits.SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTES_READ;
+	ALLOW_SHADER_ATTRIBUTE_SET_READ =
+	CapabilityBits.SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTE_SET_READ;
 
     /**
      * Specifies that this ShaderAppearance object allows writing its
-     * ShaderAttributes component information.
+     * ShaderAttributeSet component information.
      */
     public static final int
-	ALLOW_SHADER_ATTRIBUTES_WRITE =
-	CapabilityBits.SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTES_WRITE;
+	ALLOW_SHADER_ATTRIBUTE_SET_WRITE =
+	CapabilityBits.SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTE_SET_WRITE;
 
 
     /**
@@ -159,41 +159,39 @@ public class ShaderAppearance extends Appearance {
 
 
     /**
-     * Sets the ShaderAttributes object to the specified object.  Setting it to
+     * Sets the ShaderAttributeSet object to the specified object.  Setting it to
      * null is equivalent to specifying an empty set of attributes.
      *
-     * @param shaderAttributes object that specifies the desired shader attributes
+     * @param shaderAttributeSet object that specifies the desired shader attributes
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      */
-    public void setShaderAttributes(ShaderAttributes shaderAttributes) {
+    public void setShaderAttributeSet(ShaderAttributeSet shaderAttributeSet) {
 	// TODO: implement this method...
 	/*
 	if (isLiveOrCompiled())
 	    ...
 	*/
-	/*
-	((ShaderAppearanceRetained)this.retained).setShaderAttributes(shaderAttributes);
-	*/
-	throw new RuntimeException("not implemented");
+
+	((ShaderAppearanceRetained)this.retained).setShaderAttributeSet(shaderAttributeSet);
     }
 
 
     /**
-     * Retrieves the current ShaderAttributes object.
+     * Retrieves the current ShaderAttributeSet object.
      *
-     * @return the ShaderAttributes object
+     * @return the ShaderAttributeSet object
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      */
-    public ShaderAttributes getShaderAttributes() {
+    public ShaderAttributeSet getShaderAttributeSet() {
 	// TODO: implement this method...
 	/*
 	if (isLiveOrCompiled())
 	    ...
 	*/
 	/*
-	return ((ShaderAppearanceRetained)this.retained).getShaderAttributes();
+	return ((ShaderAppearanceRetained)this.retained).getShaderAttributeSet();
 	*/
 	throw new RuntimeException("not implemented");
     }
