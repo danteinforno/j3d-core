@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -157,7 +157,7 @@ class VersionInfo extends Object {
      * Specification version (major and minor version only). This
      * string must not be modified by developers.
      */
-    private static final String SPECIFICATION_VERSION = "1.3";
+    private static final String SPECIFICATION_VERSION = "1.4";
 
     /**
      * Specification vendor. This should never change and must not

@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -437,7 +437,6 @@ class BehaviorStructure extends J3dStructure {
 	    boolean keyEnable = false;
 	    boolean mouseMotionEnable = false;
 	    boolean mouseEnable = false;
-	    boolean mouseWheelEnable = false;
 	    WakeupOnAWTEvent awtCond;
 	    int awtId;
 	    long eventMask;
@@ -461,16 +460,8 @@ class BehaviorStructure extends J3dStructure {
 		    if ((awtId == MouseEvent.MOUSE_DRAGGED) || 
 			(awtId == MouseEvent.MOUSE_MOVED)) {
 			mouseMotionEnable = true;
-		    }
-		    else if ((awtId == MouseEvent.MOUSE_ENTERED) || 
-			     (awtId == MouseEvent.MOUSE_EXITED)  || 
-			     (awtId == MouseEvent.MOUSE_CLICKED) || 
-			     (awtId == MouseEvent.MOUSE_PRESSED) || 
-			     (awtId == MouseEvent.MOUSE_RELEASED) ) {
+		    } else {
 			mouseEnable = true;
-		    } 
-		    else if (awtId == MouseEvent.MOUSE_WHEEL) {
-			mouseWheelEnable = true;
 		    }
 		} else {
 		    if ((eventMask & AWTEvent.MOUSE_EVENT_MASK) != 0) {
@@ -478,9 +469,6 @@ class BehaviorStructure extends J3dStructure {
 		    }
 		    if ((eventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0) {
 			mouseMotionEnable = true;
-		    }
-		    if ((eventMask & AWTEvent.MOUSE_WHEEL_EVENT_MASK) != 0) {
-			mouseWheelEnable = true;
 		    }
 		}
 	    }
@@ -493,10 +481,6 @@ class BehaviorStructure extends J3dStructure {
 		// key event use for toggle to fullscreen/window mode
 		incTimestamp = true;
 		universe.disableKeyEvents();
-	    }
-	    if (!mouseWheelEnable && universe.enableMouseWheel) {
-		incTimestamp = true;
-		universe.disableMouseWheelEvents();
 	    }
 	    if (!mouseMotionEnable && universe.enableMouseMotion) {
 		incTimestamp = true;
@@ -698,10 +682,6 @@ class BehaviorStructure extends J3dStructure {
 		    else if ((id == MouseEvent.MOUSE_DRAGGED || 
 			      id == MouseEvent.MOUSE_MOVED) &&
 			     (awtCond.EventMask & AWTEvent.MOUSE_MOTION_EVENT_MASK) != 0) {
-			awtCond.addAWTEvent(evt);
-		    }
-		    else if ((id == MouseEvent.MOUSE_WHEEL) &&
-			     (awtCond.EventMask & AWTEvent.MOUSE_WHEEL_EVENT_MASK) != 0) {
 			awtCond.addAWTEvent(evt);
 		    }
 		}

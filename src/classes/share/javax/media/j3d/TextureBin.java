@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -1082,6 +1082,21 @@ class TextureBin extends Object implements ObjectUpdate {
         boolean dirty = ((cv.canvasDirty & (Canvas3D.TEXTUREBIN_DIRTY|
 					    Canvas3D.TEXTUREATTRIBUTES_DIRTY)) != 0);
 
+	/* KCR: BEGIN CG SHADER HACK */
+	if (app != null && app instanceof ShaderAppearanceRetained) {
+	    ShaderProgram shaderProgram =
+		((ShaderAppearanceRetained)app).shaderProgram;
+
+	    if (shaderProgram != null) {
+		// Update the native shader program attributes. Note that
+		// the current hack only works when the sole user
+		// optimization is in effect. The appearance with the
+		// Shader Program must have a frequently-writable texture
+		// and it must be the sole user of this texture bin.
+		shaderProgram.updateNative(cv.ctx);
+	    }
+	}
+	/* KCR: END CG SHADER HACK */
 
 	if (cv.textureBin == this  && !dirty) {
 	    return;

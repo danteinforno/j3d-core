@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -972,7 +972,7 @@ int find_DB_AA_S_PixelFormat( HDC hdc, PixelFormatInfo * pFormatInfo,
     if (dbVal == UNNECESSARY || dbVal== PREFERRED) {
 	index = dbIndex;
 	wglAttrs[index++] = WGL_DOUBLE_BUFFER_ARB;
-	wglAttrs[index++] = FALSE;  // Partial fix to issue 100.
+	wglAttrs[index++] = TRUE;
 	/*
 	 * Terminate by 2 zeros to avoid driver bugs
 	 * that assume attributes always come in pairs.

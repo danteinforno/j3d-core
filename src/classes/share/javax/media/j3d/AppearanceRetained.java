@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -876,11 +876,16 @@ class AppearanceRetained extends NodeComponentRetained {
 
     }
 
-    /**
-     * This setLive routine first calls the superclass's method, then
-     * it adds itself to the list of lights
-     */
     void setLive(boolean backgroundGroup, int refCount) {
+	doSetLive(backgroundGroup, refCount);
+	markAsLive();
+    }
+
+    /**
+     * This method calls the setLive method of all appearance bundle
+     * objects.
+     */
+    void doSetLive(boolean backgroundGroup, int refCount) {
 	
 	if (material != null) {	    
 	
@@ -938,12 +943,11 @@ class AppearanceRetained extends NodeComponentRetained {
 	// Increment the reference count and initialize the appearance
 	// mirror object
         super.doSetLive(backgroundGroup, refCount);
-	super.markAsLive();
     }
 
     /**
-     * This clearLive routine first calls the superclass's method, then
-     * it removes itself to the list of lights
+     * This method calls the clearLive method of all appearance bundle
+     * objects.
      */
     void clearLive(int refCount) {
 	super.clearLive(refCount);

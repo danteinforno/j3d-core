@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -927,7 +927,7 @@ public class Canvas3D extends Canvas {
     CanvasViewEventCatcher canvasViewEventCatcher;
     
     // The parent window for this canvas.
-    private Container parent;
+    Container parent;
 
     // flag that indicates if light has changed
     boolean lightChanged = false;
@@ -1132,7 +1132,7 @@ public class Canvas3D extends Canvas {
 	this.offScreen = offScreen;
 	this.graphicsConfiguration = graphicsConfiguration;
 
-	// Needed for Win32-D3D only.
+	// Needed for Win32 only.
 	vid = nativeWSobj.getCanvasVid(graphicsConfiguration);
 
 	// Fix for issue 20.
@@ -1495,11 +1495,6 @@ public class Canvas3D extends Canvas {
 	if (rdr != null) {
 	    rdr.userStop = false;
 	}
-        
-        // Fix for issue 102 removing strong reference and avoiding memory leak
-        // due retention of parent container
-        
-        this.parent = null;
     }
 
     // This decides if the canvas is active
