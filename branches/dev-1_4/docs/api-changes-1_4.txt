@@ -56,12 +56,14 @@ I. New/deprecated fields, constructors, methods
     ----
     New fields:
 	public static final int ALLOW_PARENT_READ
+	public static final int ALLOW_LOCALE_READ
 
     VirtualUniverse
     ---------------
     New methods:
-        public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
-        public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public Locale getLocale()
 
 
 
@@ -167,5 +169,7 @@ IV. Deprecated classes and interfaces (in javax.media.j3d)
 
     CompressedGeometry
     CompressedGeometryHeader
+    PickPoint
+    Morph
 
 

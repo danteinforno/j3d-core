@@ -118,6 +118,14 @@ public abstract class Node extends SceneGraphObject {
     public static final int
 	ALLOW_PARENT_READ = CapabilityBits.NODE_ALLOW_PARENT_READ;
 
+    /**
+     * Specifies that this Node allows read access to its Locale.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+	ALLOW_LOCALE_READ = CapabilityBits.NODE_ALLOW_LOCALE_READ;
+
     // for checking for cycles
     private boolean visited = false;
 
@@ -136,7 +144,7 @@ public abstract class Node extends SceneGraphObject {
     }
 
     /**
-     * Retrieves the parent of this Node.
+
      * @return the parent of this node, or null if this node has no parent
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
@@ -307,6 +315,31 @@ public abstract class Node extends SceneGraphObject {
 	    throw new CapabilityNotSetException(J3dI18N.getString("Node8"));
 
         ((NodeRetained)this.retained).getLocalToVworld(path,t);
+    }
+
+    /**
+     * Retrieves the locale to which this node is attached. If the
+     * node is not part of a live scene graph, null is returned.
+     *
+     * @return the locale to which this node is attached.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this node is part of live scene graph
+     * @exception IllegalSharingException if the node is a descendant
+     * of a SharedGroup node.
+     *
+     * @since Java 3D 1.4
+     */
+    public Locale getLocale() {
+	if (!isLive()) {
+	    return null;
+	}
+
+	if(!this.getCapability(ALLOW_LOCALE_READ)) {
+	    throw new CapabilityNotSetException(J3dI18N.getString("Node17"));
+	}
+
+	return ((NodeRetained)this.retained).getLocale();
     }
 
     /**
