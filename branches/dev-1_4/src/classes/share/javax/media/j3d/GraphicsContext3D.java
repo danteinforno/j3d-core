@@ -2411,9 +2411,11 @@ public class GraphicsContext3D extends Object   {
 	    sceneAmbient.z = 1.0f;
 	}
 	
-	canvas3d.canvasDirty |= Canvas3D.AMBIENTLIGHT_DIRTY;
 	canvas3d.setSceneAmbient(canvas3d.ctx, sceneAmbient.x,
 				 sceneAmbient.y, sceneAmbient.z);
+
+	canvas3d.canvasDirty |= Canvas3D.AMBIENTLIGHT_DIRTY;
+	canvas3d.sceneAmbient.set(sceneAmbient);  
 
 	if (canvas3d.enableMask != enableMask) {
 	    canvas3d.canvasDirty |= Canvas3D.LIGHTENABLES_DIRTY;
@@ -2422,10 +2424,9 @@ public class GraphicsContext3D extends Object   {
 	    canvas3d.enableMask = enableMask;
 	}
 
+	// Force LightBin.updateAttributes and EnvironmentSet.updateAttributes 
+	// to use the within frame case.
 	canvas3d.lightBin = null;
-
-
-	// Mark the envset as dirty for the canvas for scene graph rendering
 	canvas3d.environmentSet = null;
 
 	if (fog != null) {
@@ -2470,6 +2471,10 @@ public class GraphicsContext3D extends Object   {
 		canvas3d.canvasDirty |= Canvas3D.MODELCLIP_DIRTY;
 	    }
 	}
+
+	// Force EnvironmentSet.updateAttributes to  use the within frame case.
+	canvas3d.environmentSet = null;
+
     }
 
     
