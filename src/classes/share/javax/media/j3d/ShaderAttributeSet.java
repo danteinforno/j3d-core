@@ -106,7 +106,7 @@ public class ShaderAttributeSet extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
-	throw new RuntimeException("not implemented");
+	attrs.put(attr.getAttributeName(), attr);
     }
 
     /**
@@ -150,7 +150,7 @@ public class ShaderAttributeSet extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
-	throw new RuntimeException("not implemented");
+	attrs.remove(attrName);
     }
 
     /**
@@ -174,7 +174,10 @@ public class ShaderAttributeSet extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
-	throw new RuntimeException("not implemented");
+	String attrName = attr.getAttributeName();
+	if (attrs.get(attrName) == attr) {
+	    attrs.remove(attrName);
+	}
     }
 
     /**
@@ -185,9 +188,7 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public void clear() {
-	throw new RuntimeException("not implemented");
-
-	// attrs.clear();
+	attrs.clear();
     }
 
     /**
@@ -199,7 +200,7 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public ShaderAttribute[] getAll() {
-	throw new RuntimeException("not implemented");
+	return (ShaderAttribute[])attrs.values().toArray(new ShaderAttribute[attrs.size()]);
     }
 
     /**
@@ -211,7 +212,7 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public int size() {
-	throw new RuntimeException("not implemented");
+	return attrs.size();
     }
 
 }

@@ -3546,6 +3546,49 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
 }
 
 
+/* KCR: BEGIN CG & GLSL SHADER HACKS */
+/*
+ * strJavaToC
+ *
+ * Returns a copy of the specified Java String object as a new,
+ * null-terminated "C" string. The caller must free this string.
+ */
+char *
+strJavaToC(JNIEnv *env, jstring str)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+    jsize strUTFLen;		/* Number of UTF-8 bytes in String */
+    jbyte *strUTFBytes;		/* Array of UTF-8 bytes */
+    char *cString = NULL;	/* Null-terminated "C" string */
+
+    strUTFLen = table->GetStringUTFLength(env, str);
+    cString = (char *)malloc(strUTFLen + 1);
+    if (cString == NULL) {
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "malloc");
+	}
+	return NULL;
+    }
+
+    strUTFBytes = table->GetStringUTFChars(env, str, NULL);
+    if (strUTFBytes == NULL) {
+	free(cString);
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "GetStringUTFChars");
+	}
+	return NULL;
+    }
+
+    memcpy(cString, strUTFBytes, strUTFLen);
+    cString[strUTFLen] = '\0';
+    table->ReleaseStringUTFChars(env, str, strUTFBytes);
+
+    return cString;
+}
+
+
 #ifdef COMPILE_CG_SHADERS
 /* KCR: BEGIN CG SHADER HACK */
 /* TODO: these need to be instance variables in the Java class */
@@ -3578,18 +3621,15 @@ cgErrorCallback(void)
 /*
  * Class:     javax_media_j3d_CgShaderProgram
  * Method:    updateNative
- * Signature: (J[B[B)V
+ * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jbyteArray vertexShader,
-    jbyteArray fragmentShader)
+    jstring vertexShader,
+    jstring fragmentShader)
 {
-    JNIEnv table = *env;
-    jclass oom;
-
 #ifndef COMPILE_CG_SHADERS
     static GLboolean firstTime = GL_TRUE;
 
@@ -3601,45 +3641,19 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
 #endif /* !COMPILE_CG_SHADERS */
 
 #ifdef COMPILE_CG_SHADERS
-    /* Vertex shader */
-    jsize vtxLen;
-    jbyte *vertexShaderBytes;		/* Array of bytes */
-    char *vertexShaderString = NULL;	/* Null-terminated "C" string */
-
-    /* Fragment shader */
-    jsize fragLen;
-    jbyte *fragmentShaderBytes;	/* Array of bytes */
-    char *fragmentShaderString = NULL;	/* Null-terminated "C" string */
+    /* Null-terminated "C" strings */
+    char *vertexShaderString = NULL;
+    char *fragmentShaderString = NULL;
 
     /* Process vertex shader */
     /*
     fprintf(stderr, "    vertexShader == 0x%x\n", vertexShader);
     */
     if (vertexShader != 0) {
-	vtxLen = (*(table->GetArrayLength))(env, vertexShader);
-
-	vertexShaderString = (char *)malloc(vtxLen + 1);
+	vertexShaderString = strJavaToC(env, vertexShader);
 	if (vertexShaderString == NULL) {
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "malloc");
-	    }
 	    return;
 	}
-
-	vertexShaderBytes =
-	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, vertexShader, NULL);
-	if (vertexShaderBytes == NULL) {
-	    free(vertexShaderString);
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
-	    }
-	    return;
-	}
-
-	memcpy(vertexShaderString, vertexShaderBytes, vtxLen);
-	vertexShaderString[vtxLen] = '\0';
-	(*(table->ReleasePrimitiveArrayCritical))(env, vertexShader,
-						  vertexShaderBytes, JNI_ABORT);
 
 	/*
 	 * TODO: need to check whether the shader has changed and free up the
@@ -3694,30 +3708,10 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
     fprintf(stderr, "    fragmentShader == 0x%x\n", fragmentShader);
     */
     if (fragmentShader != 0) {
-	fragLen = (*(table->GetArrayLength))(env, fragmentShader);
-
-	fragmentShaderString = (char *)malloc(fragLen + 1);
+	fragmentShaderString = strJavaToC(env, fragmentShader);
 	if (fragmentShaderString == NULL) {
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "malloc");
-	    }
 	    return;
 	}
-
-	fragmentShaderBytes =
-	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, fragmentShader, NULL);
-	if (fragmentShaderBytes == NULL) {
-	    free(fragmentShaderString);
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
-	    }
-	    return;
-	}
-
-	memcpy(fragmentShaderString, fragmentShaderBytes, fragLen);
-	fragmentShaderString[fragLen] = '\0';
-	(*(table->ReleasePrimitiveArrayCritical))(env, fragmentShader,
-						  fragmentShaderBytes, JNI_ABORT);
 
 	/*
 	 * TODO: need to check whether the shader has changed and free up the
@@ -3824,18 +3818,15 @@ printInfoLog(GLhandleARB obj) {
 /*
  * Class:     javax_media_j3d_GLSLShaderProgram
  * Method:    updateNative
- * Signature: (J[B[B)V
+ * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jbyteArray vertexShader,
-    jbyteArray fragmentShader)
+    jstring vertexShader,
+    jstring fragmentShader)
 {
-    JNIEnv table = *env;
-    jclass oom;
-
 #ifndef COMPILE_GLSL_SHADERS
     static GLboolean firstTime = GL_TRUE;
     if (firstTime) {
@@ -3848,15 +3839,9 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 #ifdef COMPILE_GLSL_SHADERS
     GLint status;
 
-    /* Vertex shader */
-    jsize vertexLen;
-    jbyte *vertexShaderBytes; /* Array of bytes */
-    GLcharARB *vertexShaderString = NULL; /* Null-terminated "C" string */
-
-    /* Fragment shader */
-    jsize fragmentLen;
-    jbyte *fragmentShaderBytes;	/* Array of bytes */
-    GLcharARB *fragmentShaderString = NULL;	/* Null-terminated "C" string */
+    /* Null-terminated "C" strings */
+    GLcharARB *vertexShaderString = NULL;
+    GLcharARB *fragmentShaderString = NULL;
 
     static GLboolean firstTime = GL_TRUE;
 
@@ -3880,7 +3865,6 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	    (PFNGLSHADERSOURCEARBPROC)dlsym(RTLD_DEFAULT, "glShaderSourceARB");
 	pfnglUseProgramObjectARB =
 	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
-
 #endif
 #ifdef WIN32
 	pfnglAttachObjectARB =
@@ -3918,34 +3902,10 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     fprintf(stderr, "    vertexShader == 0x%x\n", vertexShader);
     */
     if (vertexShader != 0) {
-	vertexLen = (*(table->GetArrayLength))(env, vertexShader);
-
-	vertexShaderString = (char *)malloc(vertexLen + 1);
+	vertexShaderString = (GLcharARB *)strJavaToC(env, vertexShader);
 	if (vertexShaderString == NULL) {
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "malloc");
-	    }
 	    return;
 	}
-
-	vertexShaderBytes =
-	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, vertexShader, NULL);
-	if (vertexShaderBytes == NULL) {
-	    free(vertexShaderString);
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
-	    }
-	    return;
-	}
-
-	/*
-	 * TODO: No need to copy to a null-terminated string, we can
-	 * pass in the lengths instead.
-	 */
-	memcpy(vertexShaderString, vertexShaderBytes, vertexLen);
-	vertexShaderString[vertexLen] = '\0';
-	(*(table->ReleasePrimitiveArrayCritical))(env, vertexShader,
-						  vertexShaderBytes, JNI_ABORT);
 
 	/*
 	 * TODO: need to check whether the shader has changed and free up the
@@ -3978,34 +3938,10 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     fprintf(stderr, "    fragmentShader == 0x%x\n", fragmentShader);
     */
     if (fragmentShader != 0) {
-	fragmentLen = (*(table->GetArrayLength))(env, fragmentShader);
-
-	fragmentShaderString = (char *)malloc(fragmentLen + 1);
+	fragmentShaderString = (GLcharARB *)strJavaToC(env, fragmentShader);
 	if (fragmentShaderString == NULL) {
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "malloc");
-	    }
 	    return;
 	}
-
-	fragmentShaderBytes =
-	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, fragmentShader, NULL);
-	if (fragmentShaderBytes == NULL) {
-	    free(fragmentShaderString);
-	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
-		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
-	    }
-	    return;
-	}
-
-	/*
-	 * TODO: No need to copy to a null-terminated string, we can
-	 * pass in the lengths instead.
-	 */
-	memcpy(fragmentShaderString, fragmentShaderBytes, fragmentLen);
-	fragmentShaderString[fragmentLen] = '\0';
-	(*(table->ReleasePrimitiveArrayCritical))(env, fragmentShader,
-						  fragmentShaderBytes, JNI_ABORT);
 
 	/*
 	 * TODO: need to check whether the shader has changed and free up the
@@ -4070,6 +4006,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	pfnglUseProgramObjectARB(0);
     }
 #endif /* !COMPILE_GLSL_SHADERS */
-
 }
 /* KCR: END GLSL SHADER HACK */
+
+/* KCR: END CG & GLSL SHADER HACKS */
