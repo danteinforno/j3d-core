@@ -1482,19 +1482,27 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 		
 
-    void createGeometryArrayData(int vertexCount, int vertexFormat)
-    {
+    void createGeometryArrayData(int vertexCount, int vertexFormat) {
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 	    createGeometryArrayData(vertexCount, vertexFormat, 1, 
-				defaultTexCoordSetMap);
+				    defaultTexCoordSetMap);
 	} else {
 	    createGeometryArrayData(vertexCount, vertexFormat, 0, null);
 	}
     }
 
     void createGeometryArrayData(int vertexCount, int vertexFormat,
-				 int texCoordSetCount, int[] texCoordSetMap) 
-    {
+				 int texCoordSetCount, int[] texCoordSetMap) {
+
+	createGeometryArrayData(vertexCount, vertexFormat,
+				texCoordSetCount, texCoordSetMap,
+				0, null, null);
+    }
+
+    void createGeometryArrayData(int vertexCount, int vertexFormat,
+				 int texCoordSetCount, int[] texCoordSetMap,
+				 int vertexAttrCount, int[] vertexAttrFormats,
+				 String[] vertexAttrNames) {
 	this.vertexFormat = vertexFormat;
 	this.vertexCount = vertexCount;
 	this.validVertexCount = vertexCount;
@@ -1625,6 +1633,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	// no need to update alpha values if canvas supports global alpha
 	if (cv.supportGlobalAlpha()) {
 	    cv.setGlobalAlpha(cv.ctx, alpha);
+	    return mirrorFloatRefColors[0];
+	}
+
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
 	    return mirrorFloatRefColors[0];
 	}
 
@@ -1796,6 +1810,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    return mirrorUnsignedByteRefColors[0];
 	}
 
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
+	    return mirrorUnsignedByteRefColors[0];
+	}
+
 	// update alpha only if vertex format includes alpha
 	if (((vertexFormat | c4fAllocated) & GeometryArray.WITH_ALPHA) == 0)
 	    return mirrorUnsignedByteRefColors[0];
@@ -1951,6 +1971,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    return retVal;
 	}
 
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
+	    retVal[1] = vertexData;
+	    return retVal;
+	}
+
 	// update alpha only if vertex format includes alpha
 	if ((vertexFormat & GeometryArray.COLOR) == 0) {
 	    retVal[1] = vertexData;
@@ -2097,6 +2124,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	// no need to update alpha values if canvas supports global alpha
 	if (cv.supportGlobalAlpha()) {
 	    cv.setGlobalAlpha(cv.ctx, alpha);
+	    retVal[1] = null;
+	    return retVal;
+	}
+
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
 	    retVal[1] = null;
 	    return retVal;
 	}

@@ -72,8 +72,8 @@
   * separated by "periods ("."). The version_base_file property must
   * be the same version number as version_base with "_" replacing ".".
   -->
-  <property name="version_base"       value="1.3.3"/>
-  <property name="version_base_file"  value="1_3_3"/>
+  <property name="version_base"       value="1.4.0"/>
+  <property name="version_base_file"  value="1_4_0"/>
 
 
   <!-- ************************************* -->
@@ -152,27 +152,32 @@
   <target name="setupSolaris" if="isSolarisOnSparc">	
     <property name="ostype" value="solaris"/>
     <property name="platform" value="solaris-sparc-${build.comp}"/>
+    <property name="install.bin" value="lib/sparc"/>
   </target>
 
   <target name="setupLinux" if="isLinuxOnX86">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-i586"/>
+    <property name="install.bin" value="lib/i386"/>
   </target>
 
   <target name="setupLinuxAmd64" if="isLinuxOnAmd64">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-amd64"/>
+    <property name="install.bin" value="lib/amd64"/>
   </target>
 
   <target name="setupLinuxIA64" if="isLinuxOnIA64">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-ia64"/>
+    <property name="install.bin" value="lib/ia64"/>
   </target>
 
   <!-- win32 should be rename as windows -->
   <target name="setupWindows" if="isWindowsOnX86">	
     <property name="ostype" value="win32"/>
     <property name="platform" value="windows-i586-${build.comp}"/>
+    <property name="install.bin" value="bin"/>
   </target>
 
   <target name="setupPlatform"
@@ -320,6 +325,7 @@
   </target>
 
   <target name="compile-debug" depends="setupPlatform">
+<!--	<ant dir="${vecmath_home}" target="jar-debug"/>-->
 	<ant dir="src/classes" target="compile-debug"/>
         <antcall target="compile-debug-native"/>
   </target>
@@ -329,6 +335,7 @@
   </target>
 
   <target name="compile-opt" depends="setupPlatform">
+<!--	<ant dir="${vecmath_home}" target="jar-opt"/>-->
 	<ant dir="src/classes" target="compile-opt"/>
         <antcall target="compile-opt-native"/>
   </target>
@@ -472,6 +479,14 @@
         <delete dir="${build}/${platform}/opt/lib/ext"/>
   </target>
 
+  <target name="install-debug" depends="jar-debug">
+	<ant dir="src/classes" target="install-debug"/>
+  </target>
+
+  <target name="uninstall" depends="setupPlatform">
+	<ant dir="src/classes" target="uninstall"/>
+  </target>
+
   <description>
 The following ant targets are available ("jar-opt" is the default):
 
@@ -535,5 +550,9 @@ The following ant targets are available ("jar-opt" is the default):
 
       rpm            - creates a i586 rpm for installation in /usr/java/jdk1.5.0
                       the rpm is placed in dist/rpm
+                      
+      install-debug  - installs the debug build into the JDK pointed to by JAVA_HOME
+      
+      uninstall      - uninstalls Java 3D from the JDK pointed to by JAVA_HOME
   </description>
 </project>
