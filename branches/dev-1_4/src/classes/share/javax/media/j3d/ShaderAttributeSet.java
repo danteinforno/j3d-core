@@ -12,6 +12,7 @@
 
 package javax.media.j3d;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import javax.vecmath.*;
@@ -213,6 +214,20 @@ public class ShaderAttributeSet extends NodeComponent {
      */
     public int size() {
 	return attrs.size();
+    }
+
+
+    void updateNative(long ctx, ShaderProgram shaderProgram) {
+	Iterator it = attrs.values().iterator();
+	while (it.hasNext()) {
+	    ShaderAttribute sa = (ShaderAttribute)it.next();
+	    if (sa instanceof ShaderAttributeValue) {
+		shaderProgram.setUniformAttrValue(ctx, (ShaderAttributeValue)sa);
+	    }
+	    else {
+		throw new RuntimeException("not implemented");
+	    }
+	}
     }
 
 }

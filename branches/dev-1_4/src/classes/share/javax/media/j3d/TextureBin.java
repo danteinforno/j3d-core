@@ -1094,6 +1094,13 @@ class TextureBin extends Object implements ObjectUpdate {
 		// Shader Program must have a frequently-writable texture
 		// and it must be the sole user of this texture bin.
 		shaderProgram.updateNative(cv.ctx);
+
+		ShaderAttributeSet shaderAttributeSet =
+		    ((ShaderAppearanceRetained)app).shaderAttributeSet;
+
+		if (shaderAttributeSet != null) {
+		    shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
+		}
 	    }
 	}
 	/* KCR: END CG SHADER HACK */

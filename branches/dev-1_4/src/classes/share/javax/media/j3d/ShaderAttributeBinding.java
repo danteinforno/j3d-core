@@ -95,6 +95,7 @@ public class ShaderAttributeBinding extends ShaderAttribute {
     public ShaderAttributeBinding(String attrName, String j3dAttrName) {
 	super(attrName);
 	this.j3dAttrName = j3dAttrName;
+	throw new RuntimeException("not implemented");
     }
 
     /**

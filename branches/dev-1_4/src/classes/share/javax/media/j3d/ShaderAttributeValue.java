@@ -45,10 +45,8 @@ import javax.vecmath.*;
 public class ShaderAttributeValue extends ShaderAttributeObject {
     /**
      * Constructs a new ShaderAttributeValue object with the specified
-     * <code>(attrName,&nbsp;value)</code> pair. If value is a mutable
-     * object (for example, is an instance of a
-     * <code>javax.vecmath</code> class), a copy of the object is
-     * stored.
+     * <code>(attrName,&nbsp;value)</code> pair.
+     * A copy of the object is stored.
      *
      * @param attrName the name of the shader attribute
      * @param value the value of the shader attribute
@@ -116,8 +114,11 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 	    attrWrapper = new FloatWrapper();
 	    break;
 	case TYPE_DOUBLE:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new DoubleWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE2I:
 	    attrWrapper = new Tuple2iWrapper();
 	    break;
@@ -125,8 +126,11 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 	    attrWrapper = new Tuple2fWrapper();
 	    break;
 	case TYPE_TUPLE2D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple2dWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE3I:
 	    attrWrapper = new Tuple3iWrapper();
 	    break;
@@ -134,8 +138,11 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 	    attrWrapper = new Tuple3fWrapper();
 	    break;
 	case TYPE_TUPLE3D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple3dWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE4I:
 	    attrWrapper = new Tuple4iWrapper();
 	    break;
@@ -143,20 +150,29 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 	    attrWrapper = new Tuple4fWrapper();
 	    break;
 	case TYPE_TUPLE4D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple4dWrapper();
 	    break;
+	    */
 	case TYPE_MATRIX3F:
 	    attrWrapper = new Matrix3fWrapper();
 	    break;
 	case TYPE_MATRIX3D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Matrix3dWrapper();
 	    break;
+	    */
 	case TYPE_MATRIX4F:
 	    attrWrapper = new Matrix4fWrapper();
 	    break;
 	case TYPE_MATRIX4D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Matrix4dWrapper();
 	    break;
+	    */
 	default:
 	    // Should never get here
 	    assert(false);
@@ -180,16 +196,14 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 
     // Wrapper class for Integer
     static class IntegerWrapper extends ValueWrapper {
-	private Integer value;
+	private int[] value = new int[1];
 
 	void set(Object value) {
-	    // Since Integer is immutable we can just store the reference
-	    this.value = (Integer)value;
+	    this.value[0] = ((Integer)value).intValue();
 	}
 
 	Object get() {
-	    // Since Integer is immutable we can just return the reference
-	    return this.value;
+	    return new Integer(this.value[0]);
 	}
 
 	Object getRef() {
@@ -199,16 +213,14 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 
     // Wrapper class for Float
     static class FloatWrapper extends ValueWrapper {
-	private Float value;
+	private float[] value = new float[1];
 
 	void set(Object value) {
-	    // Since Float is immutable we can just store the reference
-	    this.value = (Float)value;
+	    this.value[0] = ((Float)value).floatValue();
 	}
 
 	Object get() {
-	    // Since Float is immutable we can just return the reference
-	    return this.value;
+	    return new Float(this.value[0]);
 	}
 
 	Object getRef() {
@@ -218,267 +230,289 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
 
     // Wrapper class for Double
     static class DoubleWrapper extends ValueWrapper {
-	private Double value;
+	private double[] value = new double[1];
 
 	void set(Object value) {
-	    // Since Double is immutable we can just store the reference
-	    this.value = (Double)value;
+	    this.value[0] = ((Double)value).doubleValue();
 	}
 
 	Object get() {
-	    // Since Double is immutable we can just return the reference
-	    return this.value;
+	    return new Double(value[0]);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple2i
     static class Tuple2iWrapper extends ValueWrapper {
-	private Tuple2i value = new Point2i();
+	private int[] value = new int[2];
 
 	void set(Object value) {
-	    // Since Tuple2i is mutable we must copy the data
-	    this.value.set((Tuple2i)value);
+	    ((Tuple2i)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple2i is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point2i(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple2f
     static class Tuple2fWrapper extends ValueWrapper {
-	private Tuple2f value = new Point2f();
+	private float[] value = new float[2];
 
 	void set(Object value) {
-	    // Since Tuple2f is mutable we must copy the data
-	    this.value.set((Tuple2f)value);
+	    ((Tuple2f)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple2f is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point2f(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple2d
     static class Tuple2dWrapper extends ValueWrapper {
-	private Tuple2d value = new Point2d();
+	private double[] value = new double[2];
 
 	void set(Object value) {
-	    // Since Tuple2d is mutable we must copy the data
-	    this.value.set((Tuple2d)value);
+	    ((Tuple2d)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple2d is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point2d(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple3i
     static class Tuple3iWrapper extends ValueWrapper {
-	private Tuple3i value = new Point3i();
+	private int[] value = new int[3];
 
 	void set(Object value) {
-	    // Since Tuple3i is mutable we must copy the data
-	    this.value.set((Tuple3i)value);
+	    ((Tuple3i)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple3i is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point3i(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple3f
     static class Tuple3fWrapper extends ValueWrapper {
-	private Tuple3f value = new Point3f();
+	private float[] value = new float[3];
 
 	void set(Object value) {
-	    // Since Tuple3f is mutable we must copy the data
-	    this.value.set((Tuple3f)value);
+	    ((Tuple3f)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple3f is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point3f(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple3d
     static class Tuple3dWrapper extends ValueWrapper {
-	private Tuple3d value = new Point3d();
+	private double[] value = new double[3];
 
 	void set(Object value) {
-	    // Since Tuple3d is mutable we must copy the data
-	    this.value.set((Tuple3d)value);
+	    ((Tuple3d)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple3d is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point3d(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple4i
     static class Tuple4iWrapper extends ValueWrapper {
-	private Tuple4i value = new Point4i();
+	private int[] value = new int[4];
 
 	void set(Object value) {
-	    // Since Tuple4i is mutable we must copy the data
-	    this.value.set((Tuple4i)value);
+	    ((Tuple4i)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple4i is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point4i(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple4f
     static class Tuple4fWrapper extends ValueWrapper {
-	private Tuple4f value = new Point4f();
+	private float[] value = new float[4];
 
 	void set(Object value) {
-	    // Since Tuple4f is mutable we must copy the data
-	    this.value.set((Tuple4f)value);
+	    ((Tuple4f)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple4f is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point4f(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Tuple4d
     static class Tuple4dWrapper extends ValueWrapper {
-	private Tuple4d value = new Point4d();
+	private double[] value = new double[4];
 
 	void set(Object value) {
-	    // Since Tuple4d is mutable we must copy the data
-	    this.value.set((Tuple4d)value);
+	    ((Tuple4d)value).get(this.value);
 	}
 
 	Object get() {
-	    // Since Tuple4d is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Point4d(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Matrix3f
     static class Matrix3fWrapper extends ValueWrapper {
-	private Matrix3f value = new Matrix3f();
+	private float[] value = new float[9];
 
 	void set(Object value) {
-	    // Since Matrix3f is mutable we must copy the data
-	    this.value.set((Matrix3f)value);
+	    Matrix3f m = (Matrix3f)value;
+	    this.value[0] = m.m00;
+	    this.value[1] = m.m01;
+	    this.value[2] = m.m02;
+	    this.value[3] = m.m10;
+	    this.value[4] = m.m11;
+	    this.value[5] = m.m12;
+	    this.value[6] = m.m20;
+	    this.value[7] = m.m21;
+	    this.value[8] = m.m22;
 	}
 
 	Object get() {
-	    // Since Matrix3f is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Matrix3f(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Matrix3d
     static class Matrix3dWrapper extends ValueWrapper {
-	private Matrix3d value = new Matrix3d();
+	private double[] value = new double[9];
 
 	void set(Object value) {
-	    // Since Matrix3d is mutable we must copy the data
-	    this.value.set((Matrix3d)value);
+	    Matrix3d m = (Matrix3d)value;
+	    this.value[0] = m.m00;
+	    this.value[1] = m.m01;
+	    this.value[2] = m.m02;
+	    this.value[3] = m.m10;
+	    this.value[4] = m.m11;
+	    this.value[5] = m.m12;
+	    this.value[6] = m.m20;
+	    this.value[7] = m.m21;
+	    this.value[8] = m.m22;
 	}
 
 	Object get() {
-	    // Since Matrix3d is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Matrix3d(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Matrix4f
     static class Matrix4fWrapper extends ValueWrapper {
-	private Matrix4f value = new Matrix4f();
+	private float[] value = new float[16];
 
 	void set(Object value) {
-	    // Since Matrix4f is mutable we must copy the data
-	    this.value.set((Matrix4f)value);
+	    Matrix4f m = (Matrix4f)value;
+	    this.value[0]  = m.m00;
+	    this.value[1]  = m.m01;
+	    this.value[2]  = m.m02;
+	    this.value[3]  = m.m03;
+	    this.value[4]  = m.m10;
+	    this.value[5]  = m.m11;
+	    this.value[6]  = m.m12;
+	    this.value[7]  = m.m13;
+	    this.value[8]  = m.m20;
+	    this.value[9]  = m.m21;
+	    this.value[10] = m.m22;
+	    this.value[11] = m.m23;
+	    this.value[12] = m.m30;
+	    this.value[13] = m.m31;
+	    this.value[14] = m.m32;
+	    this.value[15] = m.m33;
 	}
 
 	Object get() {
-	    // Since Matrix4f is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Matrix4f(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 
     // Wrapper class for Matrix4d
     static class Matrix4dWrapper extends ValueWrapper {
-	private Matrix4d value = new Matrix4d();
+	private double[] value = new double[16];
 
 	void set(Object value) {
-	    // Since Matrix4d is mutable we must copy the data
-	    this.value.set((Matrix4d)value);
+	    Matrix4d m = (Matrix4d)value;
+	    this.value[0]  = m.m00;
+	    this.value[1]  = m.m01;
+	    this.value[2]  = m.m02;
+	    this.value[3]  = m.m03;
+	    this.value[4]  = m.m10;
+	    this.value[5]  = m.m11;
+	    this.value[6]  = m.m12;
+	    this.value[7]  = m.m13;
+	    this.value[8]  = m.m20;
+	    this.value[9]  = m.m21;
+	    this.value[10] = m.m22;
+	    this.value[11] = m.m23;
+	    this.value[12] = m.m30;
+	    this.value[13] = m.m31;
+	    this.value[14] = m.m32;
+	    this.value[15] = m.m33;
 	}
 
 	Object get() {
-	    // Since Matrix4d is mutable we must return a copy of the data
-	    return this.value.clone();
+	    return new Matrix4d(value);
 	}
 
 	Object getRef() {
-	    return this.value;
+	    return value;
 	}
     }
 

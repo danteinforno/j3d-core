@@ -66,4 +66,8 @@ public class CgShaderProgram extends ShaderProgram {
 
 	updateNative(ctx, vertexShaderStr, fragmentShaderStr);
     }
+
+    void setUniformAttrValue(long ctx, ShaderAttributeValue sav) {
+	throw new RuntimeException("not implemented");
+    }
 }
