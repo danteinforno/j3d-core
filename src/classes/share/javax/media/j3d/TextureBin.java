@@ -1071,6 +1071,10 @@ class TextureBin extends Object implements ObjectUpdate {
     }
 
 
+    /* KCR: BEGIN GLSL & CG SHADER HACK */
+    static ShaderProgram lastShaderProgram = null;
+    /* KCR: END GLSL & CG SHADER HACK */
+
     /**
      * This method is called to update the state for this
      * TextureBin. This is only applicable in the single-pass case.
@@ -1082,7 +1086,7 @@ class TextureBin extends Object implements ObjectUpdate {
         boolean dirty = ((cv.canvasDirty & (Canvas3D.TEXTUREBIN_DIRTY|
 					    Canvas3D.TEXTUREATTRIBUTES_DIRTY)) != 0);
 
-	/* KCR: BEGIN CG SHADER HACK */
+	/* KCR: BEGIN GLSL & CG SHADER HACK */
 	if (app != null && app instanceof ShaderAppearanceRetained) {
 	    ShaderProgram shaderProgram =
 		((ShaderAppearanceRetained)app).shaderProgram;
@@ -1101,9 +1105,17 @@ class TextureBin extends Object implements ObjectUpdate {
 		if (shaderAttributeSet != null) {
 		    shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
 		}
+
+		lastShaderProgram = shaderProgram;
 	    }
 	}
-	/* KCR: END CG SHADER HACK */
+	else {
+	    // Hack to disable shaders
+	    if (lastShaderProgram != null) {
+		lastShaderProgram.disableNative(cv.ctx);
+	    }
+	}
+	/* KCR: END GLSL & CG SHADER HACK */
 
 	if (cv.textureBin == this  && !dirty) {
 	    return;
