@@ -27,6 +27,7 @@ package javax.media.j3d;
  * NOTE: Applications should <i>not</i> extend this class.
  *
  * @see Shader
+ * @see ShaderAppearance#setShaderProgram
  *
  * @since Java 3D 1.4
  */

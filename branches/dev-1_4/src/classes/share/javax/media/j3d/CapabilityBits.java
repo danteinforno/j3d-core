@@ -267,6 +267,12 @@ class CapabilityBits extends Object {
     static final int APPEARANCE_ALLOW_TEXTURE_UNIT_STATE_READ		= 20;
     static final int APPEARANCE_ALLOW_TEXTURE_UNIT_STATE_WRITE		= 21;
 
+    // ShaderAppearance extends Appearance 
+    static final int SHADER_APPEARANCE_ALLOW_SHADER_PROGRAM_READ	= 22;
+    static final int SHADER_APPEARANCE_ALLOW_SHADER_PROGRAM_WRITE	= 23;
+    static final int SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTES_READ	= 24;
+    static final int SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTES_WRITE	= 25;
+
     // AuralAttributes extends NodeComponent 
     static final int AURAL_ATTRIBUTES_ALLOW_ATTRIBUTE_GAIN_READ		= 0;
     static final int AURAL_ATTRIBUTES_ALLOW_ATTRIBUTE_GAIN_WRITE	= 1;
@@ -414,6 +420,12 @@ class CapabilityBits extends Object {
     // TextureUnitState extends NodeComponent 
     static final int TEXTURE_UNIT_STATE_ALLOW_STATE_READ		= 0;
     static final int TEXTURE_UNIT_STATE_ALLOW_STATE_WRITE		= 1;
+
+    // ShaderAttributes extends NodeComponent 
+    static final int SHADER_ATTRIBUTES_ALLOW_ATTRIBUTES_READ		= 0;
+    static final int SHADER_ATTRIBUTES_ALLOW_ATTRIBUTES_WRITE		= 1;
+    static final int SHADER_ATTRIBUTES_ALLOW_SYSTEM_ATTRIBUTES_READ	= 2;
+    static final int SHADER_ATTRIBUTES_ALLOW_SYSTEM_ATTRIBUTES_WRITE	= 3;
 
     // Geometry extends NodeComponent
     // NOTE: additional bits are below the subclasses

@@ -436,8 +436,7 @@ getPropertiesFromCurrentContext(
     char *tmpExtensionStr;
     int   versionNumbers[2];
     char *cgHwStr = 0;
-    
-    
+
 #ifdef WIN32
     PIXELFORMATDESCRIPTOR pfd;
     PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
@@ -540,11 +539,21 @@ getPropertiesFromCurrentContext(
 	/* ...  */
     }
     else {
+	jclass rte;
+
 	fprintf(stderr,
 		"Java 3D ERROR : OpenGL 1.3 or better is required (GL_VERSION=%d.%d)\n",
 		versionNumbers[0], versionNumbers[1]);
-	exit(1);
+	if ((rte = (*(table->FindClass))(env, "java/lang/IllegalStateException")) != NULL) {
+	    (*(table->ThrowNew))(env, rte, "GL_VERSION");
+	}
+	return JNI_FALSE;
     }
+
+    /*
+     * TODO: Remove extension checks for those features that are core
+     * in OpenGL 1.3 and just use the core feature.
+     */
 
     /* check extensions for remaining of 1.1 and 1.2 */
     if(isExtensionSupported(tmpExtensionStr, "GL_EXT_multi_draw_arrays")){
