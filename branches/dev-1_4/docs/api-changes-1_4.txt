@@ -43,9 +43,29 @@ III. New classes and interfaces (in javax.media.j3d)
     ----------------
 	public class ShaderAppearance extends Appearance
 
-    ShaderAttributes
-    ----------------
-	public class ShaderAttributes extends NodeComponent
+    ShaderAttributeSet
+    ------------------
+	public class ShaderAttributeSet extends NodeComponent
+
+    ShaderAttribute
+    ---------------
+	public abstract class ShaderAttribute extends NodeComponent
+
+    ShaderAttributeBinding
+    ----------------------
+	public class ShaderAttributeBinding extends ShaderAttribute
+
+    ShaderAttributeObject
+    ---------------------
+	public abstract class ShaderAttributeObject extends ShaderAttribute
+
+    ShaderAttributeValue
+    --------------------
+	public class ShaderAttributeValue extends ShaderAttributeObject
+
+    ShaderAttributeArray
+    --------------------
+	public class ShaderAttributeArray extends ShaderAttributeObject
 
     Shader
     ------
