@@ -58,6 +58,23 @@ I. New/deprecated fields, constructors, methods
 	public static final int ALLOW_PARENT_READ
 
 
+    Sensor
+    ------
+    Deprecated fields:
+	public static final int PREDICT_NONE
+	public static final int PREDICT_NEXT_FRAME_TIME
+	public static final int NO_PREDICTOR
+	public static final int HEAD_PREDICTOR
+	public static final int HAND_PREDICTOR
+
+    Deprecated methods:
+	public void setPredictor(int predictor)
+	public int getPredictor()
+	public void setPredictionPolicy(int policy)
+	public int getPredictionPolicy()
+	public void getRead(Transform3D read, long deltaT)
+
+
 II. Reparented classes
 
     <EXISTINGCLASS>
@@ -134,5 +151,11 @@ III. New classes and interfaces (in javax.media.j3d)
     GLSLShaderProgram
     -----------------
 	public class GLSLShaderProgram extends ShaderProgram
+
+
+IV. Deprecated classes and interfaces (in javax.media.j3d)
+
+    CompressedGeometry
+    CompressedGeometryHeader
 
 
