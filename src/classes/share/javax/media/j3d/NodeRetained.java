@@ -413,7 +413,19 @@ abstract class NodeRetained extends SceneGraphObjectRetained implements NnuId {
 	HashKey newKey = new HashKey(key);	
 	computeLocalToVworld(this, this, newKey, t);	
     }
-    
+
+
+    /**
+     * Get the Locale to which the node is attached
+     */
+    Locale getLocale() {
+	if (inSharedGroup) {
+	    throw new IllegalSharingException(J3dI18N.getString("NodeRetained0"));
+	}
+
+	return locale;
+    }
+
 
     /**
      * Get the current localToVworld transform for a node

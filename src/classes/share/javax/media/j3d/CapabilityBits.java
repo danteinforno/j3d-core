@@ -243,6 +243,7 @@ class CapabilityBits extends Object {
 
     // Additional Node bits (must go after all existing Node subclass bits)
     static final int NODE_ALLOW_PARENT_READ			        = 46;
+    static final int NODE_ALLOW_LOCALE_READ			        = 47;
 
 
     // NodeComponent extends SceneGraphObject
