@@ -752,47 +752,6 @@ public class Appearance extends NodeComponent {
     }
 
 
-    /**
-     * Sets the ShaderProgram object to the specified object.  Setting it to
-     * null causes the fixed-function graphics pipeline to be used.
-     *
-     * @param shaderProgram object that specifies the desired shader program
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
-     *
-     * @since Java 3D 1.4
-     */
-    public void setShaderProgram(ShaderProgram shaderProgram) {
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	*/
-	((AppearanceRetained)this.retained).setShaderProgram(shaderProgram);
-    }
-
-
-    /**
-     * Retrieves the current ShaderProgram object.
-     *
-     * @return the ShaderProgram object
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
-     *
-     * @since Java 3D 1.4
-     */
-    public ShaderProgram getShaderProgram() {
-	throw new UnsupportedOperationException("method net yet implemented");
-
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	return ((AppearanceRetained)this.retained).getShaderProgram();
-	*/
-    }
-
-
    /**
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */

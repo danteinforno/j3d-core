@@ -13,19 +13,19 @@
 package javax.media.j3d;
 
 /**
- * The GL2 Fragment Shader object...
+ * The GLSL Vertex Shader object...
  *
- * @see GL2ShaderProgram
- * @see GL2VertexShader
+ * @see GLSLShaderProgram
+ * @see GLSLFragmentShader
  *
  * @since Java 3D 1.4
  */
 
-public class GL2FragmentShader extends GL2Shader {
-    public GL2FragmentShader() {
+public class GLSLVertexShader extends GLSLShader {
+    public GLSLVertexShader() {
     }
 
-    public GL2FragmentShader(String shaderSource) {
+    public GLSLVertexShader(String shaderSource) {
 	super(shaderSource);
     }
 }

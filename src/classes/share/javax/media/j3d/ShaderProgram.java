@@ -21,7 +21,7 @@ package javax.media.j3d;
  * Graphics Pipeline Unit (GPU) of the graphics accelerator. It is
  * specified using the shader language defined by the
  * ShaderProgram. The currently defined shader languages are: Cg and
- * GL2.
+ * GLSL.
  *
  * <p>
  * NOTE: Applications should <i>not</i> extend this class.

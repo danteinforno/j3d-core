@@ -702,24 +702,6 @@ class AppearanceRetained extends NodeComponentRetained {
     }
 
 
-    /* KCR: BEGIN CG SHADER HACK */
-    // TODO: Change this to ShaderProgramRetained shaderProgram ...
-    ShaderProgram shaderProgram = null;
-    /* KCR: END CG SHADER HACK */
-
-    /**
-     * Set the shader program object to the specified object.
-     * @param shaderProgram object that specifies the desired shader program
-     *
-     */
-    void setShaderProgram(ShaderProgram shaderProgram) {
-	/* KCR: BEGIN CG SHADER HACK */
-	// TODO: implement this for real once we have a ShaderProgramRetained object
-	this.shaderProgram = shaderProgram;
-	/* KCR: END CG SHADER HACK */
-    }
-
-
     synchronized void createMirrorObject() {
 	if (mirror == null) {
 	    // we can't check isStatic() since it sub-NodeComponent
@@ -742,10 +724,6 @@ class AppearanceRetained extends NodeComponentRetained {
 
 	mirrorApp.source = source;
 	mirrorApp.sgApp = this;
-
-	/* KCR: BEGIN CG SHADER HACK */
-	mirrorApp.shaderProgram = shaderProgram;
-	/* KCR: END CG SHADER HACK */
 
 	// Fix for Issue 33: copy the changedFrequent mask to mirror
 	mirrorApp.changedFrequent = changedFrequent;
@@ -898,11 +876,16 @@ class AppearanceRetained extends NodeComponentRetained {
 
     }
 
-    /**
-     * This setLive routine first calls the superclass's method, then
-     * it adds itself to the list of lights
-     */
     void setLive(boolean backgroundGroup, int refCount) {
+	doSetLive(backgroundGroup, refCount);
+	markAsLive();
+    }
+
+    /**
+     * This method calls the setLive method of all appearance bundle
+     * objects.
+     */
+    void doSetLive(boolean backgroundGroup, int refCount) {
 	
 	if (material != null) {	    
 	
@@ -960,12 +943,11 @@ class AppearanceRetained extends NodeComponentRetained {
 	// Increment the reference count and initialize the appearance
 	// mirror object
         super.doSetLive(backgroundGroup, refCount);
-	super.markAsLive();
     }
 
     /**
-     * This clearLive routine first calls the superclass's method, then
-     * it removes itself to the list of lights
+     * This method calls the clearLive method of all appearance bundle
+     * objects.
      */
     void clearLive(int refCount) {
 	super.clearLive(refCount);

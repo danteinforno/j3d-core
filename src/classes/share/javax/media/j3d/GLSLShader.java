@@ -13,31 +13,31 @@
 package javax.media.j3d;
 
 /**
- * The GL2 Shader object...
+ * The GLSL Shader object...
  *
  * <p>
  * NOTE: Applications should <i>not</i> extend this class.
  *
- * @see GL2ShaderProgram
+ * @see GLSLShaderProgram
  *
  * @since Java 3D 1.4
  */
 
-public abstract class GL2Shader extends Shader {
+public abstract class GLSLShader extends Shader {
     String shaderSource = null;
 
     /**
      * Package scope constructor so it can't be subclassed by classes
      * outside the javax.media.j3d package.
      */
-    GL2Shader() {
+    GLSLShader() {
     }
 
     /**
      * Package scope constructor so it can't be subclassed by classes
      * outside the javax.media.j3d package.
      */
-    GL2Shader(String shaderSource) {
+    GLSLShader(String shaderSource) {
 	this.shaderSource = shaderSource;
     }
 

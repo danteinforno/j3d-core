@@ -10,6 +10,20 @@
  * $State$
  */
 
+/*
+ * Comment out one or both of the following to disable CG or GLSL
+ * shader compilation.
+ */
+#define ENABLE_CG_SHADERS    /* Define to compile CG shaders */
+#define ENABLE_GLSL_SHADERS  /* Define to compile GLSL shaders */
+
+
+/* KCR: BEGIN SHADER HACK */
+#if defined(__linux__)
+#define _GNU_SOURCE 1
+#endif
+/* KCR: END SHADER HACK */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,9 +31,33 @@
 #include <jni.h>
 
 #include "gldefs.h"
+
+
 /* KCR: BEGIN CG SHADER HACK */
+#if defined(ENABLE_CG_SHADERS)
+#define COMPILE_CG_SHADERS 1
+#else
+#undef COMPILE_CG_SHADERS
+#endif
+
+#ifdef COMPILE_CG_SHADERS
 #include <Cg/cgGL.h>
+#endif /* COMPILE_CG_SHADERS */
 /* KCR: END CG SHADER HACK */
+
+
+/* KCR: BEGIN GLSL SHADER HACK */
+#if defined(ENABLE_GLSL_SHADERS) && defined(GL_ARB_shading_language_100)
+#define COMPILE_GLSL_SHADERS 1
+#else
+#undef COMPILE_GLSL_SHADERS
+#endif
+
+#if defined(SOLARIS) || defined(__linux__)
+#include <dlfcn.h>
+#endif
+/* KCR: END GLSL SHADER HACK */
+
 
 #ifdef DEBUG
 /* Uncomment the following for VERBOSE debug messages */
@@ -3508,6 +3546,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
 }
 
 
+#ifdef COMPILE_CG_SHADERS
 /* KCR: BEGIN CG SHADER HACK */
 /* TODO: these need to be instance variables in the Java class */
 static CGcontext vContext = 0;
@@ -3533,6 +3572,7 @@ cgErrorCallback(void)
         exit(1);
     }
 }
+#endif /* COMPILE_CG_SHADERS */
 
 
 /*
@@ -3550,6 +3590,17 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
     JNIEnv table = *env;
     jclass oom;
 
+#ifndef COMPILE_CG_SHADERS
+    static GLboolean firstTime = GL_TRUE;
+
+    if (firstTime) {
+	fprintf(stderr, "Java 3D ERROR : CgShader code not compiled\n");
+	firstTime = GL_FALSE;
+    }
+    return;
+#endif /* !COMPILE_CG_SHADERS */
+
+#ifdef COMPILE_CG_SHADERS
     /* Vertex shader */
     jsize vtxLen;
     jbyte *vertexShaderBytes;		/* Array of bytes */
@@ -3715,6 +3766,310 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_CgShaderProgram_updateNative(
 	    cgGLDisableProfile(fProfile);
 	}
     }
+#endif /* COMPILE_CG_SHADERS */
 
 }
 /* KCR: END CG SHADER HACK */
+
+
+#ifdef COMPILE_GLSL_SHADERS
+/* KCR: BEGIN GLSL SHADER HACK */
+/* TODO: these need to be instance variables in the Java class */
+static GLhandleARB glVertexShader = 0;
+static GLhandleARB glFragmentShader = 0;
+static GLhandleARB glShaderProgram = 0;
+
+/* TODO: these need to be fields in the ctxInfo struct */
+PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB = NULL;
+PFNGLCOMPILESHADERARBPROC pfnglCompileShaderARB = NULL;
+PFNGLCREATEPROGRAMOBJECTARBPROC pfnglCreateProgramObjectARB = NULL;
+PFNGLCREATESHADEROBJECTARBPROC pfnglCreateShaderObjectARB = NULL;
+PFNGLGETINFOLOGARBPROC pfnglGetInfoLogARB = NULL;
+PFNGLGETOBJECTPARAMETERIVARBPROC pfnglGetObjectParameterivARB = NULL;
+PFNGLLINKPROGRAMARBPROC pfnglLinkProgramARB = NULL;
+PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB = NULL;
+PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB = NULL;
+
+static void
+printInfoLog(GLhandleARB obj) {
+    int infoLogLength = 0;
+    int len = 0;
+    GLcharARB *infoLog;
+
+    pfnglGetObjectParameterivARB(obj,
+				 GL_OBJECT_INFO_LOG_LENGTH_ARB,
+				 &infoLogLength);
+    if (infoLogLength > 0) {
+	infoLog = (GLcharARB *)malloc(infoLogLength);
+	if (infoLog == NULL) {
+	    fprintf(stderr,
+		    "ERROR: could not allocate infoLog buffer\n");
+	    return;
+	}
+
+	pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
+	fprintf(stderr, "InfoLog: infoLogLength = %d, len = %d\n",
+		infoLogLength, len);
+	fprintf(stderr, "%s\n", infoLog);
+    }
+}
+#endif /* !COMPILE_GLSL_SHADERS */
+
+
+/*
+ * TODO: pass in an array of shaders (no need to distinguish
+ * vertex from fragment in the native code)
+ */
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgram
+ * Method:    updateNative
+ * Signature: (J[B[B)V
+ */
+JNIEXPORT void JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jbyteArray vertexShader,
+    jbyteArray fragmentShader)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+#ifndef COMPILE_GLSL_SHADERS
+    static GLboolean firstTime = GL_TRUE;
+    if (firstTime) {
+	fprintf(stderr, "Java 3D ERROR : GLSLShader code not compiled\n");
+	firstTime = GL_FALSE;
+    }
+    return;
+#endif /* !COMPILE_GLSL_SHADERS */
+
+#ifdef COMPILE_GLSL_SHADERS
+    GLint status;
+
+    /* Vertex shader */
+    jsize vertexLen;
+    jbyte *vertexShaderBytes; /* Array of bytes */
+    GLcharARB *vertexShaderString = NULL; /* Null-terminated "C" string */
+
+    /* Fragment shader */
+    jsize fragmentLen;
+    jbyte *fragmentShaderBytes;	/* Array of bytes */
+    GLcharARB *fragmentShaderString = NULL;	/* Null-terminated "C" string */
+
+    static GLboolean firstTime = GL_TRUE;
+
+    if (firstTime) {
+#if defined(SOLARIS) || defined(__linux__)
+	pfnglAttachObjectARB =
+	    (PFNGLATTACHOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glAttachObjectARB");
+	pfnglCompileShaderARB =
+	    (PFNGLCOMPILESHADERARBPROC)dlsym(RTLD_DEFAULT, "glCompileShaderARB");
+	pfnglCreateProgramObjectARB =
+	    (PFNGLCREATEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateProgramObjectARB");
+	pfnglCreateShaderObjectARB =
+	    (PFNGLCREATESHADEROBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateShaderObjectARB");
+	pfnglGetInfoLogARB =
+	    (PFNGLGETINFOLOGARBPROC)dlsym(RTLD_DEFAULT, "glGetInfoLogARB");
+	pfnglGetObjectParameterivARB =
+	    (PFNGLGETOBJECTPARAMETERIVARBPROC)dlsym(RTLD_DEFAULT, "glGetObjectParameterivARB");
+	pfnglLinkProgramARB =
+	    (PFNGLLINKPROGRAMARBPROC)dlsym(RTLD_DEFAULT, "glLinkProgramARB");
+	pfnglShaderSourceARB =
+	    (PFNGLSHADERSOURCEARBPROC)dlsym(RTLD_DEFAULT, "glShaderSourceARB");
+	pfnglUseProgramObjectARB =
+	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
+
+#endif
+#ifdef WIN32
+	pfnglAttachObjectARB =
+	    (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	pfnglCompileShaderARB =
+	    (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	pfnglCreateProgramObjectARB =
+	    (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+	pfnglCreateShaderObjectARB =
+	    (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	pfnglGetInfoLogARB =
+	    (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	pfnglGetObjectParameterivARB =
+	    (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+	pfnglLinkProgramARB =
+	    (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	pfnglShaderSourceARB =
+	    (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	pfnglUseProgramObjectARB =
+	    (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+#endif
+	if (pfnglCreateShaderObjectARB == NULL) {
+	    fprintf(stderr, "Java 3D ERROR : GLSLShader extension not available\n");
+	}
+
+	firstTime = GL_FALSE;
+    }
+
+    if (pfnglCreateShaderObjectARB == NULL) {
+	return;
+    }
+
+    /* Process vertex shader */
+    /*
+    fprintf(stderr, "    vertexShader == 0x%x\n", vertexShader);
+    */
+    if (vertexShader != 0) {
+	vertexLen = (*(table->GetArrayLength))(env, vertexShader);
+
+	vertexShaderString = (char *)malloc(vertexLen + 1);
+	if (vertexShaderString == NULL) {
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "malloc");
+	    }
+	    return;
+	}
+
+	vertexShaderBytes =
+	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, vertexShader, NULL);
+	if (vertexShaderBytes == NULL) {
+	    free(vertexShaderString);
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
+	    }
+	    return;
+	}
+
+	/*
+	 * TODO: No need to copy to a null-terminated string, we can
+	 * pass in the lengths instead.
+	 */
+	memcpy(vertexShaderString, vertexShaderBytes, vertexLen);
+	vertexShaderString[vertexLen] = '\0';
+	(*(table->ReleasePrimitiveArrayCritical))(env, vertexShader,
+						  vertexShaderBytes, JNI_ABORT);
+
+	/*
+	 * TODO: need to check whether the shader has changed and free up the
+	 * old shader before allocating a new one (like we do for texture)
+	 */
+	if (glVertexShader == 0) {
+	    /* create the vertex shader */
+	    fprintf(stderr,
+		    "GLSLShaderProgram_updateNative: create vertex shader program\n");
+	    glVertexShader = pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	    pfnglShaderSourceARB(glVertexShader, 1, &vertexShaderString, NULL);
+	    pfnglCompileShaderARB(glVertexShader);
+	    pfnglGetObjectParameterivARB(glVertexShader,
+				      GL_OBJECT_COMPILE_STATUS_ARB,
+				      &status);
+	    fprintf(stderr, "COMPILE ");
+	    if (status) {
+		fprintf(stderr, "SUCCESSFUL\n");
+	    }
+	    else {
+		fprintf(stderr, "FAILED\n");
+		printInfoLog(glVertexShader);
+	    }
+	}
+	free(vertexShaderString);
+    }
+
+    /* Process fragment shader */
+    /*
+    fprintf(stderr, "    fragmentShader == 0x%x\n", fragmentShader);
+    */
+    if (fragmentShader != 0) {
+	fragmentLen = (*(table->GetArrayLength))(env, fragmentShader);
+
+	fragmentShaderString = (char *)malloc(fragmentLen + 1);
+	if (fragmentShaderString == NULL) {
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "malloc");
+	    }
+	    return;
+	}
+
+	fragmentShaderBytes =
+	    (jbyte *) (*(table->GetPrimitiveArrayCritical))(env, fragmentShader, NULL);
+	if (fragmentShaderBytes == NULL) {
+	    free(fragmentShaderString);
+	    if ((oom = (*(table->FindClass))(env, "java/lang/OutOfMemoryError")) != NULL) {
+		(*(table->ThrowNew))(env, oom, "GetPrimitiveArrayCritical");
+	    }
+	    return;
+	}
+
+	/*
+	 * TODO: No need to copy to a null-terminated string, we can
+	 * pass in the lengths instead.
+	 */
+	memcpy(fragmentShaderString, fragmentShaderBytes, fragmentLen);
+	fragmentShaderString[fragmentLen] = '\0';
+	(*(table->ReleasePrimitiveArrayCritical))(env, fragmentShader,
+						  fragmentShaderBytes, JNI_ABORT);
+
+	/*
+	 * TODO: need to check whether the shader has changed and free up the
+	 * old shader before allocating a new one (like we do for texture)
+	 */
+	if (glFragmentShader == 0) {
+	    /* create the fragment shader */
+	    fprintf(stderr,
+		    "GLSLShaderProgram_updateNative: create fragment shader program\n");
+	    glFragmentShader = pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	    pfnglShaderSourceARB(glFragmentShader, 1, &fragmentShaderString, NULL);
+	    pfnglCompileShaderARB(glFragmentShader);
+	    pfnglGetObjectParameterivARB(glFragmentShader,
+				      GL_OBJECT_COMPILE_STATUS_ARB,
+				      &status);
+	    fprintf(stderr, "COMPILE ");
+	    if (status) {
+		fprintf(stderr, "SUCCESSFUL\n");
+	    }
+	    else {
+		fprintf(stderr, "FAILED\n");
+		printInfoLog(glFragmentShader);
+	    }
+	}
+	free(fragmentShaderString);
+    }
+
+    /*
+     * Enable shader if we have either a vertex or a fragment shader.
+     * TODO: change this
+     */
+    if (vertexShader != 0 || fragmentShader != 0) {
+	/* Link the shader (if first time) */
+	if (glShaderProgram == 0) {
+	    fprintf(stderr,
+		    "GLSLShaderProgram_updateNative: link shader program\n");
+	    glShaderProgram = pfnglCreateProgramObjectARB();
+	    if (vertexShader != 0) {
+		pfnglAttachObjectARB(glShaderProgram, glVertexShader);
+	    }
+	    if (fragmentShader != 0) {
+		pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
+	    }
+	    pfnglLinkProgramARB(glShaderProgram);
+
+	    pfnglGetObjectParameterivARB(glShaderProgram,
+				      GL_OBJECT_LINK_STATUS_ARB,
+				      &status);
+	    fprintf(stderr, "LINK ");
+	    if (status) {
+		fprintf(stderr, "SUCCESSFUL\n");
+	    }
+	    else {
+		fprintf(stderr, "FAILED\n");
+		printInfoLog(glShaderProgram);
+	    }
+	}
+
+	pfnglUseProgramObjectARB(glShaderProgram);
+    }
+    else {
+	pfnglUseProgramObjectARB(0);
+    }
+#endif /* !COMPILE_GLSL_SHADERS */
+
+}
+/* KCR: END GLSL SHADER HACK */
