@@ -16,7 +16,7 @@
  * of the Java 3D API.
  */
 
-#if defined(__linux__)
+#if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
 
@@ -26,7 +26,7 @@
 
 #include "gldefs.h"
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -37,7 +37,7 @@
 #include <windows.h>
 #endif
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
 
 /*

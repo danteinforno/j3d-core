@@ -23,9 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(SOLARIS) || defined(LINUX)
 #define GLX_GLEXT_PROTOTYPES
 #define GLX_GLXEXT_PROTOTYPES
+#define UNIX
+
 #include <limits.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -301,7 +303,7 @@
 #define J3D_RGBA         javax_media_j3d_Texture_RGBA
 
 #ifndef D3D
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 extern void APIENTRY glBlendColor (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glBlendColorEXT (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glColorTable (GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid *);
@@ -345,7 +347,7 @@ extern void APIENTRY glTexSubImage3DEXT (GLenum, GLint, GLint, GLint, GLint, GLs
 extern int glXVideoResizeSUN( Display *, GLXDrawable, float);
 #endif
 
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -387,10 +389,10 @@ typedef void (APIENTRY * MYPFNGLSHARPENTEXFUNCSGI) (GLenum target, GLsizei n, co
 typedef void (APIENTRY * MYPFNGLDETAILTEXFUNCSGI) (GLenum target, GLsizei n, const GLfloat *points);
 typedef void (APIENTRY * MYPFNGLTEXFILTERFUNCSGI) (GLenum target, GLenum filter, GLsizei n, const GLfloat *points);
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 typedef GLXFBConfig * (APIENTRY * MYPFNGLXCHOOSEFBCONFIG) (Display *dpy, int screen, const int *attrib_list, int *nelements);
 typedef int (APIENTRY * MYPFNGLXVIDEORESIZESUN) (Display * dpy, GLXDrawable draw, float factor);
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 
 /* define the structure to hold the properties of graphics context */
@@ -597,9 +599,9 @@ typedef struct {
     MYPFNGLDETAILTEXFUNCSGI glDetailTexFuncSGIS;
     MYPFNGLTEXFILTERFUNCSGI glTexFilterFuncSGIS;
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 } GraphicsContextPropertiesInfo;
 
@@ -650,7 +652,7 @@ typedef struct OffScreenBufferInfoRec OffScreenBufferInfo;
 struct OffScreenBufferInfoRec {
     GLboolean isPbuffer; /* GL_TRUE if Pbuffer is used. */
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #endif
     
 #ifdef WIN32
