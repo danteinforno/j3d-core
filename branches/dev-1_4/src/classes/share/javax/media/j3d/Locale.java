@@ -158,6 +158,7 @@ public class Locale extends Object {
 	    throw new MultipleParentException(J3dI18N.getString("Locale0"));
         }
 
+        universe.notifyStructureChangeListeners(true, this, branchGroup);
 	universe.resetWaitMCFlag();
 	synchronized (universe.sceneGraphLock) {
 	    doAddBranchGraph(branchGroup);
@@ -377,6 +378,7 @@ public class Locale extends Object {
 					   universe);
 	}
 	universe.setLiveState.reset(null); // cleanup memory
+        universe.notifyStructureChangeListeners(false, this, branchGroup);
     }
 
     /**
@@ -408,10 +410,12 @@ public class Locale extends Object {
 	    throw new MultipleParentException(J3dI18N.getString("Locale3"));
         }
 	universe.resetWaitMCFlag();
+        universe.notifyStructureChangeListeners(true, this, newGroup);
 	synchronized (universe.sceneGraphLock) {
 	    doReplaceBranchGraph(oldGroup, newGroup);
 	    universe.setLiveState.reset(this);
 	}
+        universe.notifyStructureChangeListeners(false, this, oldGroup);
 	universe.waitForMC();
     }
 
