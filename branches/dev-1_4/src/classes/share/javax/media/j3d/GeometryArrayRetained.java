@@ -1482,19 +1482,27 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 		
 
-    void createGeometryArrayData(int vertexCount, int vertexFormat)
-    {
+    void createGeometryArrayData(int vertexCount, int vertexFormat) {
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 	    createGeometryArrayData(vertexCount, vertexFormat, 1, 
-				defaultTexCoordSetMap);
+				    defaultTexCoordSetMap);
 	} else {
 	    createGeometryArrayData(vertexCount, vertexFormat, 0, null);
 	}
     }
 
     void createGeometryArrayData(int vertexCount, int vertexFormat,
-				 int texCoordSetCount, int[] texCoordSetMap) 
-    {
+				 int texCoordSetCount, int[] texCoordSetMap) {
+
+	createGeometryArrayData(vertexCount, vertexFormat,
+				texCoordSetCount, texCoordSetMap,
+				0, null, null);
+    }
+
+    void createGeometryArrayData(int vertexCount, int vertexFormat,
+				 int texCoordSetCount, int[] texCoordSetMap,
+				 int vertexAttrCount, int[] vertexAttrFormats,
+				 String[] vertexAttrNames) {
 	this.vertexFormat = vertexFormat;
 	this.vertexCount = vertexCount;
 	this.validVertexCount = vertexCount;
