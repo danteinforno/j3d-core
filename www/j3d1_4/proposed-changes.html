@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-  <meta http-equiv="content-type"
- content="text/html; charset=ISO-8859-1">
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
   <title>Proposed Java 3D 1.4 API Changes</title>
 </head>
 <body>
@@ -16,9 +16,7 @@ Changes</a>. Click
 <a href="http://javadesktop.org/java3d/javadoc/1.4.0-latest/index.html">here</a>
 for the
 <a href="http://javadesktop.org/java3d/javadoc/1.4.0-latest/index.html">latest
-javadocs for the proposed 1.4 API</a> (built from the dev-1_4 branch).
-A list of other <a href="improvements.html">possible improvements to
-Java&nbsp;3D version 1.4</a> is also available.
+javadocs for the proposed 1.4 API</a> (built from the dev-1_4 branch).<br>
 </p>
 <h3>I. High Priority Features</h3>
 <p>This list of high priority features will almost certainly make it
@@ -29,165 +27,43 @@ into the 1.4 API.
 for the 1.4. For more information see the <a href="shaders.html">Programmable
 Shaders in Java&nbsp;3D 1.4</a> page.
 </p>
-<h4>2. Scene graph structure change listeners<br>
-</h4>
-<p>We propose to add a notification mechansim for scene graph structure
-changes: additions, deletions, and
-moves of branch graphs to/from a live scene graph. We propose
-adding <code>add/removeGraphChangeListener(</code><code>GraphChangeListener</code><code>)</code>
-methods to <code>VirtualUniverse</code> and a new <code>GraphChangeListener</code>
-interface with <code>graphAdded</code>, <code>graphRemoved</code>,
-and <code>graphMoved</code> methods that get called when any branch
-graph is added (attached),
-removed (detached), or moved, respectively.<br>
-</p>
+<h4>2. Another feature...</h4>
+<p>This is another feature...</p>
 <h4>3. Miscellaneous features</h4>
 <p>This is a list of miscellaneous features that we propose to add to
 the API.
 </p>
 <ul>
-  <li>Name string for all scene graph objects: add public <code>get/setName(String)</code>
-to <code>SceneGraphObject</code> class</li>
-  <li>Allow getParent() to be called on live/compiled scene graph: add
-public <code>ALLOW_PARENT_READ</code> capability bit (default=<code>false</code>)
-to <code>Node </code>class</li>
-  <li>Ability to get the Locale from a live node: add public <code>getLocale()</code>
-method and <code>ALLOW_LOCALE_READ</code> capability bit to <code>Node</code>
-class<br>
-  </li>
-  <li>Additional blending functions, for example: <code>BLEND_SRC_COLOR,
-BLEND_ONE_MINUS_SRC_COLOR, BLEND_DST_COLOR, BLEND_ONE_MINUS_DST_COLOR</code></li>
+  <li>Name string added to all scene graph objects. Need public
+get/setName(String) in SceneGraphObject</li>
+  <li>What else...</li>
 </ul>
-<h4>4. List of features to deprecate</h4>
-<p>This is a list of miscellaneous features that we propose to
-deprecate in
-the API.<br>
-</p>
-<ul>
-  <li><code>CompressedGeometry</code> (no HW support, lack of industry
-acceptance)</li>
-  <li><code>Sensor</code> prediction (has never been implemented)<br>
-  </li>
-</ul>
-<p>Note that none of these features will actually be removed. It
-instead
-reflects a decrease of emphasis on these features. While they should
-continue
-to function normally, no additional effort is likely to be put into
-them (for example, compressed geometry will not be supported with
-programmable shaders). This action paves the way to remove them from a
-future major release (e.g., a 2.0 release).<br>
-</p>
 <h3>II. Medium Priority Features</h3>
 <p>This list of medium priority features is under discussion for
 possible inclusion
 into the 1.4 API.
 </p>
-<h4>1. Render to texture<br>
+<h4>1. Something...<br>
 </h4>
-<p><span style="font-style: italic; color: rgb(0, 153, 0);">DESCRIPTION
-FOR POSSIBLE RENDER-TO-TEXTURE SUPPORT GOES HERE...</span>
+<p>Something...<br>
 </p>
-<h4>2. Stencil buffer support<br>
-</h4>
-<p><span style="font-style: italic; color: rgb(0, 153, 0);">DESCRIPTION
-FOR POSSIBLE STENCIL SUPPORT GOES HERE; NOTE THAT THIS WILL NOT INCLUDE
-ANY MULTIPASS EFFECTS for 1.4...</span>
-</p>
-<h4>3. Move picking into core</h4>
-<p>We should consider moving some of the picking utilities (e.g.,
-PickCanvas and PickResult)
-into the core API. Before doing this, we would need to scope out the
-effort involved, and assess the
-potential benefit.<br>
-</p>
-<h4>4. Lightweight Canvas3D (e.g., JCanvas3D)</h4>
-<p>We should consider adding a lightweight JCanvas3D that is similar to
-JGLCanvas in JOGL. Adding this into core may be beyond the
-scope of 1.4. Probably can be done as a utility, although it
-may require some core changes.
-<span style="color: rgb(204, 0, 0);">Note: this feature will not happen
-without an someone from the community volunteering
-to drive it.</span>
-</p>
-<h4>5. Miscellaneous features</h4>
+<h4>2. Miscellaneous features</h4>
 <p>This is a list of miscellaneous features that are being considered
 for addition to
 the API.<br>
 </p>
 <ul>
-  <li>Non-power-of-two textures</li>
-  <li>Point sprites</li>
-  <li>Ability for nested ViewSpecificGroup nodes to replace the set of
-views in addition to
-current intersection semantics</li>
-  <li>API support for&nbsp; retained alpha buffers</li>
-  <li>Ability to query properties from a <code>GraphicsConfiguration</code></li>
-  <li>Better support for off-screen configuration parameters (e.g., an
-attribute in <code>GraphicsConfigTemplate3D</code> indicating whether
-the requested <code>GraphicsConfiguration</code> is used for on-screen
-rendering,
-off-screen rendering, or both)</li>
-  <li>Add a new attribute for depth test function to
-RenderingAttributes: public <code>get/setDepthTestFunction(int&nbsp;function)</code>
-methods that takes as values one of: <code>ALWAYS, NEVER,
-EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER, GREATER_OR_EQUAL</code>.
-The default value would be <code>LESS_OR_EQUAL</code> for backward
-compatibility. <span style="color: rgb(204, 0, 0);">Note: this feature
-will not
-happen
-without an someone from the community volunteering
-to drive it.</span></li>
-  <li>Method to retrieve the geometry data from the tessellation of a
-glyph in a 3D font: a
-public <code>GeometryArray&nbsp;getGlyphGeometry(</code><code>int&nbsp;glyphCode</code><code>)</code>
-method in the <code>Font3D</code> class. <span
- style="color: rgb(204, 0, 0);">Note: this feature will not
-happen
-without an someone from the community volunteering
-to drive it.</span></li>
+  <li>a</li>
+  <li>b</li>
 </ul>
-<h4>6. List of features to deprecate</h4>
-<p>This is a list of miscellaneous features that are being considered
-for deprecation in
-the API.<br>
-</p>
-<ul>
-  <li><code>SharedGroup</code> (many bugs, <em>very</em> difficult to
-implement
-efficiently)</li>
-</ul>
-<p>These are in addition to the API being proposed for deprecation in
-section I.<br>
-</p>
-<h3><a name="Future_Features"></a>III. Future Features</h3>
+<h3>III. Future Features</h3>
 <p>Here is an unprioritized list of possible features under
 consideration for a future (e.g., 1.5/2.0)
 version of the Java&nbsp;3D API.
 </p>
 <ul>
-  <li>Multipass rendering</li>
-  <li>Shadow map support</li>
-  <li>Additional texture formats:
-    <ul>
-      <li>NIO buffer support</li>
-      <li>Texture compression formats</li>
-    </ul>
-  </li>
-  <li>Extensibility:
-    <ul>
-      <li>Access to the native context (JOGL integration)</li>
-      <li>Geometry extensibility</li>
-      <li>Additional node types (e.g., haptic rendering)</li>
-      <li>Extensible geometry processing algorithms</li>
-    </ul>
-  </li>
-  <li>Plug-in capability
-    <ul>
-      <li>Rendering Device Interface (pluggable renderers)</li>
-      <li>Visibility structure</li>
-    </ul>
-  </li>
+  <li>Extensibility</li>
+  <li>Pluggable renderers</li>
 </ul>
 <p><font color="gray">Page last updated &#8212;
 $Date$

@@ -71,6 +71,7 @@ HWND createDummyWindow(const char* szAppName);
 void extractVersionInfo(char *versionStr, int* numbers){
     char *majorNumStr;
     char *minorNumStr;
+
     majorNumStr = strtok(versionStr, (char *)".");
     minorNumStr = strtok(0, (char *)".");
     if (majorNumStr != NULL)
@@ -78,7 +79,6 @@ void extractVersionInfo(char *versionStr, int* numbers){
     if (minorNumStr != NULL)
 	numbers[1] = atoi(minorNumStr);
 
-    /* fprintf(stderr, "majorNumStr = %d, minNumStr = %d \n", numbers[0], numbers[1]); */
     return; 
 }
 
@@ -436,8 +436,7 @@ getPropertiesFromCurrentContext(
     char *tmpExtensionStr;
     int   versionNumbers[2];
     char *cgHwStr = 0;
-    
-    
+
 #ifdef WIN32
     PIXELFORMATDESCRIPTOR pfd;
     PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
@@ -485,11 +484,10 @@ getPropertiesFromCurrentContext(
     /* *********************************************************/
     /* setup the graphics context properties */
 
-    /* check 1.2 core and above */
-    if ((versionNumbers[0] > 1) ||
-	(versionNumbers[0] == 1 && versionNumbers[1] >= 2)) {
+    /* Check for OpenGL 1.3 core or better */
+    if ((versionNumbers[0] == 1 && versionNumbers[1] >= 3) ||
+	versionNumbers[0] == 2) {
 
-	/* 1.2 core */
         ctxInfo->rescale_normal_ext = JNI_TRUE;
 	ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL;
 	ctxInfo->bgr_ext = JNI_TRUE;
@@ -539,103 +537,24 @@ getPropertiesFromCurrentContext(
 	ctxInfo->texture_max_level_enum = GL_TEXTURE_MAX_LEVEL;
 
 	/* ...  */
-	
-    } else { /* check 1.1 extension */
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_rescale_normal")){
-   	    ctxInfo->rescale_normal_ext = JNI_TRUE;
-	    ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL_EXT;
+    }
+    else {
+	jclass rte;
+
+	fprintf(stderr,
+		"Java 3D ERROR : OpenGL 1.3 or better is required (GL_VERSION=%d.%d)\n",
+		versionNumbers[0], versionNumbers[1]);
+	if ((rte = (*(table->FindClass))(env, "java/lang/IllegalStateException")) != NULL) {
+	    (*(table->ThrowNew))(env, rte, "GL_VERSION");
 	}
-	if(isExtensionSupported(tmpExtensionStr,"GL_BGR_EXT")) {
-	    ctxInfo->bgr_ext = 1;
-	    ctxInfo->bgr_ext_enum = GL_BGR_EXT;
-	}
-	
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_texture3D" )){
-	    ctxInfo->texture3DAvailable = JNI_TRUE;
-	    ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_3D;
-	    ctxInfo->texture_3D_ext_enum = GL_TEXTURE_3D_EXT;
-	    ctxInfo->texture_wrap_r_ext_enum = GL_TEXTURE_WRAP_R_EXT;
-#if defined(SOLARIS) || defined(__linux__)
-	    ctxInfo->glTexImage3DEXT = (MYPFNGLTEXIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexImage3DEXT");
-	    ctxInfo->glTexSubImage3DEXT = (MYPFNGLTEXSUBIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexSubImage3DEXT");
-            /* Fallback to non-EXT variants, needed for older
-               NVIDIA drivers which announce GL_EXT_texture3D but
-               don't have the EXT variants */
-           if (ctxInfo->glTexImage3DEXT == NULL ||
-                ctxInfo->glTexSubImage3DEXT == NULL) {
-
-                ctxInfo->glTexImage3DEXT =
-                    (MYPFNGLTEXIMAGE3DPROC) dlsym(RTLD_DEFAULT, "glTexImage3D");
-                ctxInfo->glTexSubImage3DEXT =
-                    (MYPFNGLTEXSUBIMAGE3DPROC) dlsym(RTLD_DEFAULT, "glTexSubImage3D");
-
-                if (ctxInfo->glTexImage3DEXT == NULL ||
-                    ctxInfo->glTexSubImage3DEXT == NULL) {
-
-                    ctxInfo->textureExtMask &=
-                        ~javax_media_j3d_Canvas3D_TEXTURE_3D;
-                    ctxInfo->texture3DAvailable = JNI_FALSE;
-                }
-            }
-
-#endif
-#ifdef WIN32
-	    ctxInfo->glTexImage3DEXT = (MYPFNGLTEXIMAGE3DPROC )wglGetProcAddress("glTexImage3DEXT");
-	    ctxInfo->glTexSubImage3DEXT = (MYPFNGLTEXSUBIMAGE3DPROC )wglGetProcAddress("glTexSubImage3DEXT");
-	    if ((ctxInfo->glTexImage3DEXT == NULL) || (ctxInfo->glTexSubImage3DEXT == NULL)) {
-		ctxInfo->textureExtMask &= ~javax_media_j3d_Canvas3D_TEXTURE_3D;
-		ctxInfo->texture3DAvailable = JNI_FALSE;
-	    }   
-#endif	    
-	}
-
-
-	if(isExtensionSupported(tmpExtensionStr, "GL_EXT_texture_edge_clamp")) {
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP_TO_EDGE_EXT;
-	} else if(isExtensionSupported(tmpExtensionStr, "GL_SGIS_texture_edge_clamp")) {
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP_TO_EDGE_SGIS;
-	} else {
-	    /* fallback to GL_CLAMP */
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP;
-	}
-	    
-
-	if(isExtensionSupported(tmpExtensionStr, "GL_EXT_blend_color")){
-	    ctxInfo->blend_color_ext = JNI_TRUE;
-#if defined(SOLARIS) || defined(__linux__)
-	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLOREXTPROC )dlsym(RTLD_DEFAULT, "glBlendColorEXT");
-#endif
-#ifdef WIN32	    
-	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLOREXTPROC )wglGetProcAddress("glBlendColorEXT");
-	    if (ctxInfo->glBlendColor == NULL) {
-		ctxInfo->blend_color_ext = JNI_FALSE;
-	    }
-#endif
-	    ctxInfo->blendFunctionTable[7] = GL_CONSTANT_COLOR_EXT;
-	}
-	
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_separate_specular_color" )){
-	    ctxInfo->seperate_specular_color = JNI_TRUE;
-	    ctxInfo->light_model_color_control_enum =  GL_LIGHT_MODEL_COLOR_CONTROL_EXT;
-	    ctxInfo->single_color_enum = GL_SINGLE_COLOR_EXT;
-	    ctxInfo->seperate_specular_color_enum =  GL_SEPARATE_SPECULAR_COLOR_EXT ;
-	}
-
-	if (isExtensionSupported(tmpExtensionStr,"GL_SGIS_texture_lod")) {
-	    ctxInfo->textureLodAvailable = JNI_TRUE;
-	    ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_LOD_RANGE;
-	    ctxInfo->texture_min_lod_enum = GL_TEXTURE_MIN_LOD_SGIS;
-	    ctxInfo->texture_max_lod_enum = GL_TEXTURE_MAX_LOD_SGIS;
-	    ctxInfo->texture_base_level_enum = GL_TEXTURE_BASE_LEVEL_SGIS;
-	    ctxInfo->texture_max_level_enum = GL_TEXTURE_MAX_LEVEL_SGIS;
-	}
-
-
-  	/* ... */
+	return JNI_FALSE;
     }
 
+    /*
+     * TODO: Remove extension checks for those features that are core
+     * in OpenGL 1.3 and just use the core feature.
+     */
 
-	
     /* check extensions for remaining of 1.1 and 1.2 */
     if(isExtensionSupported(tmpExtensionStr, "GL_EXT_multi_draw_arrays")){
 	ctxInfo->multi_draw_arrays_ext = JNI_TRUE;
@@ -713,7 +632,7 @@ getPropertiesFromCurrentContext(
      * it by default if the surface is multisample capable.
      */
     if (ctxInfo->arb_multisample && !ctxInfo->implicit_multisample) {
-	glDisable(MULTISAMPLE_ARB);
+	glDisable(GL_MULTISAMPLE_ARB);
     }
     /*
      * checking of the texture extensions is done in checkTextureExtensions(),
@@ -3495,10 +3414,10 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing
 
     if (ctxProperties->arb_multisample && !ctxProperties->implicit_multisample) {
 	if(enable == JNI_TRUE) {
-	    glEnable(MULTISAMPLE_ARB);
+	    glEnable(GL_MULTISAMPLE_ARB);
 	}
 	else {
-	    glDisable(MULTISAMPLE_ARB);
+	    glDisable(GL_MULTISAMPLE_ARB);
 
 	}
     }
