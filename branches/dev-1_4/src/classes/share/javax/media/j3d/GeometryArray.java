@@ -2527,7 +2527,7 @@ public abstract class GeometryArray extends Geometry {
 
 
 	if (((((GeometryArrayRetained)this.retained).vertexFormat) & 
-		(TEXTURE_COORDINATE_2 | TEXTURE_COORDINATE_3)) != 0)
+		(TEXTURE_COORDINATE_2 | TEXTURE_COORDINATE_4)) != 0)
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray95"));
 
 	((GeometryArrayRetained)this.retained).setTextureCoordinates(
