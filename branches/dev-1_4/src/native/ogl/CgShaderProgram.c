@@ -17,7 +17,7 @@
 
 
 /* KCR: BEGIN SHADER HACK */
-#if defined(__linux__)
+#if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
 /* KCR: END SHADER HACK */

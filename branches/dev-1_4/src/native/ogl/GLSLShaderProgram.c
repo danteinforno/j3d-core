@@ -17,7 +17,7 @@
 
 
 /* KCR: BEGIN SHADER HACK */
-#if defined(__linux__)
+#if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
 /* KCR: END SHADER HACK */
@@ -40,7 +40,7 @@ extern char *strJavaToC(JNIEnv *env, jstring str);
 #undef COMPILE_GLSL_SHADERS
 #endif
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #include <dlfcn.h>
 #endif
 /* KCR: END GLSL SHADER HACK */
@@ -142,7 +142,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     static GLboolean firstTime = GL_TRUE;
 
     if (firstTime) {
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	pfnglAttachObjectARB =
 	    (PFNGLATTACHOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glAttachObjectARB");
 	pfnglCompileShaderARB =
