@@ -15,6 +15,8 @@ package javax.media.j3d;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -155,6 +157,8 @@ public class VirtualUniverse extends Object {
     boolean isSceneGraphLock = false;
 
     private Object waitLock = new Object();
+    
+    private HashSet structureChangeListenerList = null;
 
     /**
      * Constructs a new VirtualUniverse.
@@ -989,5 +993,80 @@ public class VirtualUniverse extends Object {
 	    }
 	    isSceneGraphLock = false;
 	}
+    }
+    
+    /**
+     * Adds the specified GraphStructureChangeListener to the set of listeners
+     * which will be notified when the graph structure is changed on a live
+     * scene graph. If the specifed listener is null no action is taken and no 
+     * exception is thrown.
+     *
+     * @param listener the listener to add to the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void addGraphStructureChangeListener(GraphStructureChangeListener listener) {
+        if (listener==null) {
+            return;
+        }
+        
+        if (structureChangeListenerList==null) {
+            structureChangeListenerList = new HashSet();
+        }
+        
+        synchronized(structureChangeListenerList) {
+            structureChangeListenerList.add(listener);
+        }
+    }
+    
+    /**
+     * Removes the specified GraphStructureChangeListener from the set of listeners. This
+     * method performs no function, nor does it throw an exception if the specified listener
+     * is not currently in the set or is null.
+     *
+     * @param listener the listener to remove from the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void removeGraphStructureChangeListener(GraphStructureChangeListener listener) {
+        synchronized(structureChangeListenerList) {
+            structureChangeListenerList.remove(listener);
+        }
+    }
+    
+    /**
+     * Processes all live BranchGroup add and removes and notifies
+     * any registered listeners. Used for add and remove
+     *
+     * @since Java 3D 1.4
+     */
+    void notifyStructureChangeListeners(boolean add, Object parent, BranchGroup child) {
+        if (structureChangeListenerList==null)
+            return;
+        
+        synchronized(structureChangeListenerList) {
+            Iterator it = structureChangeListenerList.iterator();
+            while(it.hasNext()) {
+                if (add)
+                    ((GraphStructureChangeListener)it.next()).branchGroupAdded(parent, child);
+                else
+                    ((GraphStructureChangeListener)it.next()).branchGroupRemoved(parent, child);
+            }
+        }
+    }
+    
+    /**
+     * Processes all live BranchGroup moves and notifies
+     * any registered listeners. Used for moveTo
+     *
+     *@since Java 3D 1.4
+     */
+    void notifyStructureChangeListeners(Object oldParent, Object newParent, BranchGroup child) {
+        synchronized(structureChangeListenerList) {
+            Iterator it = structureChangeListenerList.iterator();
+            while(it.hasNext()) {
+                ((GraphStructureChangeListener)it.next()).branchGroupMoved(oldParent, newParent, child);
+            }
+        }
     }
 }
