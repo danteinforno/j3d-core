@@ -42,7 +42,7 @@ public abstract class SceneGraphObject extends Object {
 
     // A reference to user data
     private Object userData = null;
-    
+
     // Optional name for object.
     private String objectName = null;
 
@@ -335,29 +335,24 @@ public abstract class SceneGraphObject extends Object {
     }
 
     /**
-     * Set the name of this object. Object name are for information
+     * Sets the name of this object. Object names are for information
      * only.
      *
-     * @since Java3D 1.4
-     * @param name the objects name
+     * @param name the new name of this object
+     * @since Java 3D 1.4
      */
     public void setName( String name ) {
         objectName = name;
     }
-    
+
     /**
-     * Get the name of this object
+     * Returns the name of this object.
      *
-     * A copy of the name string is returned or null if no name has
-     * been set.
-     *
-     * @since Java3D 1.4
      * @return the name of this object
+     * @since Java 3D 1.4
      */             
     public String getName() {
-        if (objectName==null)
-            return null;
-        return objectName;
+	return objectName;
     }
 
     /**
