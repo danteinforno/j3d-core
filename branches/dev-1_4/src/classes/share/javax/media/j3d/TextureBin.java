@@ -1083,13 +1083,18 @@ class TextureBin extends Object implements ObjectUpdate {
 					    Canvas3D.TEXTUREATTRIBUTES_DIRTY)) != 0);
 
 	/* KCR: BEGIN CG SHADER HACK */
-	if (app != null && app.shaderProgram != null) {
-	    // Update the native shader program attributes. Note that
-	    // the current hack only works when the sole user
-	    // optimization is in effect. The appearance with the
-	    // Shader Program must have a frequently-writable texture
-	    // and it must be the sole user of this texture bin.
-	    app.shaderProgram.updateNative(cv.ctx);
+	if (app != null && app instanceof ShaderAppearanceRetained) {
+	    ShaderProgram shaderProgram =
+		((ShaderAppearanceRetained)app).shaderProgram;
+
+	    if (shaderProgram != null) {
+		// Update the native shader program attributes. Note that
+		// the current hack only works when the sole user
+		// optimization is in effect. The appearance with the
+		// Shader Program must have a frequently-writable texture
+		// and it must be the sole user of this texture bin.
+		shaderProgram.updateNative(cv.ctx);
+	    }
 	}
 	/* KCR: END CG SHADER HACK */
 

@@ -31,7 +31,6 @@
 #include <X11/Xutil.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 
@@ -73,7 +72,6 @@
 #ifndef D3D
 #include <GL/gl.h>
 #include "wglext.h"
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 

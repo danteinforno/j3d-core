@@ -13,35 +13,35 @@
 package javax.media.j3d;
 
 /**
- * The GL2ShaderProgram object is a concrete implementation of a ShaderProgram
- * node component for the OpenGL GL2 shading language.
+ * The GLSLShaderProgram object is a concrete implementation of a ShaderProgram
+ * node component for the OpenGL GLSL shading language.
  *
- * @see GL2VertexShader
- * @see GL2FragmentShader
+ * @see GLSLVertexShader
+ * @see GLSLFragmentShader
  *
  * @since Java 3D 1.4
  */
 
-public class GL2ShaderProgram extends ShaderProgram {
-    private GL2VertexShader vertexShader = null;
-    private GL2FragmentShader fragmentShader = null;
+public class GLSLShaderProgram extends ShaderProgram {
+    private GLSLVertexShader vertexShader = null;
+    private GLSLFragmentShader fragmentShader = null;
 
-    public GL2ShaderProgram() {
+    public GLSLShaderProgram() {
     }
 
-    public void setVertexShader(GL2VertexShader vertexShader) {
+    public void setVertexShader(GLSLVertexShader vertexShader) {
 	this.vertexShader = vertexShader;
     }
 
-    public void setFragmentShader(GL2FragmentShader fragmentShader) {
+    public void setFragmentShader(GLSLFragmentShader fragmentShader) {
 	this.fragmentShader = fragmentShader;
     }
 
-    public GL2VertexShader getVertexShader() {
+    public GLSLVertexShader getVertexShader() {
 	return vertexShader;
     }
 
-    public GL2FragmentShader getFragmentShader() {
+    public GLSLFragmentShader getFragmentShader() {
 	return fragmentShader;
     }
 
