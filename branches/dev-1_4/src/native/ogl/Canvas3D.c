@@ -485,8 +485,8 @@ getPropertiesFromCurrentContext(
     /* setup the graphics context properties */
 
     /* Check for OpenGL 1.3 core or better */
-    if ((versionNumbers[0] == 1 && versionNumbers[1] >= 3) ||
-	versionNumbers[0] == 2) {
+    if ((versionNumbers[0] > 1) ||
+	(versionNumbers[0] == 1 && versionNumbers[1] >= 3)) {
 
         ctxInfo->rescale_normal_ext = JNI_TRUE;
 	ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL;
