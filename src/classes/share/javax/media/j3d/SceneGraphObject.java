@@ -42,6 +42,9 @@ public abstract class SceneGraphObject extends Object {
 
     // A reference to user data
     private Object userData = null;
+    
+    // Optional name for object.
+    private String objectName = null;
 
     // use for cloneTree/cloneNode only, set to null after the operation
     Hashtable nodeHashtable = null;
@@ -331,6 +334,31 @@ public abstract class SceneGraphObject extends Object {
     public void updateNodeReferences(NodeReferenceTable referenceTable) {
     }
 
+    /**
+     * Set the name of this object. Object name are for information
+     * only.
+     *
+     * @since Java3D 1.4
+     * @param name the objects name
+     */
+    public void setName( String name ) {
+        objectName = name;
+    }
+    
+    /**
+     * Get the name of this object
+     *
+     * A copy of the name string is returned or null if no name has
+     * been set.
+     *
+     * @since Java3D 1.4
+     * @return the name of this object
+     */             
+    public String getName() {
+        if (objectName==null)
+            return null;
+        return objectName;
+    }
 
     /**
      * Copies all SceneGraphObject information from
