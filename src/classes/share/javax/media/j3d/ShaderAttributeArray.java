@@ -26,10 +26,10 @@ import javax.vecmath.*;
  * <code>Integer[]</code>, <code>Float[]</code>, <code>Double[]</code>,
  * <code>Tuple{2,3,4}{i,f,d}[]</code>, <code>Matrix{3,4}{f,d}[]</code>. A
  * ClassCastException will be thrown if a specified <code>value</code>
- * object is not one of the allowed types. Further, the type of the
+ * object is not one of the allowed types. Further, the type and length of the
  * value is immutable once a ShaderAttributeArray is constructed.
- * Subsequent setValue operations must be called with an object of the
- * same type as the one that was used to construct the
+ * Subsequent setValue operations must be called with an array of the
+ * same type and length as the one that was used to construct the
  * ShaderAttributeArray. Finally, the type of the <code>value</code>
  * object must match the type of the corresponding
  * <code>attrName</code> variable in the shader in which it is
@@ -46,10 +46,8 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
     /**
      * Constructs a new ShaderAttributeArray object with the specified
      * <code>(attrName,&nbsp;value)</code> pair. The specified value
-     * must be an array of one of the allowed class types.  If value
-     * is an array of mutable object (for example, is an array of
-     * <code>javax.vecmath</code> objects), a deep copy of the array
-     * is stored. Otherwise, a shallow copy of the array is stored.
+     * must be an array of one of the allowed class types.
+     * A deep copy of the array is stored.
      *
      * @param attrName the name of the shader attribute
      * @param value the value of the shader attribute
@@ -61,6 +59,7 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
      */
     public ShaderAttributeArray(String attrName, Object value) {
 	super(attrName, value);
+	throw new RuntimeException("not implemented");
     }
 
     // Implement abstract getValue method
@@ -80,10 +79,8 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 
     /**
      * Sets the specified array element of the value of this shader
-     * attribute to the specified value. If the value is a mutable
-     * object (for example, is an instance of a
-     * <code>javax.vecmath</code> class), a copy of the object is
-     * stored.
+     * attribute to the specified value.
+     * A copy of the object is stored.
      *
      * @param value the new value of the shader attribute
      *
@@ -157,8 +154,11 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	    attrWrapper = new FloatArrayWrapper();
 	    break;
 	case TYPE_DOUBLE:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new DoubleArrayWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE2I:
 	    attrWrapper = new Tuple2iArrayWrapper();
 	    break;
@@ -166,8 +166,11 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	    attrWrapper = new Tuple2fArrayWrapper();
 	    break;
 	case TYPE_TUPLE2D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple2dArrayWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE3I:
 	    attrWrapper = new Tuple3iArrayWrapper();
 	    break;
@@ -175,8 +178,11 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	    attrWrapper = new Tuple3fArrayWrapper();
 	    break;
 	case TYPE_TUPLE3D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple3dArrayWrapper();
 	    break;
+	    */
 	case TYPE_TUPLE4I:
 	    attrWrapper = new Tuple4iArrayWrapper();
 	    break;
@@ -184,20 +190,29 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	    attrWrapper = new Tuple4fArrayWrapper();
 	    break;
 	case TYPE_TUPLE4D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Tuple4dArrayWrapper();
 	    break;
+	    */
 	case TYPE_MATRIX3F:
 	    attrWrapper = new Matrix3fArrayWrapper();
 	    break;
 	case TYPE_MATRIX3D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Matrix3dArrayWrapper();
 	    break;
+	    */
 	case TYPE_MATRIX4F:
 	    attrWrapper = new Matrix4fArrayWrapper();
 	    break;
 	case TYPE_MATRIX4D:
+	    throw new RuntimeException("not implemented");
+	    /*
 	    attrWrapper = new Matrix4dArrayWrapper();
 	    break;
+	    */
 	default:
 	    // Should never get here
 	    assert(false);

@@ -91,10 +91,8 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
     }
 
     /**
-     * Retrieves the value of this shader attribute. If the value is
-     * a mutable object (for example, is an instance of a
-     * <code>javax.vecmath</code> class), a copy of the object is
-     * returned.
+     * Retrieves the value of this shader attribute.
+     * A copy of the object is returned.
      *
      * @return a copy of the value of this shader attribute
      *
@@ -105,9 +103,7 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
 
     /**
      * Sets the value of this shader attribute to the specified value.
-     * If the value is a mutable object (for example, is an instance
-     * of a <code>javax.vecmath</code> class), a copy of the object is
-     * stored.
+     * A copy of the object is stored.
      *
      * @param value the new value of the shader attribute
      *
@@ -226,7 +222,7 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
      * Base wrapper class for subclasses that are used to store a copy
      * of the user-specified shader attribute value. There is a
      * wrapper class for each supported base class in ShaderAttributeValue
-     * and ShaderAttributeArray.
+     * and ShaderAttributeArray. The value is stored in a Java primitive array.
      */
     static abstract class AttrWrapper {
 	/**
@@ -240,10 +236,10 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
 	abstract Object get();
 
 	/**
-	 * Returns a reference to the wrapped object; note that the
-	 * caller of this method must treat the data as read-only. It
-	 * is intended only as a means to pass data down to native
-	 * methods.
+	 * Returns a reference to the internal primitive array used to
+	 * wrap the object; note that the caller of this method must
+	 * treat the data as read-only. It is intended only as a means
+	 * to pass data down to native methods.
 	 */
 	abstract Object getRef();
     }

@@ -45,4 +45,10 @@ public abstract class ShaderProgram extends NodeComponent {
      * Method to update the native shader program.
      */
     abstract void updateNative(long ctx);
+
+    /**
+     * Method to update the native shader attributes
+     */
+    abstract void setUniformAttrValue(long ctx, ShaderAttributeValue sav);
+
 }
