@@ -77,6 +77,8 @@ import javax.vecmath.*;
  * <i>before</i> the indexes are applied.  Only the indexes in the
  * first geometry array (geometry[0]) are used when rendering the
  * geometry.
+ *
+ * @deprecated As of Java 3D version 1.4.
  */
 
 public class Morph extends Leaf {

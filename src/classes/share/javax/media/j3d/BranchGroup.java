@@ -122,6 +122,43 @@ public class BranchGroup extends Group {
 	return Picking.pickAll( this, pickShape );
     }
 
+    /**
+     * Returns an array unsorted references to all the PickInfo objects that are 
+     * pickable  below this <code>BranchGroup</code> that intersect with PickShape.
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified via a 
+     * masked variable, flags, indicating which components are present in each 
+     * returned PickInfo object. This is specified as one or more individual flags 
+     * that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @see SceneGraphPath
+     * @see Locale#pickAll
+     * @see PickShape
+     * @exception IllegalStateException if BranchGroup is not live.
+     *
+     */
+    public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAll method not implemented yet");
+
+    }
+
+
   /**
    * Returns a sorted array of references to all the Pickable items that 
    * intersect with the pickShape. Element [0] references the item closest 
@@ -145,6 +182,45 @@ public class BranchGroup extends Group {
 	return Picking.pickAllSorted( this, pickShape );
     }
 
+
+    /**
+     * Returns a sorted array of PickInfo references to all the pickable
+     * items that intersect with the pickShape. Element [0] references 
+     * the item closest to <i>origin</i> of PickShape successive array
+     * elements are further from the <i>origin</i>
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @see SceneGraphPath
+     * @see Locale#pickAllSorted
+     * @see PickShape
+     * @exception IllegalStateException if BranchGroup is not live.
+     *  
+     */
+    public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
+
   /**
    * Returns a SceneGraphPath that references the pickable item 
    * closest to the origin of <code>pickShape</code>.
@@ -166,11 +242,48 @@ public class BranchGroup extends Group {
 	return Picking.pickClosest( this, pickShape );
     }
 
+    /**
+     * Returns a PickInfo which references the pickable item
+     * which is closest to the origin of <code>pickShape</code>.
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.  
+     *
+     * @see SceneGraphPath
+     * @see Locale#pickClosest
+     * @see PickShape
+     * @exception IllegalStateException if BranchGroup is not live.
+     *  
+     */
+    public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
+
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
+
+
   /**
    * Returns a reference to any item that is Pickable below this BranchGroup that
    * intersects with <code>pickShape</code>.
-   *
    * @param pickShape the PickShape object
+   *
    * @see SceneGraphPath
    * @see Locale#pickAny
    * @see PickShape
@@ -184,7 +297,41 @@ public class BranchGroup extends Group {
 	return Picking.pickAny( this, pickShape );
     }
 
+  /**
+   * Returns a PickInfo which references the pickable item  below this
+   * BranchGroup that intersects with <code>pickShape</code>.
+     * <br>
+     * The detail level of picking is set by the pick mode. It is an enum of 
+     * Bounds or Geometry.  The amount of information returned is specified 
+     * via a masked variable, flags, indicating which components are present in 
+     * each returned PickInfo object. This is specified as one or more individual 
+     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
+     * The flags include:
+     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
+     * NODE                         - request for computed intersected Node.
+     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
+     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
+     * DISTANCE             - request for the closest distance of the intersection.
+     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
+     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     *
+     * @param mode  specifies the detail level of picking.
+     *
+     * @param flags specifies amount of returned information in each PickInfo object.
+     *
+     * @param pickShape the description of this picking volume or area.  
+     *
+     * @see SceneGraphPath
+     * @see Locale#pickAny
+     * @see PickShape
+     * @exception IllegalStateException if BranchGroup is not live.
+     *  
+     */
+    public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
 
+	throw new RuntimeException("pickAllSorted method not implemented yet");
+
+    }
    /**
     * Creates a new instance of the node.  This routine is called
     * by <code>cloneTree</code> to duplicate the current node.
