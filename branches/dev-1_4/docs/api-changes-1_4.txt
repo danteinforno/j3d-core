@@ -1,0 +1,6 @@
+API Changes for Java 3D 1.4
+
+SceneGraphObject
+    Added 
+        public void setName(String Name) 
+        public String getName()
