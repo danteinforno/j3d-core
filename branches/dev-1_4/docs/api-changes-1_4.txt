@@ -52,6 +52,12 @@ I. New/deprecated fields, constructors, methods
 	public void getVertexAttrNames(String[] vertexAttrNames)
 
 
+    Node
+    ----
+    New fields:
+	public static final int ALLOW_PARENT_READ
+
+
 II. Reparented classes
 
     <EXISTINGCLASS>
