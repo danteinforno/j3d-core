@@ -57,14 +57,15 @@ I. New/deprecated fields, constructors, methods
     New fields:
 	public static final int ALLOW_PARENT_READ
 	public static final int ALLOW_LOCALE_READ
+    New methods:
+	public Locale getLocale()
+
 
     VirtualUniverse
     ---------------
     New methods:
 	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
 	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
-	public Locale getLocale()
-
 
 
     Sensor
@@ -163,7 +164,7 @@ III. New classes and interfaces (in javax.media.j3d)
 
     GraphStructureChangeListener
     ----------------------------
-        public interface GraphStructureChangeListener
+	public interface GraphStructureChangeListener
 
 IV. Deprecated classes and interfaces (in javax.media.j3d)
 
