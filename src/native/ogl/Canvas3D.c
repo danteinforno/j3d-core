@@ -38,11 +38,9 @@
 #endif /* DEBUG */
 
 
-static char *gl_VERSION;
-static char *gl_VENDOR;
-                         
-void initializeCtxInfo(JNIEnv *env, GraphicsContextPropertiesInfo* ctxInfo);
-void cleanupCtxInfo(GraphicsContextPropertiesInfo* ctxInfo);
+static void initializeCtxInfo(JNIEnv *env, GraphicsContextPropertiesInfo* ctxInfo);
+static void cleanupCtxInfo(GraphicsContextPropertiesInfo* ctxInfo);
+static void disableAttribFor2D(GraphicsContextPropertiesInfo *ctxProperties);
 
 /*
  * Class:     javax_media_j3d_Canvas3D
@@ -65,9 +63,10 @@ HWND createDummyWindow(const char* szAppName);
 #endif
 
 /*
- * extract the version numbers
- * when return , numbers[0] contains major version number
+ * Extract the version numbers from a copy of the version string.
+ * Upon return, numbers[0] contains major version number
  * numbers[1] contains minor version number
+ * Note that the passed in version string is modified.
  */
 void extractVersionInfo(char *versionStr, int* numbers){
     char *majorNumStr;
@@ -429,7 +428,9 @@ getPropertiesFromCurrentContext(
     JNIEnv table = *env; 
 
     /* version and extension */
-    char *glversion;
+    char *glVersion;
+    char *glVendor;
+    char *glRenderer;
     char *extensionStr;
     char *tmpVersionStr;
     char *tmpExtensionStr;
@@ -442,20 +443,7 @@ getPropertiesFromCurrentContext(
     PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
 #endif
     
-    /* get OpenGL version */
-    glversion = (char *)glGetString(GL_VERSION);
-    if (glversion == NULL) {
-	fprintf(stderr, "glversion == null\n");
-	return JNI_FALSE;
-    }
-    gl_VERSION = glversion;
-    tmpVersionStr = strdup(glversion);
-    gl_VENDOR = (char *)glGetString(GL_VENDOR);
-    if (gl_VENDOR == NULL) {
-        gl_VENDOR = "<unkown vendor>";
-    }
-    
-    /* Get the extension */
+    /* Get the list of extension */
     extensionStr = (char *)glGetString(GL_EXTENSIONS);
     if (extensionStr == NULL) {
         fprintf(stderr, "extensionStr == null\n");
@@ -463,15 +451,34 @@ getPropertiesFromCurrentContext(
     }
     tmpExtensionStr = strdup(extensionStr);
 
+    /* Get the OpenGL version */
+    glVersion = (char *)glGetString(GL_VERSION);
+    if (glVersion == NULL) {
+	fprintf(stderr, "glVersion == null\n");
+	return JNI_FALSE;
+    }
+    tmpVersionStr = strdup(glVersion);
+
+    /* Get the OpenGL vendor and renderer */
+    glVendor = (char *)glGetString(GL_VENDOR);
+    if (glVendor == NULL) {
+        glVendor = "<UNKNOWN>";
+    }
+    glRenderer = (char *)glGetString(GL_RENDERER);
+    if (glRenderer == NULL) {
+        glRenderer = "<UNKNOWN>";
+    }
+
     /*
       fprintf(stderr, " pixelFormat : %d\n", pixelFormat);
       fprintf(stderr, " extensionStr : %s\n", tmpExtensionStr);
     */
     
-    ctxInfo->versionStr = strdup(glversion);
+    ctxInfo->versionStr = strdup(glVersion);
+    ctxInfo->vendorStr = strdup(glVendor);
+    ctxInfo->rendererStr = strdup(glRenderer);
     ctxInfo->extensionStr = strdup(extensionStr);
 
-    
     /* find out the version, major and minor version number */
     extractVersionInfo(tmpVersionStr, versionNumbers);
 
@@ -935,6 +942,12 @@ void setupCanvasProperties(
     rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "nativeGraphicsVersion", "Ljava/lang/String;");
     (*(table->SetObjectField))(env, obj, rsc_field, (*env)->NewStringUTF(env, ctxInfo->versionStr));
 
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "nativeGraphicsVendor", "Ljava/lang/String;");
+    (*(table->SetObjectField))(env, obj, rsc_field, (*env)->NewStringUTF(env, ctxInfo->vendorStr));
+
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "nativeGraphicsRenderer", "Ljava/lang/String;");
+    (*(table->SetObjectField))(env, obj, rsc_field, (*env)->NewStringUTF(env, ctxInfo->rendererStr));
+
     if (ctxInfo->textureAnisotropicFilterAvailable) {
 
 	float degree;
@@ -1296,31 +1309,16 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
     jbyte *byteData;
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
     jlong ctx = ctxProperties->context;
-    GLboolean tex3d, texCubeMap;
     
     table = *env;
    
 #ifdef VERBOSE
     fprintf(stderr, "Canvas3D.composite()\n");
 #endif
-    /* temporarily disable fragment operations */
-    /* TODO: the GL_TEXTURE_BIT may not be necessary */
+    /* Temporarily disable fragment and most 3D operations */
+    /* TODO: the GL_TEXTURE_BIT may not be necessary here */
     glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_DEPTH_BUFFER_BIT);
-    
-    if(ctxProperties->texture3DAvailable) 
-	tex3d = glIsEnabled(ctxProperties->texture_3D_ext_enum);
-
-    if(ctxProperties->textureCubeMapAvailable) 
-	texCubeMap = glIsEnabled(ctxProperties->texture_cube_map_ext_enum);
-    
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_FOG);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-    if(ctxProperties->texture3DAvailable) 
-	glDisable(ctxProperties->texture_3D_ext_enum);
-    if(ctxProperties->textureCubeMapAvailable) 
-	glDisable(ctxProperties->texture_cube_map_ext_enum);
+    disableAttribFor2D(ctxProperties);
 
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1384,13 +1382,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
 
     (*(table->ReleasePrimitiveArrayCritical))(env, imageYdown, byteData, 0);
 
-    /* re-enable fragment operation if necessary */
-    if(ctxProperties->texture3DAvailable)
-	if (tex3d) glEnable(ctxProperties->texture_3D_ext_enum);
-    
-    if(ctxProperties->textureCubeMapAvailable)
-	if (texCubeMap) glEnable(ctxProperties->texture_cube_map_ext_enum);
-    
     /* Java 3D always clears the Z-buffer */
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -1465,33 +1456,17 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
     jbyte *byteData;
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
     jlong ctx = ctxProperties->context;
-    GLboolean tex3d, texCubeMap;
     
     table = *env;
     gltype = GL_RGBA;
     
-    /* temporary disable fragment operation */
-    glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_DEPTH_BUFFER_BIT);
-    
-    if (ctxProperties->texture3DAvailable) {
-	tex3d = glIsEnabled(ctxProperties->texture_3D_ext_enum);
-    }
-    
-    if (ctxProperties->textureCubeMapAvailable) {
-	texCubeMap = glIsEnabled(ctxProperties->texture_cube_map_ext_enum);
-    }
-    glDisable(GL_ALPHA_TEST);
-    glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_FOG);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-    if (ctxProperties->texture3DAvailable) {
-	glDisable(ctxProperties->texture_3D_ext_enum);
-    }
-    if (ctxProperties->textureCubeMapAvailable) {
-	glDisable(ctxProperties->texture_cube_map_ext_enum);
-    }
+    /* Temporarily disable fragment and most 3D operations */
+    glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_DEPTH_BUFFER_BIT|GL_POLYGON_BIT);
+    disableAttribFor2D(ctxProperties);
+
+    /* Reset the polygon mode */
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     /* glGetIntegerv(GL_TEXTURE_BINDING_2D,&binding); */
     glDepthMask(GL_FALSE);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1579,14 +1554,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
     glTexCoord2f(texMinU, texMinV); glVertex2f(mapMinX,mapMaxY);
     glEnd();
 
-    /* re-enable fragment operation if necessary */
-    if (ctxProperties->texture3DAvailable)
-	if (tex3d) glEnable(ctxProperties->texture_3D_ext_enum);
-    
-    if (ctxProperties->textureCubeMapAvailable)
-	if (texCubeMap) glEnable(ctxProperties->texture_cube_map_ext_enum);
-
-
     /* Java 3D always clears the Z-buffer */
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -1631,8 +1598,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	glClear(GL_COLOR_BUFFER_BIT); 
     }
     else {
-	GLboolean tex3d, texCubeMap;
-
 	/* Do a cool image blit */
 	pa2d_class = (jclass) (*(table->GetObjectClass))(env, pa2d);
 	format_field = (jfieldID) (*(table->GetFieldID))(env, pa2d_class, 
@@ -1649,27 +1614,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	pixels = (GLubyte *) (*(table->GetPrimitiveArrayCritical))(env, 
 								   pixels_obj, NULL);
 
-	/* temporarily disable fragment operations */
+	/* Temporarily disable fragment and most 3D operations */
 	/* TODO: the GL_TEXTURE_BIT may not be necessary */
 	glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT); 
-	
-	if(ctxProperties->texture3DAvailable)
-	    tex3d = glIsEnabled(ctxProperties->texture_3D_ext_enum);
-
-	if(ctxProperties->textureCubeMapAvailable)
-	    texCubeMap = glIsEnabled(ctxProperties->texture_cube_map_ext_enum);
-
-	glDisable(GL_ALPHA_TEST);                 
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	if(ctxProperties->texture3DAvailable)
-	    glDisable(ctxProperties->texture_3D_ext_enum);
-	
-	if(ctxProperties->textureCubeMapAvailable)
-	    glDisable(ctxProperties->texture_cube_map_ext_enum);
+	disableAttribFor2D(ctxProperties);
 
 	/* loaded identity modelview and projection matrix */
 	glMatrixMode(GL_PROJECTION); 
@@ -1803,15 +1751,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 	    break;
 	}
-	/* re-enable fragment operation if necessary */
+
+	/* Restore attributes */
 	glPopAttrib();
 		
-	if(ctxProperties->texture3DAvailable)
-	    if (tex3d) glEnable(ctxProperties->texture_3D_ext_enum);
-
-	if(ctxProperties->textureCubeMapAvailable)
-	    if (texCubeMap) glEnable(ctxProperties->texture_cube_map_ext_enum);
-
 	(*(table->ReleasePrimitiveArrayCritical))(env, pixels_obj, 
 						  (jbyte *)pixels, 0);
     }
@@ -1866,9 +1809,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
     }
     /* glPushAttrib(GL_DEPTH_BUFFER_BIT); */
     if (pa2d) { 
-	GLboolean tex3d, texCubeMap; 
-	  
-	
 	/* Do a cool image blit */ 
 	pa2d_class = (jclass) (*(table->GetObjectClass))(env, pa2d);
 
@@ -1894,25 +1834,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
 	fprintf(stderr, "width = %d height = %d \n", width, height);
 #endif
 	
-	/* temporary disable fragment operation */ 
+	/* Temporarily disable fragment and most 3D operations */
 	glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_POLYGON_BIT); 
+	disableAttribFor2D(ctxProperties);
 
-	if(ctxProperties->texture3DAvailable) 
-	    tex3d = glIsEnabled(ctxProperties->texture_3D_ext_enum);
-	if(ctxProperties->textureCubeMapAvailable) 
-	    texCubeMap = glIsEnabled(ctxProperties->texture_cube_map_ext_enum);
-	glDisable(GL_ALPHA_TEST);                  
-	glDisable(GL_BLEND); 
-	glDisable(GL_DEPTH_TEST); 
-	glDisable(GL_FOG); 
-	glDisable(GL_LIGHTING);
-	
-	if(ctxProperties->texture3DAvailable)
-	    glDisable(ctxProperties->texture_3D_ext_enum);
-	
-	if(ctxProperties->textureCubeMapAvailable)
-	    glDisable(ctxProperties->texture_cube_map_ext_enum);
-	
 	Java_javax_media_j3d_Canvas3D_resetTexCoordGeneration(env, obj, ctxInfo); 
 
 	glEnable(GL_TEXTURE_2D);
@@ -2132,13 +2057,8 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
 	glPopMatrix();
 	
 	glMatrixMode(GL_MODELVIEW);      	
-	/* re-enable fragment operation if necessary */
+	/* Restore attributes */
 	glPopAttrib();	
-	if(ctxProperties->texture3DAvailable)
-	    if (tex3d) glEnable(ctxProperties->texture_3D_ext_enum); 
-	
-	if(ctxProperties->textureCubeMapAvailable)
-	    if (texCubeMap) glEnable(ctxProperties->texture_cube_map_ext_enum); 
 	
 	(*(table->ReleasePrimitiveArrayCritical))(env, pixels_obj,  
 						  (jbyte *)pixels, 0); 
@@ -2328,7 +2248,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_newDisplayList(
     jlong ctxInfo,
     jint id)
 {
-    
+    if (id <= 0) {
+	fprintf(stderr, "JAVA 3D ERROR : glNewList(%d) -- IGNORED\n", id);
+	return;
+    }
+
     glNewList(id, GL_COMPILE);
 }
 
@@ -2385,6 +2309,19 @@ void JNICALL Java_javax_media_j3d_Canvas3D_callDisplayList(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo; 
     jlong ctx = ctxProperties->context;
+    static int numInvalidLists = 0;
+
+    if (id <= 0) {
+	if (numInvalidLists < 3) {
+	    fprintf(stderr, "JAVA 3D ERROR : glCallList(%d) -- IGNORED\n", id);
+	    ++numInvalidLists;
+	}
+	else if (numInvalidLists == 3) {
+	    fprintf(stderr, "JAVA 3D : further glCallList error messages discarded\n");
+	    ++numInvalidLists;
+	}
+	return;
+    }
 
     /* resale_normal_ext */
     if (ctxProperties->rescale_normal_ext && isNonUniformScale) {
@@ -2406,6 +2343,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_freeDisplayList(
     jint id)
 {
     
+    if (id <= 0) {
+	fprintf(stderr, "JAVA 3D ERROR : glDeleteLists(%d,1) -- IGNORED\n", id);
+	return;
+    }
+
     glDeleteLists(id, 1);
 }
 
@@ -3001,11 +2943,15 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
                 byteData, 0);
 }
 
-void initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo){
+static void
+initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
+{
     ctxInfo->context = 0; 
     
     /* version and extension info */
     ctxInfo->versionStr = NULL;
+    ctxInfo->vendorStr = NULL;
+    ctxInfo->rendererStr = NULL;
     ctxInfo->extensionStr = NULL;
     ctxInfo->versionNumbers[0] = 1;
     ctxInfo->versionNumbers[1] = 1; 
@@ -3117,12 +3063,20 @@ void initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo){
 #endif /* SOLARIS || __linux__ */
 }
 
-void cleanupCtxInfo(GraphicsContextPropertiesInfo* ctxInfo){
+static void
+cleanupCtxInfo(GraphicsContextPropertiesInfo* ctxInfo)
+{
     if( ctxInfo->versionStr != NULL)
 	free(ctxInfo->versionStr);
+    if( ctxInfo->vendorStr != NULL)
+	free(ctxInfo->vendorStr);
+    if( ctxInfo->rendererStr != NULL)
+	free(ctxInfo->rendererStr);
     if( ctxInfo->extensionStr != NULL)
 	free(ctxInfo->extensionStr);
     ctxInfo->versionStr = NULL;
+    ctxInfo->vendorStr = NULL;
+    ctxInfo->rendererStr = NULL;
     ctxInfo->extensionStr = NULL;
 }
 
@@ -3462,4 +3416,58 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_validGraphicsMode(
 #if defined(SOLARIS) || defined(__linux__)
     return JNI_TRUE;
 #endif
+}
+
+
+/*
+ * Function to disable most rendering attributes when doing a 2D
+ * clear, image copy, or image composite operation. Note that the
+ * caller must save/restore the attributes with
+ * pushAttrib(GL_ENABLE_BIT|...) and popAttrib()
+ */
+static void
+disableAttribFor2D(GraphicsContextPropertiesInfo *ctxProperties)
+{
+    int i;
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_COLOR_LOGIC_OP);
+    glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_FOG);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_POLYGON_STIPPLE);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_GEN_Q);
+    glDisable(GL_TEXTURE_GEN_R);
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+
+    for (i = 0; i < 6; i++) {
+	glDisable(GL_CLIP_PLANE0 + i);
+    }
+
+    if (ctxProperties->texture3DAvailable) {
+	glDisable(ctxProperties->texture_3D_ext_enum);
+    }
+
+    if (ctxProperties->textureCubeMapAvailable) {
+	glDisable(ctxProperties->texture_cube_map_ext_enum);
+    }
+
+    if (ctxProperties->textureRegisterCombinersAvailable) {
+        glDisable(GL_REGISTER_COMBINERS_NV);
+    }
+
+    if (ctxProperties->textureColorTableAvailable) {
+	glDisable(GL_TEXTURE_COLOR_TABLE_SGI);
+    }
+
+    if (ctxProperties->global_alpha_sun) {
+	glDisable(GL_GLOBAL_ALPHA_SUN);
+    }
 }

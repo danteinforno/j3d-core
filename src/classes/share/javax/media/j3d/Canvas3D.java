@@ -299,7 +299,7 @@ public class Canvas3D extends Canvas {
     static final int RENDERMOLECULE_DIRTY      = 0x1000;
     static final int FOG_DIRTY                 = 0x2000;
     static final int MODELCLIP_DIRTY           = 0x4000;    
-    static final int VWORLD_SCALE_DIRTY        = 0x8000;
+    static final int VIEW_MATRIX_DIRTY         = 0x8000;
 
     // Use to notify D3D Canvas when window change
     static final int RESIZE = 1;
@@ -589,8 +589,10 @@ public class Canvas3D extends Canvas {
     // constructor to allow Java 3D to extend it.
     static Hashtable fbConfigTable = new Hashtable();
 
-    // The native graphics version and renderer information 
-    String nativeGraphicsVersion = null;
+    // The native graphics version, vendor, and renderer information 
+    private String nativeGraphicsVersion = "<UNKNOWN>";
+    private String nativeGraphicsVendor = "<UNKNOWN>";
+    private String nativeGraphicsRenderer = "<UNKNOWN>";
     
     NativeWSInfo nativeWSobj = new NativeWSInfo();
     boolean firstPaintCalled = false;
@@ -1435,6 +1437,7 @@ public class Canvas3D extends Canvas {
 	evaluateActive();	
 
         VirtualUniverse.mc.freeCanvasBit(canvasBit);
+	canvasBit = 0;
 
 	ra = null;
 	graphicsContext3D = null;
@@ -2420,6 +2423,7 @@ public class Canvas3D extends Canvas {
 
     native boolean initTexturemapping(long ctx, int texWidth, 
 				      int texHeight, int objectId);
+
 
     /**
      * Sets the position of the manual left eye in image-plate
@@ -3546,9 +3550,13 @@ public class Canvas3D extends Canvas {
         values.add(new Integer(numTexUnitSupported));
 
 	keys.add("native.version");
-	if(nativeGraphicsVersion == null)
-	    nativeGraphicsVersion = ""; 
 	values.add(nativeGraphicsVersion);
+
+	keys.add("native.vendor");
+	values.add(nativeGraphicsVendor);
+
+	keys.add("native.renderer");
+	values.add(nativeGraphicsRenderer);
 
 	// Now Create read-only properties object
 	queryProps =
@@ -4086,7 +4094,6 @@ public class Canvas3D extends Canvas {
 	if ((screen != null) && 
 	    (screen.renderer != null) &&
 	    (ctx != 0)) {
-
 	    VirtualUniverse.mc.postRequest(MasterControl.FREE_CONTEXT, 
 					   new Object[]{this, 
 							new Long(screen.display), 
@@ -4293,7 +4300,8 @@ public class Canvas3D extends Canvas {
 	TextureRetained tex;
 	DetailTextureImage detailTex;
 	
-	if (rdr == null) {
+	// Just return if we don't have a valid renderer or context
+	if (rdr == null || ctx == 0) {
 	    return;
 	}
 
