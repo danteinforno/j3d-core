@@ -1,7 +1,7 @@
 /*
  * $RCSfile$
  *
- * Copyright (c) 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
  * Use is subject to license terms.
  *
@@ -1139,6 +1139,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     DWORD err;
     LPTSTR errString;    
     jboolean result;
+    PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
     
     /* Fix for issue 76 */
 
@@ -1163,20 +1164,16 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
      * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
      */
 
-    if(!offScreen) {
-	/* fprintf(stderr, "Canvas3D_createNewContext: onScreen PixelFormat is %d\n", vid); */
-
-	if (vid <= 0) {
+    if(!offScreen) {  // Fix to issue 104 
+	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->onScreenPFormat <= 0)) {
 	    printErrorMessage("Canvas3D_createNewContext: onScreen PixelFormat is invalid");
 	    return 0;
 	}
 	else {
-	    PixelFormatID = vid;	
+	    PixelFormatID = PixelFormatInfoPtr->onScreenPFormat;
 	}
     }
-    else { /* offScreen case */
-	PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
-	    
+    else { /* offScreen case */	    
 	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->offScreenPFormat <= 0)) {
 	    printErrorMessage("Canvas3D_createNewContext: offScreen PixelFormat is invalid");
 	    return 0;
@@ -1188,7 +1185,11 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     
     SetPixelFormat(hdc, PixelFormatID, NULL);
 
+    // fprintf(stderr, "Before wglCreateContext\n");
+
     hrc = wglCreateContext( hdc );
+
+    // fprintf(stderr, "After wglCreateContext hrc = 0x%x\n", hrc);
 
     if (!hrc) {
 	err = GetLastError();
@@ -1204,7 +1205,9 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 	wglShareLists( (HGLRC) sharedCtx, hrc );
     } 
 
+    // fprintf(stderr, "Before wglMakeCurrent\n");
     result = wglMakeCurrent(hdc, hrc);
+    // fprintf(stderr, "After wglMakeCurrent result = %d\n", result);
 
     if (!result) {
 	err = GetLastError();
@@ -3258,6 +3261,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     static char szAppName[] = "OpenGL";
     jlong vinfo = 0;
     jboolean result;
+    PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
 
     /* Fix for issue 76 */
     
@@ -3269,14 +3273,28 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     /*
      * vid must be valid PixelFormat returned
      * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
-     */
-    if (vid <= 0) {
-	printErrorMessage("Canvas3D_createQueryContext: PixelFormat is invalid");
-	return;
+     */    
+
+    // Fix to issue 104
+    if(!offScreen) {
+	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->onScreenPFormat <= 0)) {
+	    printErrorMessage("Canvas3D_createNewContext: onScreen PixelFormat is invalid");
+	    return;
+	}
+	else {
+	    PixelFormatID = PixelFormatInfoPtr->onScreenPFormat;
+	}
     }
-
-    PixelFormatID = (int)vid;
-
+    else {
+	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->offScreenPFormat <= 0)) {
+	    printErrorMessage("Canvas3D_createNewContext: offScreen PixelFormat is invalid");
+	    return;
+	}
+	else {
+	    PixelFormatID = PixelFormatInfoPtr->offScreenPFormat;
+	}
+    }
+    
     /* onscreen rendering and window is 0 now */
     if(window == 0 && !offScreen){
 	/* fprintf(stderr, "CreateQueryContext : window == 0 && !offScreen\n"); */
