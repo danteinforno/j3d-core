@@ -335,14 +335,14 @@ public abstract class SceneGraphObject extends Object {
     }
 
     /**
-     * Set the name of this object.
+     * Set the name of this object. Object name are for information
+     * only.
      *
-     * An internal immutable copy of the name is created.
-     *
+     * @since Java3D 1.4
      * @param name the objects name
      */
     public void setName( String name ) {
-        objectName = new String(name);
+        objectName = name;
     }
     
     /**
@@ -351,12 +351,13 @@ public abstract class SceneGraphObject extends Object {
      * A copy of the name string is returned or null if no name has
      * been set.
      *
+     * @since Java3D 1.4
      * @return the name of this object
      */             
     public String getName() {
         if (objectName==null)
             return null;
-        return new String(objectName);
+        return objectName;
     }
 
     /**
