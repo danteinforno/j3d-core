@@ -49,6 +49,10 @@ public class CgShaderProgram extends ShaderProgram {
 				     String vtxShader,
 				     String fragShader);
 
+    void disableNative(long ctx) {
+	updateNative(ctx, null, null);
+    }
+
     void updateNative(long ctx) {
 	/*
 	System.err.println("CgShaderProgram.updateNative(ctx)");

@@ -3980,15 +3980,15 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	 */
 	if (glVertexShader == 0) {
 	    /* create the vertex shader */
-	    fprintf(stderr,
-		    "GLSLShaderProgram_updateNative: create vertex shader program\n");
 	    glVertexShader = pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	    pfnglShaderSourceARB(glVertexShader, 1, &vertexShaderString, NULL);
 	    pfnglCompileShaderARB(glVertexShader);
 	    pfnglGetObjectParameterivARB(glVertexShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
-	    fprintf(stderr, "COMPILE : glVertexShader = %d -- ", glVertexShader);
+	    fprintf(stderr,
+		    "GLSLShaderProgram COMPILE : glVertexShader = %d -- ",
+		    glVertexShader);
 	    if (status) {
 		fprintf(stderr, "SUCCESSFUL\n");
 	    }
@@ -4016,15 +4016,15 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 	 */
 	if (glFragmentShader == 0) {
 	    /* create the fragment shader */
-	    fprintf(stderr,
-		    "GLSLShaderProgram_updateNative: create fragment shader program\n");
 	    glFragmentShader = pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 	    pfnglShaderSourceARB(glFragmentShader, 1, &fragmentShaderString, NULL);
 	    pfnglCompileShaderARB(glFragmentShader);
 	    pfnglGetObjectParameterivARB(glFragmentShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
-	    fprintf(stderr, "COMPILE : glFragmentShader = %d -- ", glFragmentShader);
+	    fprintf(stderr,
+		    "GLSLShaderProgram COMPILE : glFragmentShader = %d -- ",
+		    glFragmentShader);
 	    if (status) {
 		fprintf(stderr, "SUCCESSFUL\n");
 	    }
@@ -4037,8 +4037,6 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     }
 
     /* Link the shader (if first time) */
-    fprintf(stderr,
-	    "GLSLShaderProgram_updateNative: link shader program\n");
     glShaderProgram = pfnglCreateProgramObjectARB();
     if (vertexShader != 0) {
 	pfnglAttachObjectARB(glShaderProgram, glVertexShader);
@@ -4051,7 +4049,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
     pfnglGetObjectParameterivARB(glShaderProgram,
 				 GL_OBJECT_LINK_STATUS_ARB,
 				 &status);
-    fprintf(stderr, "LINK : glShaderProgram = %d -- ", glShaderProgram);
+    fprintf(stderr, "GLSLShaderProgram LINK : glShaderProgram = %d -- ", glShaderProgram);
     if (status) {
 	fprintf(stderr, "SUCCESSFUL\n");
     }

@@ -110,6 +110,11 @@ public class GLSLShaderProgram extends ShaderProgram {
 				       fragmentShaderStr);
     }
 
+    void disableNative(long ctx) {
+	updateNative(ctx, 0, null, null);
+    }
+
+
     /**
      * Update native value for ShaderAttributeValue class
      */
