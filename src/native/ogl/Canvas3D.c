@@ -16,7 +16,7 @@
  * of the Java 3D API.
  */
 
-#if defined(__linux__)
+#if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
 
@@ -28,7 +28,7 @@
 
 #include "gldefs.h"
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #include <dlfcn.h>
 #endif
 
@@ -71,6 +71,7 @@ HWND createDummyWindow(const char* szAppName);
 void extractVersionInfo(char *versionStr, int* numbers){
     char *majorNumStr;
     char *minorNumStr;
+
     majorNumStr = strtok(versionStr, (char *)".");
     minorNumStr = strtok(0, (char *)".");
     if (majorNumStr != NULL)
@@ -78,7 +79,6 @@ void extractVersionInfo(char *versionStr, int* numbers){
     if (minorNumStr != NULL)
 	numbers[1] = atoi(minorNumStr);
 
-    /* fprintf(stderr, "majorNumStr = %d, minNumStr = %d \n", numbers[0], numbers[1]); */
     return; 
 }
 
@@ -171,7 +171,7 @@ void checkTextureExtensions(
     if(isExtensionSupported(tmpExtensionStr,"GL_NV_register_combiners" )) {
 	ctxInfo->textureRegisterCombinersAvailable = JNI_TRUE;
 	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_REGISTER_COMBINERS;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
        ctxInfo->glCombinerInputNV =
 	   (MYPFNGLCOMBINERINPUTNV) dlsym(RTLD_DEFAULT, "glCombinerInputNV");
        ctxInfo->glFinalCombinerInputNV =
@@ -282,7 +282,7 @@ void checkTextureExtensions(
         ctxInfo->linear_sharpen_rgb_enum = GL_LINEAR_SHARPEN_COLOR_SGIS;
         ctxInfo->linear_sharpen_alpha_enum = GL_LINEAR_SHARPEN_ALPHA_SGIS;
  	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_SHARPEN;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxInfo->glSharpenTexFuncSGIS = 
 	    (MYPFNGLSHARPENTEXFUNCSGI) dlsym(RTLD_DEFAULT, "glSharpenTexFuncSGIS");
 #endif
@@ -306,7 +306,7 @@ void checkTextureExtensions(
 	ctxInfo->texture_detail_mode_enum = GL_DETAIL_TEXTURE_MODE_SGIS;
 	ctxInfo->texture_detail_level_enum = GL_DETAIL_TEXTURE_LEVEL_SGIS;
  	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_DETAIL;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxInfo->glDetailTexFuncSGIS = 
 	    (MYPFNGLDETAILTEXFUNCSGI) dlsym(RTLD_DEFAULT, "glDetailTexFuncSGIS");
 #endif
@@ -325,7 +325,7 @@ void checkTextureExtensions(
 	ctxInfo->textureFilter4Available = JNI_TRUE;
         ctxInfo->filter4_enum = GL_FILTER4_SGIS;
  	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_FILTER4;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxInfo->glTexFilterFuncSGIS = 
 	    (MYPFNGLTEXFILTERFUNCSGI) dlsym(RTLD_DEFAULT, "glTexFilterFuncSGIS");
 #endif
@@ -436,8 +436,7 @@ getPropertiesFromCurrentContext(
     char *tmpExtensionStr;
     int   versionNumbers[2];
     char *cgHwStr = 0;
-    
-    
+
 #ifdef WIN32
     PIXELFORMATDESCRIPTOR pfd;
     PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
@@ -485,18 +484,17 @@ getPropertiesFromCurrentContext(
     /* *********************************************************/
     /* setup the graphics context properties */
 
-    /* check 1.2 core and above */
+    /* Check for OpenGL 1.3 core or better */
     if ((versionNumbers[0] > 1) ||
-	(versionNumbers[0] == 1 && versionNumbers[1] >= 2)) {
+	(versionNumbers[0] == 1 && versionNumbers[1] >= 3)) {
 
-	/* 1.2 core */
         ctxInfo->rescale_normal_ext = JNI_TRUE;
 	ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL;
 	ctxInfo->bgr_ext = JNI_TRUE;
 	ctxInfo->bgr_ext_enum = GL_BGR;
 	ctxInfo->texture3DAvailable = JNI_TRUE;
 	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_3D;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxInfo->glTexImage3DEXT = (MYPFNGLTEXIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexImage3D");
 	ctxInfo->glTexSubImage3DEXT = (MYPFNGLTEXSUBIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexSubImage3D");
 #endif
@@ -515,7 +513,7 @@ getPropertiesFromCurrentContext(
 	if(isExtensionSupported(tmpExtensionStr, "GL_ARB_imaging")){	
 	    ctxInfo->blend_color_ext = JNI_TRUE;
 	    ctxInfo->blendFunctionTable[7] = GL_CONSTANT_COLOR;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLORPROC )dlsym(RTLD_DEFAULT, "glBlendColor");
 #endif
 #ifdef WIN32	    
@@ -539,103 +537,24 @@ getPropertiesFromCurrentContext(
 	ctxInfo->texture_max_level_enum = GL_TEXTURE_MAX_LEVEL;
 
 	/* ...  */
-	
-    } else { /* check 1.1 extension */
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_rescale_normal")){
-   	    ctxInfo->rescale_normal_ext = JNI_TRUE;
-	    ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL_EXT;
+    }
+    else {
+	jclass rte;
+
+	fprintf(stderr,
+		"Java 3D ERROR : OpenGL 1.3 or better is required (GL_VERSION=%d.%d)\n",
+		versionNumbers[0], versionNumbers[1]);
+	if ((rte = (*(table->FindClass))(env, "java/lang/IllegalStateException")) != NULL) {
+	    (*(table->ThrowNew))(env, rte, "GL_VERSION");
 	}
-	if(isExtensionSupported(tmpExtensionStr,"GL_BGR_EXT")) {
-	    ctxInfo->bgr_ext = 1;
-	    ctxInfo->bgr_ext_enum = GL_BGR_EXT;
-	}
-	
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_texture3D" )){
-	    ctxInfo->texture3DAvailable = JNI_TRUE;
-	    ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_3D;
-	    ctxInfo->texture_3D_ext_enum = GL_TEXTURE_3D_EXT;
-	    ctxInfo->texture_wrap_r_ext_enum = GL_TEXTURE_WRAP_R_EXT;
-#if defined(SOLARIS) || defined(__linux__)
-	    ctxInfo->glTexImage3DEXT = (MYPFNGLTEXIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexImage3DEXT");
-	    ctxInfo->glTexSubImage3DEXT = (MYPFNGLTEXSUBIMAGE3DPROC )dlsym(RTLD_DEFAULT, "glTexSubImage3DEXT");
-            /* Fallback to non-EXT variants, needed for older
-               NVIDIA drivers which announce GL_EXT_texture3D but
-               don't have the EXT variants */
-           if (ctxInfo->glTexImage3DEXT == NULL ||
-                ctxInfo->glTexSubImage3DEXT == NULL) {
-
-                ctxInfo->glTexImage3DEXT =
-                    (MYPFNGLTEXIMAGE3DPROC) dlsym(RTLD_DEFAULT, "glTexImage3D");
-                ctxInfo->glTexSubImage3DEXT =
-                    (MYPFNGLTEXSUBIMAGE3DPROC) dlsym(RTLD_DEFAULT, "glTexSubImage3D");
-
-                if (ctxInfo->glTexImage3DEXT == NULL ||
-                    ctxInfo->glTexSubImage3DEXT == NULL) {
-
-                    ctxInfo->textureExtMask &=
-                        ~javax_media_j3d_Canvas3D_TEXTURE_3D;
-                    ctxInfo->texture3DAvailable = JNI_FALSE;
-                }
-            }
-
-#endif
-#ifdef WIN32
-	    ctxInfo->glTexImage3DEXT = (MYPFNGLTEXIMAGE3DPROC )wglGetProcAddress("glTexImage3DEXT");
-	    ctxInfo->glTexSubImage3DEXT = (MYPFNGLTEXSUBIMAGE3DPROC )wglGetProcAddress("glTexSubImage3DEXT");
-	    if ((ctxInfo->glTexImage3DEXT == NULL) || (ctxInfo->glTexSubImage3DEXT == NULL)) {
-		ctxInfo->textureExtMask &= ~javax_media_j3d_Canvas3D_TEXTURE_3D;
-		ctxInfo->texture3DAvailable = JNI_FALSE;
-	    }   
-#endif	    
-	}
-
-
-	if(isExtensionSupported(tmpExtensionStr, "GL_EXT_texture_edge_clamp")) {
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP_TO_EDGE_EXT;
-	} else if(isExtensionSupported(tmpExtensionStr, "GL_SGIS_texture_edge_clamp")) {
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP_TO_EDGE_SGIS;
-	} else {
-	    /* fallback to GL_CLAMP */
-	    ctxInfo->texture_clamp_to_edge_enum = GL_CLAMP;
-	}
-	    
-
-	if(isExtensionSupported(tmpExtensionStr, "GL_EXT_blend_color")){
-	    ctxInfo->blend_color_ext = JNI_TRUE;
-#if defined(SOLARIS) || defined(__linux__)
-	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLOREXTPROC )dlsym(RTLD_DEFAULT, "glBlendColorEXT");
-#endif
-#ifdef WIN32	    
-	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLOREXTPROC )wglGetProcAddress("glBlendColorEXT");
-	    if (ctxInfo->glBlendColor == NULL) {
-		ctxInfo->blend_color_ext = JNI_FALSE;
-	    }
-#endif
-	    ctxInfo->blendFunctionTable[7] = GL_CONSTANT_COLOR_EXT;
-	}
-	
-	if(isExtensionSupported(tmpExtensionStr,"GL_EXT_separate_specular_color" )){
-	    ctxInfo->seperate_specular_color = JNI_TRUE;
-	    ctxInfo->light_model_color_control_enum =  GL_LIGHT_MODEL_COLOR_CONTROL_EXT;
-	    ctxInfo->single_color_enum = GL_SINGLE_COLOR_EXT;
-	    ctxInfo->seperate_specular_color_enum =  GL_SEPARATE_SPECULAR_COLOR_EXT ;
-	}
-
-	if (isExtensionSupported(tmpExtensionStr,"GL_SGIS_texture_lod")) {
-	    ctxInfo->textureLodAvailable = JNI_TRUE;
-	    ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_LOD_RANGE;
-	    ctxInfo->texture_min_lod_enum = GL_TEXTURE_MIN_LOD_SGIS;
-	    ctxInfo->texture_max_lod_enum = GL_TEXTURE_MAX_LOD_SGIS;
-	    ctxInfo->texture_base_level_enum = GL_TEXTURE_BASE_LEVEL_SGIS;
-	    ctxInfo->texture_max_level_enum = GL_TEXTURE_MAX_LEVEL_SGIS;
-	}
-
-
-  	/* ... */
+	return JNI_FALSE;
     }
 
+    /*
+     * TODO: Remove extension checks for those features that are core
+     * in OpenGL 1.3 and just use the core feature.
+     */
 
-	
     /* check extensions for remaining of 1.1 and 1.2 */
     if(isExtensionSupported(tmpExtensionStr, "GL_EXT_multi_draw_arrays")){
 	ctxInfo->multi_draw_arrays_ext = JNI_TRUE;
@@ -678,7 +597,7 @@ getPropertiesFromCurrentContext(
     }
 #endif /* OBSOLETE_HW_COMPRESSED_GEOM */
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     /*
      * setup ARB_multisample, under windows this is setup in
      * NativeConfigTemplate when pixel format is choose
@@ -713,7 +632,7 @@ getPropertiesFromCurrentContext(
      * it by default if the surface is multisample capable.
      */
     if (ctxInfo->arb_multisample && !ctxInfo->implicit_multisample) {
-	glDisable(MULTISAMPLE_ARB);
+	glDisable(GL_MULTISAMPLE_ARB);
     }
     /*
      * checking of the texture extensions is done in checkTextureExtensions(),
@@ -899,7 +818,7 @@ getPropertiesFromCurrentContext(
     stencilSize = pfd.cStencilBits;
 #endif
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     if(ctxInfo->multi_draw_arrays_ext) {
 	ctxInfo->glMultiDrawArraysEXT =
 	    (MYPFNGLMULTIDRAWARRAYSEXTPROC)dlsym(RTLD_DEFAULT, "glMultiDrawArraysEXT");
@@ -977,7 +896,7 @@ getPropertiesFromCurrentContext(
 	}
     }
 
-#endif /* Solaris or Linux */
+#endif /* UNIX */
 
     if (stencilSize > 1) {
       ctxInfo->extMask |= javax_media_j3d_Canvas3D_STENCIL_BUFFER;
@@ -1090,12 +1009,12 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyContext(
     wglDeleteContext((HGLRC)context);
 #endif /* WIN32 */
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     /*
     glXMakeCurrent((Display *)display, None, NULL);
     */
     glXDestroyContext((Display *)display, (GLXContext)context);
-#endif /* SOLARIS */
+#endif /* UNIX */
     /* cleanup CtxInfo and free its memory */
     cleanupCtxInfo(s); 
    
@@ -1142,7 +1061,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     GraphicsContextPropertiesInfo *sharedCtxStructure;
     int PixelFormatID=0;
         
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
     /* Fix for issue 20 */
 
@@ -1210,7 +1129,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 
     
     gctx = (jlong)ctx;
-#endif /* SOLARIS */
+#endif /* UNIX */
 
 #ifdef WIN32
     HGLRC hrc; /* HW Rendering Context */
@@ -1358,7 +1277,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_useCtx(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
     jlong ctx = ctxProperties->context;
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     glXMakeCurrent((Display *)display, (GLXDrawable)window, (GLXContext)ctx);
 #endif
 
@@ -2296,7 +2215,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
     jint win)
 {
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
    glXSwapBuffers((Display *)display, (Window)win);
    
 #endif
@@ -2494,7 +2413,7 @@ int getTextureColorTableSize(
 	ctxProperties->glGetColorTableParameteriv =
 	    (MYPFNGLGETCOLORTABLEPARAMETERIVPROC)wglGetProcAddress("glGetColorTableParameteriv");
 #endif
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxProperties->glColorTable =
 	    (MYPFNGLCOLORTABLEPROC)dlsym(RTLD_DEFAULT, "glColorTable");
 	ctxProperties->glGetColorTableParameteriv =
@@ -2507,7 +2426,7 @@ int getTextureColorTableSize(
         ctxProperties->glGetColorTableParameteriv =
 	    (MYPFNGLGETCOLORTABLEPARAMETERIVPROC)wglGetProcAddress("glGetColorTableParameterivSGI");
 #endif
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	ctxProperties->glColorTable =
 	    (MYPFNGLCOLORTABLEPROC)dlsym(RTLD_DEFAULT, "glColorTableSGI");
 	ctxProperties->glGetColorTableParameteriv =
@@ -2540,7 +2459,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_videoResize(
     jint win,
     jfloat dvrFactor)
 {
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
@@ -2560,7 +2479,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_videoResizeCompensation(
     jboolean enable)
 {
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     GraphicsContextPropertiesInfo *ctxProperties = 
 	(GraphicsContextPropertiesInfo *)ctxInfo; 
 
@@ -2591,7 +2510,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
     jint height)
 {
     
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
     /* Fix for issue 20 */
     
@@ -2699,7 +2618,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
    }
 
    
-#endif /* SOLARIS */
+#endif /* UNIX */
 
 #ifdef WIN32   
     /* Fix for issue 76 */
@@ -2902,7 +2821,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
     jfieldID offScreenBuffer_field;
     JNIEnv table = *env;
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     /*  Fix for Issue 20 */
     GLXFBConfig *fbConfigList = (GLXFBConfig *)fbConfigListPtr;
     int val;
@@ -2918,7 +2837,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
 	glXDestroyPixmap((Display *) display, (GLXPixmap)window);
     }
     
-#endif /* SOLARIS */
+#endif /* UNIX */
 
 #ifdef WIN32
     /* Fix for issue 76 */
@@ -3151,9 +3070,9 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->glDetailTexFuncSGIS = NULL;
     ctxInfo->glTexFilterFuncSGIS = NULL;
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     ctxInfo->glXVideoResizeSUN = NULL;
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX */
 }
 
 static void
@@ -3251,7 +3170,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     int PixelFormatID=0;
     GraphicsContextPropertiesInfo* ctxInfo = (GraphicsContextPropertiesInfo *)malloc(sizeof(GraphicsContextPropertiesInfo)); 
 	
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
     /* Fix for issue 20 */
 
@@ -3439,11 +3358,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
 
     /* clear up the context , colormap and window if appropriate */
     if(window == 0 && !offScreen){
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 	Java_javax_media_j3d_Canvas3D_destroyContext(env, obj, display, newWin, (jlong)ctxInfo); 
 	XDestroyWindow((Display *)display, glWin);
 	XFreeColormap((Display *)display, cmap);
-#endif /* SOLARIS */
+#endif /* UNIX */
 #ifdef WIN32
 	/* Release DC */
 	ReleaseDC(hDummyWnd, hdc);
@@ -3495,10 +3414,10 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing
 
     if (ctxProperties->arb_multisample && !ctxProperties->implicit_multisample) {
 	if(enable == JNI_TRUE) {
-	    glEnable(MULTISAMPLE_ARB);
+	    glEnable(GL_MULTISAMPLE_ARB);
 	}
 	else {
-	    glDisable(MULTISAMPLE_ARB);
+	    glDisable(GL_MULTISAMPLE_ARB);
 
 	}
     }
@@ -3521,7 +3440,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_validGraphicsMode(
     return (devMode.dmBitsPerPel > 8);
 #endif
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     return JNI_TRUE;
 #endif
 }

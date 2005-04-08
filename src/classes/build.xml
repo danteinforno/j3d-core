@@ -306,4 +306,24 @@
 	 basedir="${build}/${platform}/javadocs/docs-public"/>
   </target>
 
+  <target name="install-debug">
+    <copy todir="${java.home}/lib/ext">
+        <fileset dir="${build}/${platform}/debug/lib/ext" includes="*.jar"/>
+        <fileset dir="${vecmath_home}/build/opt/lib/ext" includes="vecmath.jar"/>
+    </copy>
+    <copy todir="${java.home}/${install.bin}">
+       <fileset dir="${build}/${platform}/debug/${install.bin}" includes="*"/>
+    </copy>
+  </target>
+ 
+  <target name="uninstall">
+    <delete>
+        <fileset dir="${java.home}/lib/ext" includes="j3dcore.jar, j3dutils.jar, vecmath.jar"/>
+    </delete>
+    <delete>
+       <fileset dir="${java.home}/${install.bin}" includes="libj3dcore-ogl.so, libj3dutil.so"/>
+       <fileset dir="${java.home}/${install.bin}" includes="j3dcore-ogl.dll, j3dcore-d3d.dll, j3dutil.dll"/>
+    </delete>
+  </target>
+ 
 </project>

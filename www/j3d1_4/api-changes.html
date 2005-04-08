@@ -19,8 +19,8 @@
 *
 * NOTE: This file must be edited by hand to avoid Mozilla Composer
 * putting all preformatted lines into a single line with "<br>"
-* replacing ASCII newlines, making it impossible to do a meaningful
-* "diff" operation.
+* replacing ASCII newlines (which, in turn, causes problems with some
+* editors).
 *
 ************************************************************************
 -->
@@ -82,34 +82,6 @@ I. New/deprecated fields, constructors, methods
     ----
     New fields:
 	public static final int ALLOW_PARENT_READ
-	public static final int ALLOW_LOCALE_READ
-
-    New methods:
-	public Locale getLocale()
-
-
-    VirtualUniverse
-    ---------------
-    New methods:
-	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
-	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
-
-
-    Sensor
-    ------
-    Deprecated fields:
-	public static final int PREDICT_NONE
-	public static final int PREDICT_NEXT_FRAME_TIME
-	public static final int NO_PREDICTOR
-	public static final int HEAD_PREDICTOR
-	public static final int HAND_PREDICTOR
-
-    Deprecated methods:
-	public void setPredictor(int predictor)
-	public int getPredictor()
-	public void setPredictionPolicy(int policy)
-	public int getPredictionPolicy()
-	public void getRead(Transform3D read, long deltaT)
 
 
 II. Reparented classes
@@ -186,18 +158,6 @@ III. New classes and interfaces (in javax.media.j3d)
     GLSLShaderProgram
     -----------------
 	public class GLSLShaderProgram extends ShaderProgram
-
-    GraphStructureChangeListener
-    ----------------------------
-	public interface GraphStructureChangeListener
-
-
-IV. Deprecated classes and interfaces (in javax.media.j3d)
-
-    CompressedGeometry
-    CompressedGeometryHeader
-    PickPoint
-    Morph
 </pre>
 <p><font color="gray">Page last updated &#8212;
 $Date$

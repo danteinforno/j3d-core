@@ -25,14 +25,16 @@ import javax.vecmath.Color3f;
  * the node, but the actual fog equation will ideally take place in eye
  * coordinates.
  * <P>
- * The linear fog blending factor, f, is computed as follows:
- * <P><UL>
- * f = backDistance - z / backDistance - frontDistance<P>
- * where
- * <ul>z is the distance from the viewpoint.<br>
- * frontDistance is the distance at which fog starts obscuring objects.<br>
- * backDistance is the distance at which fog totally obscurs objects.
- * </ul><P></UL>
+ * The linear fog blending factor, <code>f</code>, is computed as follows:
+ * <ul>
+ * <code>f = (backDistance - z) / (backDistance - frontDistance)</code>
+ * </ul>
+ * where:
+ * <ul>
+ * <code>z</code> is the distance from the viewpoint.<br>
+ * <code>frontDistance</code> is the distance at which fog starts obscuring objects.<br>
+ * <code>backDistance</code> is the distance at which fog totally obscurs objects.
+ * </ul>
  */
 public class LinearFog extends Fog {
     /**
