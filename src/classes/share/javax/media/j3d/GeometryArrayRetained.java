@@ -7469,7 +7469,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // Note that by next round sign*lastSign = 0 so it will
     // not pass the interest test. This should only happen once in the
     // loop because we already check for degenerate geometry before.
-				lastSign = 0; 
 			    }
 			}
 		    }
@@ -7501,7 +7500,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
@@ -7533,7 +7532,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
@@ -7563,7 +7562,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
