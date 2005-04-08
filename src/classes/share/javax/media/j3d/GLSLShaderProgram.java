@@ -13,39 +13,102 @@
 package javax.media.j3d;
 
 /**
- * The GLSLShaderProgram object is a concrete implementation of a ShaderProgram
- * node component for the OpenGL GLSL shading language.
+ * The GLSLShaderProgram object is a concrete implementation of a
+ * ShaderProgram node component for the OpenGL GLSL shading language.
  *
- * @see GLSLVertexShader
- * @see GLSLFragmentShader
+ * @see Shader
  *
  * @since Java 3D 1.4
  */
 
 public class GLSLShaderProgram extends ShaderProgram {
-    private GLSLVertexShader vertexShader = null;
-    private GLSLFragmentShader fragmentShader = null;
+    private SourceCodeShader vertexShader = null; // TODO: make this an array
+    private SourceCodeShader fragmentShader = null; // TODO: make this an array
     private int shaderProgramId = 0;
 
 
+    /**
+     * Constructs a GLSL shader program node component.
+     *
+     * <br>
+     * TODO: ADD MORE DOCUMENTATION HERE.
+     */
     public GLSLShaderProgram() {
     }
 
-    public void setVertexShader(GLSLVertexShader vertexShader) {
-	this.vertexShader = vertexShader;
+    /**
+     * Copies the specified array of shaders into this shader
+     * program. This method makes a shallow copy of the array. The
+     * array of shaders may be null or empty (0 length), but the
+     * elements of the array must be non-null. The shading language of
+     * each shader in the array must be
+     * <code>SHADING_LANGUAGE_GLSL</code>. Each shader in the array must
+     * be a SourceCodeShader.
+     *
+     * @param shaders array of Shader objects to be copied into this
+     * ShaderProgram
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalArgumentException if the shading language of
+     * any shader in the shaders array is <em>not</em>
+     * <code>SHADING_LANGUAGE_GLSL</code>.
+     *
+     * @exception ClassCastException if any shader in the shaders
+     * array is <em>not</em> a SourceCodeShader.
+     */
+    public void setShaders(Shader[] shaders) {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_SHADERS_WRITE)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("GLSLShaderProgram0"));
+	    }
+	}
+
+	// TODO: move the rest of this into a GLSLShaderProgramRetained class
+
+	// TODO: create an array of shaders rather than one of each
+
+	if (shaders == null) {
+	    vertexShader = fragmentShader = null;
+	    return;
+	}
+
+	// Check shaders for valid shading language and class type
+	for (int i = 0; i < shaders.length; i++) {
+	    if (shaders[i].getShadingLanguage() != Shader.SHADING_LANGUAGE_GLSL) {
+		throw new IllegalArgumentException(J3dI18N.getString("GLSLShaderProgram2"));
+	    }
+
+	    // Try to cast shader to SourceCodeShader; it will throw
+	    // ClassCastException if it isn't.
+	    SourceCodeShader shad = (SourceCodeShader)shaders[i];
+	}
+
+	vertexShader = fragmentShader = null;
+	// Copy vertex and fragment shader
+	// TODO: handle array of shaders
+	for (int i = 0; i < shaders.length; i++) {
+	    if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
+		vertexShader = (SourceCodeShader)shaders[i];
+	    }
+	    else { // Shader.SHADER_TYPE_FRAGMENT
+		fragmentShader = (SourceCodeShader)shaders[i];
+	    }
+	}
     }
 
-    public void setFragmentShader(GLSLFragmentShader fragmentShader) {
-	this.fragmentShader = fragmentShader;
+    // Implement abstract getShaders method (inherit javadoc from parent class)
+    public Shader[] getShaders() {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_SHADERS_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("GLSLShaderProgram1"));
+	    }
+	}
+
+	throw new RuntimeException("not implemented");
     }
 
-    public GLSLVertexShader getVertexShader() {
-	return vertexShader;
-    }
-
-    public GLSLFragmentShader getFragmentShader() {
-	return fragmentShader;
-    }
 
     private native int updateNative(long ctx,
 				    int shaderProgram,

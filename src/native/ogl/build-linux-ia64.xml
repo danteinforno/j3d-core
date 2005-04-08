@@ -21,7 +21,7 @@
     <!--
     /*
      * TODO: To compile CG, add the following the the "link" command:
-     *    -lcg -lcgGL -lGLU -lpthread
+     *    -lCg -lCgGL -lGLU -lpthread
      */
     -->
 
