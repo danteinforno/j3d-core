@@ -426,6 +426,10 @@ class CapabilityBits extends Object {
     static final int TEXTURE_UNIT_STATE_ALLOW_STATE_READ		= 0;
     static final int TEXTURE_UNIT_STATE_ALLOW_STATE_WRITE		= 1;
 
+    // ShaderProgram extends NodeComponent 
+    static final int SHADER_PROGRAM_ALLOW_SHADERS_READ			= 0;
+    static final int SHADER_PROGRAM_ALLOW_SHADERS_WRITE			= 1;
+
     // ShaderAttributeSet extends NodeComponent 
     static final int SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_READ		= 0;
     static final int SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_WRITE	= 1;
