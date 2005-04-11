@@ -327,10 +327,10 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if (this.source.isLive()) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
-              Node child = (Node)children.get(index);
+              NodeRetained childr = (NodeRetained)children.get(index);
 	      doRemoveChild(index, null, 0);
 	      universe.setLiveState.clear();	
-              universe.notifyStructureChangeListeners(false, this.source, (BranchGroup)child);
+              universe.notifyStructureChangeListeners(false, this.source, (BranchGroup)childr.source);
 	    }
 	    universe.waitForMC();
 	} else {
