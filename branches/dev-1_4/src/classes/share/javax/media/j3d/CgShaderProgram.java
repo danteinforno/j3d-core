@@ -16,8 +16,7 @@ package javax.media.j3d;
  * The CgShaderProgram object is a concrete implementation of a
  * ShaderProgram node component for NVIDIA's Cg shader language.
  *
- * @see CgVertexShader
- * @see CgFragmentShader
+ * @see SourceCodeShader
  *
  * @since Java 3D 1.4
  */

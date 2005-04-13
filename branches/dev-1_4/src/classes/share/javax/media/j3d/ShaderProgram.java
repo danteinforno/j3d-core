@@ -103,4 +103,22 @@ public abstract class ShaderProgram extends NodeComponent {
      */
     abstract void setUniformAttrValue(long ctx, ShaderAttributeValue sav);
 
+
+    // Default shader error listener class
+    private static ShaderErrorListener defaultErrorListener = null;
+
+    synchronized static ShaderErrorListener getDefaultErrorListener() {
+	if (defaultErrorListener == null) {
+	    defaultErrorListener = new DefaultErrorListener();
+	}
+
+	return defaultErrorListener;
+    }
+
+    static class DefaultErrorListener implements ShaderErrorListener {
+	public void errorOccurred(ShaderError error) {
+	    System.err.println("DefaultShaderErrorListener.errorOccurred:");
+	    error.printVerbose();
+	}
+    }
 }
