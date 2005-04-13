@@ -14,7 +14,7 @@
  */
  -->
 
-<project name="Java 3D" default="jar-opt" basedir=".">
+<project name="java3d-1.4.0" default="jar-opt" basedir=".">
 
   <!--
   *********************************************************************
