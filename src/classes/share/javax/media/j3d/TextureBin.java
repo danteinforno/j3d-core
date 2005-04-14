@@ -1502,6 +1502,12 @@ class TextureBin extends Object implements ObjectUpdate {
 		     attributeBin.environmentSet.lightBin.geometryBackground != null)) {
 		    renderBin.removeTransparentObject(this);
 		}
+		// Issue 129: remove the RM's render atoms from the
+		// list of transparent render atoms
+		if ((renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) &&
+		    (attributeBin.environmentSet.lightBin.geometryBackground == null)) {
+		    r.addRemoveTransparentObject(renderBin, false);
+		}
 	    }
 	}
 	HashMap renderMoleculeMap;
@@ -1606,7 +1612,13 @@ class TextureBin extends Object implements ObjectUpdate {
 	    else {
 		transparentRMList = startList;
 	    }
-		
+	    // Issue 129: add the RM's render atoms to the list of
+	    // transparent render atoms
+	    // TODO: do we need to resort the list after the add???
+	    if ((renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) &&
+		(attributeBin.environmentSet.lightBin.geometryBackground == null)) {
+		r.addRemoveTransparentObject(renderBin, true);
+	    }
 	}
     }
 
