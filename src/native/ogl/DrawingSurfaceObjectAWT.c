@@ -144,11 +144,11 @@ Java_javax_media_j3d_DrawingSurfaceObjectAWT_getDrawingSurfaceWindowIdAWT(
 #endif /* __sparc */
 #endif /* SOLARIS */
 
-#ifdef __linux__
+#ifdef LINUX
     JAWT_X11DrawingSurfaceInfo *xds = 
 	(JAWT_X11DrawingSurfaceInfo*) dsi->platformInfo;
     window = (jint)xds->drawable;
-#endif /* __linux__ */
+#endif /* LINUX */
 
     /*
      * Don't free DrawingSurfaceInfo here, otherwise

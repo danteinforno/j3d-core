@@ -3503,3 +3503,45 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
      * texture unit state.
      */ 
 }
+
+
+/*
+ * strJavaToC
+ *
+ * Returns a copy of the specified Java String object as a new,
+ * null-terminated "C" string. The caller must free this string.
+ */
+char *
+strJavaToC(JNIEnv *env, jstring str)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+    jsize strUTFLen;		/* Number of UTF-8 bytes in String */
+    jbyte *strUTFBytes;		/* Array of UTF-8 bytes */
+    char *cString = NULL;	/* Null-terminated "C" string */
+
+    strUTFLen = table->GetStringUTFLength(env, str);
+    cString = (char *)malloc(strUTFLen + 1);
+    if (cString == NULL) {
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "malloc");
+	}
+	return NULL;
+    }
+
+    strUTFBytes = table->GetStringUTFChars(env, str, NULL);
+    if (strUTFBytes == NULL) {
+	free(cString);
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "GetStringUTFChars");
+	}
+	return NULL;
+    }
+
+    memcpy(cString, strUTFBytes, strUTFLen);
+    cString[strUTFLen] = '\0';
+    table->ReleaseStringUTFChars(env, str, strUTFBytes);
+
+    return cString;
+}

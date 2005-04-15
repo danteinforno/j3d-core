@@ -238,6 +238,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if(oldchildr != null) {
 	    oldchildr.setParent(null);
 	    checkClearLive(oldchildr, messages, 0, index, null);
+            universe.notifyStructureChangeListeners(false, this.source, (BranchGroup)oldchildr.source);
 	}
 	removeChildrenData(index);
 
@@ -249,6 +250,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	    return;
 	}
 	
+        universe.notifyStructureChangeListeners(true, this.source, (BranchGroup)child);
 	NodeRetained childr = (NodeRetained) child.retained;
 	childr.setParent(this);
 	children.set(index, childr);
@@ -276,6 +278,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if (this.source.isLive()) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
+                universe.notifyStructureChangeListeners(true, this.source, (BranchGroup)child);
 	        doInsertChild(child, index);
 		universe.setLiveState.clear();	
 	    }
@@ -324,8 +327,10 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if (this.source.isLive()) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
+              NodeRetained childr = (NodeRetained)children.get(index);
 	      doRemoveChild(index, null, 0);
 	      universe.setLiveState.clear();	
+              universe.notifyStructureChangeListeners(false, this.source, (BranchGroup)childr.source);
 	    }
 	    universe.waitForMC();
 	} else {
@@ -454,6 +459,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if (this.source.isLive()) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
+                universe.notifyStructureChangeListeners(true, this.source, (BranchGroup)child);
 	        doAddChild(child, null, 0);
 		universe.setLiveState.clear();	
 	    }
@@ -492,8 +498,13 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	if (this.source.isLive()) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
+                GroupRetained oldParent = (GroupRetained)((BranchGroupRetained)bg.retained).parent;
 	        doMoveTo(bg);
 		universe.setLiveState.clear();	
+                if (oldParent==null)
+                    universe.notifyStructureChangeListeners(((BranchGroupRetained)bg.retained).locale, this.source, bg);
+                else
+                    universe.notifyStructureChangeListeners(oldParent.source, this.source, bg);
 	    }
 	    universe.waitForMC();
 	} else {
