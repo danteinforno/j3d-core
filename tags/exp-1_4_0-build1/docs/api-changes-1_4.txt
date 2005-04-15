@@ -1,0 +1,188 @@
+------------------------------------------------------------------------
+$RCSfile$
+$Revision$
+$Date$
+------------------------------------------------------------------------
+This document conatains proposed API changes to the Java 3D 1.4 API
+that deviate from the 1.3 API.
+
+This file must be updated to record the addition or deprecation of any
+public or protected class, interface, field, constructor, or method to
+the Java 3D API.
+
+The one exception to this rule is that you don't need to update this
+file when adding a non-final (i.e., virtual) method to a class if that
+method--with exactly the same signature--already exists in a
+superclass.  For example, adding a "toString" method to a j3d object
+doesn't require an entry in this file.  Likewise, adding duplicateNode
+or cloneNode methods to Node subclasses doesn't require an entry in
+this file.
+
+No incompatible changes to the Java 3D 1.3 API are allowed.
+
+
+I. New/deprecated fields, constructors, methods
+
+    SceneGraphObject
+    ----------------
+    New methods:
+	public void setName(String name)
+	public String getName()
+
+
+    GeometryArray (incomplete list)
+    -------------
+    New fields:
+	public static final int ALLOW_VERTEX_ATTR_READ
+	public static final int ALLOW_VERTEX_ATTR_WRITE
+	public static final int VERTEX_ATTRIBUTES
+
+    New constructors:
+	public GeometryArray(int vertexCount,
+			     int vertexFormat,
+			     int texCoordSetCount,
+			     int[] texCoordSetMap,
+			     int vertexAttrCount,
+			     int[] vertexAttrFormats,
+			     String[] vertexAttrNames)
+
+    New methods:
+	public int getVertexAttrCount()
+	public void getVertexAttrFormats(int[] vertexAttrFormats)
+	public void getVertexAttrNames(String[] vertexAttrNames)
+
+
+    Node
+    ----
+    New fields:
+	public static final int ALLOW_PARENT_READ
+	public static final int ALLOW_LOCALE_READ
+
+    New methods:
+	public Locale getLocale()
+
+
+    VirtualUniverse
+    ---------------
+    New methods:
+	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+
+
+    Locale
+    ------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
+    BranchGroup
+    -----------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
+    Sensor
+    ------
+    Deprecated fields:
+	public static final int PREDICT_NONE
+	public static final int PREDICT_NEXT_FRAME_TIME
+	public static final int NO_PREDICTOR
+	public static final int HEAD_PREDICTOR
+	public static final int HAND_PREDICTOR
+
+    Deprecated methods:
+	public void setPredictor(int predictor)
+	public int getPredictor()
+	public void setPredictionPolicy(int policy)
+	public int getPredictionPolicy()
+	public void getRead(Transform3D read, long deltaT)
+
+
+II. Reparented classes
+
+    NONE
+
+
+III. New classes and interfaces (in javax.media.j3d)
+
+    ShaderAppearance
+    ----------------
+	public class ShaderAppearance extends Appearance
+
+    ShaderAttributeSet
+    ------------------
+	public class ShaderAttributeSet extends NodeComponent
+
+    ShaderAttribute
+    ---------------
+	public abstract class ShaderAttribute extends NodeComponent
+
+    ShaderAttributeBinding
+    ----------------------
+	public class ShaderAttributeBinding extends ShaderAttribute
+
+    ShaderAttributeObject
+    ---------------------
+	public abstract class ShaderAttributeObject extends ShaderAttribute
+
+    ShaderAttributeValue
+    --------------------
+	public class ShaderAttributeValue extends ShaderAttributeObject
+
+    ShaderAttributeArray
+    --------------------
+	public class ShaderAttributeArray extends ShaderAttributeObject
+
+    Shader
+    ------
+	public abstract class Shader extends NodeComponent
+
+    SourceCodeShader
+    ----------------
+	public class SourceCodeShader extends Shader
+
+    ShaderProgram
+    -------------
+	public abstract class ShaderProgram extends NodeComponent
+
+    CgShaderProgram
+    ---------------
+	public class CgShaderProgram extends ShaderProgram
+
+    GLSLShaderProgram
+    -----------------
+	public class GLSLShaderProgram extends ShaderProgram
+
+    ShaderError
+    -----------
+	public class ShaderError extends Object
+
+    ShaderErrorListener
+    -------------------
+	public interface ShaderErrorListener
+
+    GraphStructureChangeListener
+    ----------------------------
+	public interface GraphStructureChangeListener
+
+    PickInfo
+    --------
+	public class PickInfo extends Object
+
+    PickInfo.IntersectionInfo
+    -------------------------
+	public class PickInfo.IntersectionInfo extends Object
+
+
+IV. Deprecated classes and interfaces (in javax.media.j3d)
+
+    CompressedGeometry
+    CompressedGeometryHeader
+    PickPoint
+    Morph
