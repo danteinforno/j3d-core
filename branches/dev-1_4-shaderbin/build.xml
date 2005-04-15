@@ -14,7 +14,7 @@
  */
  -->
 
-<project name="Java 3D" default="jar-opt" basedir=".">
+<project name="java3d-1.4.0" default="jar-opt" basedir=".">
 
   <!--
   *********************************************************************
@@ -51,7 +51,7 @@
   * build number that is greater than the previous build's build
   * number.
   -->
-  <property name="version_buildnum"   value="1"/>
+  <property name="version_buildnum"   value="2"/>
 
   <!--
   * The following property specifies the beta revision of the current

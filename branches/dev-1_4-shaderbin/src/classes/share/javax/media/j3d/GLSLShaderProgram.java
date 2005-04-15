@@ -16,7 +16,7 @@ package javax.media.j3d;
  * The GLSLShaderProgram object is a concrete implementation of a
  * ShaderProgram node component for the OpenGL GLSL shading language.
  *
- * @see Shader
+ * @see SourceCodeShader
  *
  * @since Java 3D 1.4
  */
