@@ -582,20 +582,21 @@ public class Locale extends Object {
     /**
      * Returns an array unsorted references to all the PickInfo objects that are pickable 
      * below this <code>Locale</code> that intersect with PickShape. 
-     * <br>
-     * The detail level of picking is set by the pick mode. It is an enum of 
-     * Bounds or Geometry.  The amount of information returned is specified via a 
-     * masked variable, flags, indicating which components are present in each 
-     * returned PickInfo object. This is specified as one or more individual flags 
-     * that are bitwise "OR"ed together to describe the returned per PickInfo data.
-     * The flags include:
-     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
-     * NODE                         - request for computed intersected Node.
-     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
-     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
-     * DISTANCE             - request for the closest distance of the intersection.
-     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
-     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     * The detail level of picking is set by the pick mode. The mode include : 
+     * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
+     * is specified via a masked variable, flags, indicating which components are 
+     * present in each returned PickInfo object. This is specified as one or more 
+     * individual flags that are bitwise "OR"ed together to describe the returned per 
+     * PickInfo data. The flags include: <br><br>
+     * <ul>
+     * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
+     * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
+     * <code>PickInfo.LOCAL_TO_VWORLD</code> - request for computed local to virtual world transform.<br>
+     * <code>PickInfo.CLOSEST_INTERSECTION_POINT</code> - request for closest intersection point.<br>
+     * <code>PickInfo.CLOSEST_DISTANCE</code> - request for the distance of closest intersection.<br>
+     * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
+     * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
+     * </ul>
      *
      * @param mode  specifies the detail level of picking.
      *
@@ -603,10 +604,23 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
+     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO are set.
+     *
+     * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
+     * is set to PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
+     * nor PickInfo.PICK_GEOMETRY.
+     *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
      *
-     * @see BranchGroup#pickAll
+     * @see BranchGroup#pickAll(int,int,javax.media.j3d.PickShape)
+     * @see PickInfo
+     * 
+     * @since Java 3D 1.4
+     *
      */
     public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
 
@@ -643,20 +657,21 @@ public class Locale extends Object {
      * items that intersect with the pickShape. Element [0] references 
      * the item closest to <i>origin</i> of PickShape successive array
      * elements are further from the <i>origin</i>
-     * <br>
-     * The detail level of picking is set by the pick mode. It is an enum of 
-     * Bounds or Geometry.  The amount of information returned is specified 
-     * via a masked variable, flags, indicating which components are present in 
-     * each returned PickInfo object. This is specified as one or more individual 
-     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
-     * The flags include:
-     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
-     * NODE                         - request for computed intersected Node.
-     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
-     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
-     * DISTANCE             - request for the closest distance of the intersection.
-     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
-     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     * The detail level of picking is set by the pick mode. The mode include : 
+     * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
+     * is specified via a masked variable, flags, indicating which components are 
+     * present in each returned PickInfo object. This is specified as one or more 
+     * individual flags that are bitwise "OR"ed together to describe the returned per 
+     * PickInfo data. The flags include: <br><br>
+     * <ul>
+     * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
+     * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
+     * <code>PickInfo.LOCAL_TO_VWORLD</code> - request for computed local to virtual world transform.<br>
+     * <code>PickInfo.CLOSEST_INTERSECTION_POINT</code> - request for closest intersection point.<br>
+     * <code>PickInfo.CLOSEST_DISTANCE</code> - request for the distance of closest intersection.<br>
+     * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
+     * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
+     * </ul>
      *
      * @param mode  specifies the detail level of picking.
      *
@@ -664,10 +679,23 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
+     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO are set.
+     *
+     * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
+     * is set to PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
+     * nor PickInfo.PICK_GEOMETRY.
+     *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
      *
-     * @see BranchGroup#pickAllSorted
+     * @see BranchGroup#pickAllSorted(int,int,javax.media.j3d.PickShape)
+     * @see PickInfo
+     * 
+     * @since Java 3D 1.4
+     *
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
 
@@ -701,31 +729,45 @@ public class Locale extends Object {
     /**
      * Returns a PickInfo which references the pickable item
      * which is closest to the origin of <code>pickShape</code>.
-     * <br>
-     * The detail level of picking is set by the pick mode. It is an enum of 
-     * Bounds or Geometry.  The amount of information returned is specified 
-     * via a masked variable, flags, indicating which components are present in 
-     * each returned PickInfo object. This is specified as one or more individual 
-     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
-     * The flags include:
-     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
-     * NODE                         - request for computed intersected Node.
-     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
-     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
-     * DISTANCE             - request for the closest distance of the intersection.
-     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
-     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     * The detail level of picking is set by the pick mode. The mode include : 
+     * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
+     * is specified via a masked variable, flags, indicating which components are 
+     * present in each returned PickInfo object. This is specified as one or more 
+     * individual flags that are bitwise "OR"ed together to describe the returned per 
+     * PickInfo data. The flags include: <br><br>
+     * <ul>
+     * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
+     * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
+     * <code>PickInfo.LOCAL_TO_VWORLD</code> - request for computed local to virtual world transform.<br>
+     * <code>PickInfo.CLOSEST_INTERSECTION_POINT</code> - request for closest intersection point.<br>
+     * <code>PickInfo.CLOSEST_DISTANCE</code> - request for the distance of closest intersection.<br>
+     * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
+     * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
+     * </ul>
      *
      * @param mode  specifies the detail level of picking.
      *
      * @param flags specifies amount of returned information in each PickInfo object.
      *
-     * @param pickShape the description of this picking volume or area.  
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO are set.
+     *
+     * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
+     * is set to PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
+     * nor PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
      *
-     * @see BranchGroup#pickClosest
+     * @see BranchGroup#pickClosest(int,int,javax.media.j3d.PickShape)
+     * @see PickInfo
+     * 
+     * @since Java 3D 1.4
+     *
      */
     public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
 
@@ -755,31 +797,45 @@ public class Locale extends Object {
     /**
      * Returns a PickInfo which references the pickable item  below this
      * Locale which intersects with <code>pickShape</code>.
-     * <br>
-     * The detail level of picking is set by the pick mode. It is an enum of 
-     * Bounds or Geometry.  The amount of information returned is specified 
-     * via a masked variable, flags, indicating which components are present in 
-     * each returned PickInfo object. This is specified as one or more individual 
-     * flags that are bitwise "OR"ed together to describe the returned per PickInfo data.
-     * The flags include:
-     * SCENEGRAPHPATH               - request for computed SceneGraphPath.    
-     * NODE                         - request for computed intersected Node.
-     * LOCAL_TO_VWORLD              - request for computed local to virtual world transform.
-     * CLOSEST_INTERSECTION_POINT   - request for closest intersection point.
-     * DISTANCE             - request for the closest distance of the intersection.
-     * CLOSEST_GEOM_INFO    - request for only the closest intersection geometry information.
-     * ALL_GEOM_INFO        - request for all intersection geometry information.
+     * The detail level of picking is set by the pick mode. The mode include : 
+     * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
+     * is specified via a masked variable, flags, indicating which components are 
+     * present in each returned PickInfo object. This is specified as one or more 
+     * individual flags that are bitwise "OR"ed together to describe the returned per 
+     * PickInfo data. The flags include: <br><br>
+     * <ul>
+     * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
+     * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
+     * <code>PickInfo.LOCAL_TO_VWORLD</code> - request for computed local to virtual world transform.<br>
+     * <code>PickInfo.CLOSEST_INTERSECTION_POINT</code> - request for closest intersection point.<br>
+     * <code>PickInfo.CLOSEST_DISTANCE</code> - request for the distance of closest intersection.<br>
+     * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
+     * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
+     * </ul>
      *
      * @param mode  specifies the detail level of picking.
      *
      * @param flags specifies amount of returned information in each PickInfo object.
      *
-     * @param pickShape the description of this picking volume or area.  
+     * @param pickShape the description of this picking volume or area.
+     *
+     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO are set.
+     *
+     * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
+     * is set to PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
+     * nor PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
      *
-     * @see BranchGroup#pickAny
+     * @see BranchGroup#pickAny(int,int,javax.media.j3d.PickShape)
+     * @see PickInfo
+     * 
+     * @since Java 3D 1.4
+     *
      */
     public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
 

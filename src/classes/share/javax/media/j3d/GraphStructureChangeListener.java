@@ -15,6 +15,8 @@ package javax.media.j3d;
  * Listener interface for monitoring structural changes to live scene
  * graphs. BranchGroup additions, removals and moves are reported.
  *
+ * @see VirtualUniverse#addGraphStructureChangeListener
+ *
  * @since Java 3D 1.4
  */
 public interface GraphStructureChangeListener {
