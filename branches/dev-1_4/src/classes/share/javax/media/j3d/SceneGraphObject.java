@@ -425,4 +425,25 @@ public abstract class SceneGraphObject extends Object {
 	    return originalNodeComponent;
 	}
     }
+
+    // Internal method to make a prefix out of the name of this object
+    String getNamePrefix() {
+	String name = getName();
+
+	if (name != null) {
+	    return "\"" + name + "\" ";
+	}
+
+	return "";
+    }
+
+    /**
+     * Returns a String representation of this SceneGraphObject.
+     * If its name is non-null, then it is concatenated with
+     * super.toString().
+     */
+    public String toString() {
+	return getNamePrefix() + super.toString();
+    }
+
 }

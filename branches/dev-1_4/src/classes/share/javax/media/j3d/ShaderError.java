@@ -34,7 +34,7 @@ public class ShaderError extends Object {
     private ShaderAttribute shaderAttribute = null;
 
     /**
-     * Indicates that no error occurred while compiling a shader.
+     * Indicates that no error occurred.
      */
     public static final int NO_ERROR = 0;
 

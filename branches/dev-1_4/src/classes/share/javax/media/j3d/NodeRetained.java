@@ -880,6 +880,7 @@ abstract class NodeRetained extends SceneGraphObjectRetained implements NnuId {
 
     boolean isStatic() {
 	if (source.getCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ) ||
+	    source.getCapability(Node.ALLOW_PARENT_READ) ||
 	    source.getCapability(Node.ENABLE_PICK_REPORTING) ||
 	    source.getCapability(Node.ENABLE_COLLISION_REPORTING) ||
 	    source.getCapability(Node.ALLOW_BOUNDS_READ) ||
