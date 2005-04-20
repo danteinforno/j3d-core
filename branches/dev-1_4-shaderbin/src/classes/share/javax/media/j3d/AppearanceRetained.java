@@ -28,6 +28,9 @@ class AppearanceRetained extends NodeComponentRetained {
     // Java 3D defaults.
     //
 
+    // -- New stuff ... Chien
+    ShaderProgramRetained shaderProgram = null;
+
     // Material object used when lighting is enabled
     MaterialRetained	material = null;
 
