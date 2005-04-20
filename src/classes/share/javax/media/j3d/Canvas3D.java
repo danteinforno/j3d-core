@@ -802,13 +802,14 @@ public class Canvas3D extends Canvas {
     static final int TEXTUREBIN_BIT	= 0x3;
     static final int RENDERMOLECULE_BIT	= 0x4;
     static final int TRANSPARENCY_BIT	= 0x5;
+    static final int SHADERBIN_BIT	= 0x6;
 
     // bitmask to specify if the corresponding "bin" needs to be updated
     int stateUpdateMask = 0;   
 
     // the set of current "bins" that is to be updated, the stateUpdateMask
     // specifies if each bin in this set is updated or not.
-    Object curStateToUpdate[] = new Object[6];
+    Object curStateToUpdate[] = new Object[7];
 
 
     // Native method for determining the number of texture unit supported
