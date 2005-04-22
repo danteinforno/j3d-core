@@ -226,14 +226,15 @@ class AttributeBin extends Object implements ObjectUpdate {
     /**
      * Adds the given shaderBin to this AttributeBin.
      */
-    void addShaderBin(ShaderBin sb, RenderBin rb, RenderAtom ra) {
+    void addShaderBin(ShaderBin sb, RenderBin rb, ShaderAppearanceRetained sApp) {
 
 	sb.attributeBin = this;
 
 	// Need to be shader related stuff  - Chien
-	/* 
-	   sb.shaderProgram = ra.app.shaderProgram;
-	*/
+	if(sApp != null) {
+	    sb.shaderProgram = sApp.shaderProgram;
+	    sb.shaderAttributeSet = sApp.shaderAttributeSet;
+	}
 
 	addShaderBins.add(sb);
 	if ((onUpdateList & ON_OBJ_UPDATE_LIST) == 0) {
@@ -308,6 +309,7 @@ class AttributeBin extends Object implements ObjectUpdate {
 
 
     void updateAttributes(Canvas3D cv) {
+
 	if ((cv.canvasDirty & Canvas3D.ATTRIBUTEBIN_DIRTY) != 0) {
 	    // Update Attribute Bundles
 	    if (definingRenderingAttributes == null) {

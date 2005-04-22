@@ -300,6 +300,7 @@ public class Canvas3D extends Canvas {
     static final int FOG_DIRTY                 = 0x2000;
     static final int MODELCLIP_DIRTY           = 0x4000;    
     static final int VIEW_MATRIX_DIRTY         = 0x8000;
+    // static final int SHADER_DIRTY              = 0x10000; Not ready for this yet -- Chien
 
     // Use to notify D3D Canvas when window change
     static final int RESIZE = 1;
@@ -4165,12 +4166,13 @@ public class Canvas3D extends Canvas {
 	curStateToUpdate[bit] = bin;
     }
 
-    // update LightBin, EnvironmentSet, & AttributeBin if neccessary
+    // update LightBin, EnvironmentSet, AttributeBin & ShaderBin if neccessary
     // according to the stateUpdateMask
 
     static int ENV_STATE_MASK = (1 << LIGHTBIN_BIT) | 
-				(1 << ENVIRONMENTSET_BIT) |
-				(1 << ATTRIBUTEBIN_BIT);
+				(1 << ENVIRONMENTSET_BIT) |	
+	                        (1 << ATTRIBUTEBIN_BIT) |
+                                (1 << SHADERBIN_BIT);
 
     void updateEnvState() {
 
@@ -4190,6 +4192,12 @@ public class Canvas3D extends Canvas {
 	    ((AttributeBin)
 		curStateToUpdate[ATTRIBUTEBIN_BIT]).updateAttributes(this);
 	}
+
+	if ((stateUpdateMask & (1 << SHADERBIN_BIT)) != 0) {
+	    ((ShaderBin)
+		curStateToUpdate[SHADERBIN_BIT]).updateAttributes(this);
+	}
+
 
 	// reset the state update mask for those environment state bits
 	stateUpdateMask &= ~ENV_STATE_MASK;

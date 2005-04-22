@@ -554,7 +554,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    // texture in the first texture unit state
 	    for (i = 0; i < size; i++) {
 		tb = (TextureBin) tbUpdateList.get(i);
-		// Bug Id : 4701430 - Have to be sure tb.attributeBin is
+		// Bug Id : 4701430 - Have to be sure tb.shaderBin is
 		// not equal to null. This is a temporary fix for j3d1.3.
 		if (((tb.tbFlag & TextureBin.RESORT) != 0) && 
 		    (tb.shaderBin != null)) {
@@ -2369,7 +2369,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    if (ra== null || !ra.inRenderBin())
 			continue;
 		    if (restructure && !ra.renderMolecule.textureBin.attributeBin.soleUser) {
-			EnvironmentSet e= ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			EnvironmentSet e= ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 			/*
@@ -2561,7 +2561,7 @@ System.out.println("......tb.soleUser= " +
 			    ra = gaArr[i].getRenderAtom(view);
 			    if (ra== null || !ra.inRenderBin())
 				continue;
-			    EnvironmentSet e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			    EnvironmentSet e = ra.renderMolecule.textureBin.environmentSet;
 			    ra.renderMolecule.removeRenderAtom(ra);
 			    reInsertAttributeBin(e, ra);
 			}
@@ -2735,7 +2735,7 @@ System.out.println("......tb.soleUser= " +
 			    continue;
 			}
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2750,7 +2750,7 @@ System.out.println("......tb.soleUser= " +
 			if (ra.app == ra.geometryAtom.source.otherAppearance)
 			    continue;
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2803,7 +2803,7 @@ System.out.println("......tb.soleUser= " +
 		    app = saveApp;
 		}		
 		ra.app = app;
-		e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		e = ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }
@@ -2870,7 +2870,7 @@ System.out.println("......tb.soleUser= " +
 			    continue;
 			}
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2885,7 +2885,7 @@ System.out.println("......tb.soleUser= " +
 			if (ra.app == ra.geometryAtom.source.otherAppearance)
 			    continue;
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2936,7 +2936,7 @@ System.out.println("......tb.soleUser= " +
 		    app = saveApp;
 		}		
 		ra.app = app;
-		e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		e = ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }
@@ -4196,6 +4196,7 @@ System.out.println("......tb.soleUser= " +
 
     private void reInsertShaderBin(AttributeBin ab, RenderAtom ra) {
 	ShaderBin sb;
+
 	sb = findShaderBin(ab, ra);
 	reInsertTextureBin(sb, ra);
     }
@@ -4611,13 +4612,19 @@ System.out.println("......tb.soleUser= " +
     /**
      * This finds or creates an ShaderBin for a given RenderAtom.
      */
-    private ShaderBin findShaderBin(AttributeBin attributeBin, RenderAtom ra) {
+    private ShaderBin findShaderBin(AttributeBin attributeBin, RenderAtom ra) {	
 	int i, size;
 	ShaderBin currentBin;
+	ShaderAppearanceRetained sApp;
+
+	if((ra != null) && (ra.app instanceof ShaderAppearanceRetained))
+	    sApp = (ShaderAppearanceRetained)ra.app;
+	else 
+	    sApp = null;
 
 	currentBin = attributeBin.shaderBinList;
 	while (currentBin != null) {
-	    if (currentBin.equals(ra)) {
+	    if (currentBin.equals(sApp)) {
 		return currentBin;
 	    }
 	    currentBin = currentBin.next;
@@ -4627,13 +4634,13 @@ System.out.println("......tb.soleUser= " +
 	size = attributeBin.addShaderBins.size();
 	for (i = 0; i < size; i++) {
 	    currentBin = (ShaderBin)attributeBin.addShaderBins.get(i);
-	    if (currentBin.equals(ra)) {
+	    if (currentBin.equals(sApp)) {
 		return currentBin;
 	    }
 	}
-
-	currentBin = getShaderBin(ra.app);
-	attributeBin.addShaderBin(currentBin, this, ra);
+	
+	currentBin = getShaderBin(sApp);
+	attributeBin.addShaderBin(currentBin, this, sApp);
 	return currentBin;
     }
 
@@ -4734,7 +4741,7 @@ System.out.println("......tb.soleUser= " +
 				  ra.geometryAtom.source.localToVworld[0])) {
 
 		currentBin.addRenderAtom(ra, this);
-		ra.envSet = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		ra.envSet = ra.renderMolecule.textureBin.environmentSet;
 		// If the locale has changed for an existing renderMolecule
 		// handle the RmlocaleToVworld
 		return(currentBin);
@@ -4778,14 +4785,13 @@ System.out.println("......tb.soleUser= " +
      * This gets a new ShaderBin.  It creates one if there are none
      * on the freelist.
      */
-    private ShaderBin getShaderBin(AppearanceRetained app) {
+    private ShaderBin getShaderBin(ShaderAppearanceRetained sApp) {
 	ShaderBin shaderBin;
 	if (shaderBinFreelist.size() > 0) {
 	    shaderBin = (ShaderBin)attrBinFreelist.remove(shaderBinFreelist.size()-1);
-	    shaderBin.reset(app.shaderProgram, this);
+	    shaderBin.reset(sApp, this);
 	} else {
-	    ShaderProgramRetained sp = (app == null)? null : app.shaderProgram;
-	    shaderBin = new ShaderBin( sp, this);
+	    shaderBin = new ShaderBin( sApp, this);
 	}
 	return (shaderBin);
     }
@@ -5909,10 +5915,10 @@ System.out.println("......tb.soleUser= " +
 		    System.out.println("      ABin = "+abin);
 		    ShaderBin sbin = abin.shaderBinList;
 		    while (sbin != null) {
-			System.out.println("      SBin = "+sbin);
+			System.out.println("         SBin = "+sbin);
 			TextureBin tbin = sbin.textureBinList;
 			while (tbin != null) {
-			    System.out.println("         Tbin = "+tbin);
+			    System.out.println("             Tbin = "+tbin);
 			    RenderMolecule rm = tbin.opaqueRMList;
 			    System.out.println("===> Begin Dumping OpaqueBin");
 			    dumpRM(rm);
@@ -5977,7 +5983,7 @@ System.out.println("......tb.soleUser= " +
 	// System.out.println("&&&&&&&&&&&&removeTransparentObject r = "+obj);
 	if (obj instanceof TextureBin) {
 	    TextureBin tb = (TextureBin) obj;
-	    if (tb.attributeBin.environmentSet.lightBin.geometryBackground != null) {
+	    if (tb.environmentSet.lightBin.geometryBackground != null) {
 		TransparentRenderingInfo t = tb.parentTInfo;
 
 		// Remove the element from the transparentInfo struct
@@ -6081,7 +6087,7 @@ System.out.println("......tb.soleUser= " +
 	if (obj instanceof TextureBin) {
 	    TextureBin tb = (TextureBin) obj;
 	    // Background geometry
-	    if (tb.attributeBin.environmentSet.lightBin.geometryBackground != null) {
+	    if (tb.environmentSet.lightBin.geometryBackground != null) {
 		bgTransparentInfo = computeDirtyAcrossTransparentBins(tb, bgTransparentInfo);		
 	    }
 	    else {
@@ -6126,8 +6132,8 @@ System.out.println("......tb.soleUser= " +
     TransparentRenderingInfo computeDirtyAcrossTransparentBins(TextureBin tb, TransparentRenderingInfo startinfo) {
 	TransparentRenderingInfo tinfo = getTransparentInfo();
 	/*
-	  tinfo.lightBin = tb.attributeBin.environmentSet.lightBin;
-	  tinfo.envSet = tb.attributeBin.environmentSet;
+	  tinfo.lightBin = tb.environmentSet.lightBin;
+	  tinfo.envSet = tb.environmentSet;
 	  tinfo.aBin = tb.attributeBin;
 	*/
 	tinfo.rm = tb.transparentRMList;
@@ -6999,7 +7005,7 @@ System.out.println("......tb.soleUser= " +
 		if (ra== null || !ra.inRenderBin())
 		    continue;
 	    
-		EnvironmentSet e= ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		EnvironmentSet e= ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }
