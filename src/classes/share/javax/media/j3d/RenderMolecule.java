@@ -1143,7 +1143,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 		renderBin.orientedRAs.remove(renderBin.orientedRAs.indexOf(r));
 	    }
 
-	    if ((textureBin.attributeBin.environmentSet.lightBin.geometryBackground == null) &&
+	    if ((textureBin.environmentSet.lightBin.geometryBackground == null) &&
 		!isOpaqueOrInOG && renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) {
 		renderBin.removeTransparentObject(r);
 	    }
@@ -1318,7 +1318,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 
 		}
 		// If transparent and not in bg geometry and is depth sorted transparency
-		if (!isOpaqueOrInOG && (textureBin.attributeBin.environmentSet.lightBin.geometryBackground == null)&&
+		if (!isOpaqueOrInOG && (textureBin.environmentSet.lightBin.geometryBackground == null)&&
 		    (renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY)) {
 		    GeometryRetained geo = null;
 		    int k = 0;
@@ -1498,7 +1498,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	RenderAtomListInfo r;
 	int index;
 
-	renderAtom.envSet = textureBin.attributeBin.environmentSet;
+	renderAtom.envSet = textureBin.environmentSet;
 	renderAtom.renderMolecule = this;
 	renderAtom.dirtyMask &= ~RenderAtom.NEED_SEPARATE_LOCALE_VWC_BOUNDS;
 

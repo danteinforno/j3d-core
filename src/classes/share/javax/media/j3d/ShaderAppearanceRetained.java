@@ -31,9 +31,14 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     /* KCR: BEGIN CG SHADER HACK */
     // TODO: Change this to ShaderProgramRetained shaderProgram ...
     // Shader program  object
+    // ShaderProgramRetained shaderProgram = null;
+    // ShaderAttributeSetRetained shaderAttributeSet = null;
+
     ShaderProgram shaderProgram = null;
     ShaderAttributeSet shaderAttributeSet = null;
+
     /* KCR: END CG SHADER HACK */
+
 
     /*
 // TODO: IMPLEMENT THIS

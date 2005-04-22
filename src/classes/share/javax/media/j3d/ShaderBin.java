@@ -54,14 +54,19 @@ class ShaderBin implements ObjectUpdate {
     int numEditingTextureBins = 0;
 
     // Should this  be a separate mirror object of ShaderProgram ? 
-    // private ShaderProgramRetained shaderProgram = null;
-    ShaderProgramRetained shaderProgram = null;
 
-    ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
-	reset(sp, rBin);
+    // ShaderAppearanceRetained shaderAppearance = null;
+    // ShaderProgramRetained shaderProgram = null;
+    // ShaderAttributeSetRetained shaderAttributeSet = null;
+    ShaderProgram shaderProgram = null;
+    ShaderAttributeSet shaderAttributeSet = null;
+    
+    // ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
+    ShaderBin(ShaderAppearanceRetained sApp,  RenderBin rBin) {
+	reset(sApp, rBin);
     }
-
-    void reset(ShaderProgramRetained sp, RenderBin rBin) {
+    
+    void reset(ShaderAppearanceRetained sApp, RenderBin rBin) {
 	prev = null;
 	next = null;
         renderBin = rBin;
@@ -70,34 +75,43 @@ class ShaderBin implements ObjectUpdate {
 	onUpdateList = false;
 	numEditingTextureBins = 0;
 	addTextureBins.clear();
-        shaderProgram = sp;
-	
+	if(sApp != null) {
+	    shaderProgram = sApp.shaderProgram;
+	    shaderAttributeSet = sApp.shaderAttributeSet; 
+	}
+	else {
+	    shaderProgram = null;
+	    shaderAttributeSet = null;
+	}
     }
-
+    
     void clear() {
 	reset(null, null);
     }
-
+    
     /**
      * This tests if the qiven ra.shaderProgram  match this shaderProgram
      */
-    boolean equals(RenderAtom ra) {
-
-	ShaderProgramRetained sp;
+    boolean equals(ShaderAppearanceRetained sApp) {
 	
-	if (ra.app == null) {
+	// ShaderProgramRetained sp;
+	ShaderProgram sp;
+	ShaderAttributeSet ss;
+	
+	if (sApp == null) {
 	    sp = null;
+	    ss = null;
 	} else {
-	    sp = ra.app.shaderProgram;
+	    sp = sApp.shaderProgram;
+	    ss = sApp.shaderAttributeSet;
 	}
-
-	if(shaderProgram != sp) {
+	
+	if((shaderProgram != sp) || (shaderAttributeSet != ss)) {
 	    return false;
 	}
 	
 	return true;
     }
-
 
     public void updateObject() {
 	TextureBin t;
@@ -206,7 +220,7 @@ class ShaderBin implements ObjectUpdate {
      * Adds the given TextureBin to this AttributeBin.
      */
     void addTextureBin(TextureBin t, RenderBin rb, RenderAtom ra) {
-
+	 
 	t.environmentSet = this.attributeBin.environmentSet;
 	t.attributeBin = this.attributeBin;
 	t.shaderBin = this;
@@ -279,10 +293,51 @@ class ShaderBin implements ObjectUpdate {
 
     void updateAttributes(Canvas3D cv) {
 
-	System.out.println("ShaderBin.updateAttributes() not implemented yet.");
-	
+	//System.out.println("ShaderBin.updateAttributes() not implemented yet.");
+	 
+	if (shaderProgram != null) {
+	    shaderProgram.updateNative(cv.ctx);
+
+	    if (shaderAttributeSet != null) {
+		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
+	    }
+	}
+
+
+	/*
+
+
+	// KCR hack ....
+
+	if (shaderProgram != null) {
+	    // Update the native shader program attributes. Note that
+	    // the current hack only works when the sole user
+	    // optimization is in effect. The appearance with the
+	    // Shader Program must have a frequently-writable texture
+	    // and it must be the sole user of this texture bin.
+	    shaderProgram.updateNative(cv.ctx);
+	    
+	    ShaderAttributeSet shaderAttributeSet =
+		((ShaderAppearanceRetained)app).shaderAttributeSet;
+	    
+	    if (shaderAttributeSet != null) {
+		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
+	    }
+	    
+	}
+	else {
+	    // Hack to disable shaders
+	    if (lastShaderProgram != null) {
+		lastShaderProgram.disableNative(cv.ctx);
+	    }
+	}
+
+	*/
+
+
 	/* NOT TESTED YET --- Chien.
 	if ((cv.canvasDirty & Canvas3D.SHADERBIN_DIRTY) != 0) {
+
 	    // Update Shader Bundles
 	    shaderProgram.updateNative(cv.ctx);
 	    cv.shaderProgram = shaderProgram;
@@ -299,7 +354,15 @@ class ShaderBin implements ObjectUpdate {
 	} 
 	cv.ShaderBin = this;
 	cv.canvasDirty &= ~Canvas3D.SHARDERBIN_DIRTY;
+
 	*/
+
+
+
+
+
+
+
     }
 
     void updateNodeComponent() {
