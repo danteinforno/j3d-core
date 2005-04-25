@@ -484,9 +484,16 @@ getPropertiesFromCurrentContext(
     /* *********************************************************/
     /* setup the graphics context properties */
 
-    /* Check for OpenGL 1.3 core or better */
+    /* TODO: Check for OpenGL 1.3 core or better */
+    /* Check for OpenGL 1.2 core or better */
     if ((versionNumbers[0] > 1) ||
-	(versionNumbers[0] == 1 && versionNumbers[1] >= 3)) {
+	(versionNumbers[0] == 1 && versionNumbers[1] >= 2)) {
+
+	if (versionNumbers[0] == 1 && versionNumbers[1] == 2) {
+	fprintf(stderr,
+		"Java 3D WARNING : OpenGL 1.3 will be required in the near future (GL_VERSION=%d.%d)\n",
+		versionNumbers[0], versionNumbers[1]);
+	}
 
         ctxInfo->rescale_normal_ext = JNI_TRUE;
 	ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL;
