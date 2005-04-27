@@ -43,12 +43,12 @@ I. New/deprecated fields, constructors, methods
 			     int texCoordSetCount,
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
-			     int[] vertexAttrFormats,
+			     int[] vertexAttrSizes,
 			     String[] vertexAttrNames)
 
     New methods:
 	public int getVertexAttrCount()
-	public void getVertexAttrFormats(int[] vertexAttrFormats)
+	public void getVertexAttrSizes(int[] vertexAttrSizes)
 	public void getVertexAttrNames(String[] vertexAttrNames)
 
 
@@ -67,6 +67,8 @@ I. New/deprecated fields, constructors, methods
     New methods:
 	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
 	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void addShaderErrorListener(ShaderErrorListener listener)
+	public void removeShaderErrorListener(ShaderErrorListener listener)
 
 
     Locale
