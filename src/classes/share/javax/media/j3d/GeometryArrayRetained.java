@@ -1501,7 +1501,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     void createGeometryArrayData(int vertexCount, int vertexFormat,
 				 int texCoordSetCount, int[] texCoordSetMap,
-				 int vertexAttrCount, int[] vertexAttrFormats,
+				 int vertexAttrCount, int[] vertexAttrSizes,
 				 String[] vertexAttrNames) {
 	this.vertexFormat = vertexFormat;
 	this.vertexCount = vertexCount;

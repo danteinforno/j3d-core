@@ -356,8 +356,8 @@ public abstract class GeometryArray extends Geometry {
      * texCoordSetCount : 1<br>
      * texCoordSetMap : { 0 }<br>
      * vertexAttrCount : 0<br>
-     * vertexAttrFormat : null<br>
-     * vertexAttrMap : null<br>
+     * vertexAttrSizes : null<br>
+     * vertexAttrNames : null<br>
      * validVertexCount : vertexCount<br>
      * initialVertexIndex : 0<br>
      * initialCoordIndex : 0<br>
@@ -393,7 +393,7 @@ public abstract class GeometryArray extends Geometry {
      * <code>USE_COORD_INDEX_ONLY</code>,
      * to indicate that only the coordinate indices are used for indexed
      * geometry arrays.
-     * @exception IllegalArgumentException if vertexCount < 0, if
+     * @exception IllegalArgumentException if vertexCount &lt; 0, if
      * vertexFormat does NOT include <code>COORDINATES</code>,
      * if the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
      * geometry arrays (that is, GeometryArray objects that are not a
@@ -536,7 +536,7 @@ public abstract class GeometryArray extends Geometry {
      * <p>
      *
      * @exception IllegalArgumentException if
-     * <code>vertexCount&nbsp;<&nbsp;0</code>, if vertexFormat does
+     * <code>vertexCount&nbsp;&lt;&nbsp;0</code>, if vertexFormat does
      * NOT include <code>COORDINATES</code>, if the
      * <code>INTERLEAVED</code> bit is set without the
      * <code>BY_REFERENCE</code> bit being set, if the
@@ -545,8 +545,8 @@ public abstract class GeometryArray extends Geometry {
      * the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
      * geometry arrays (that is, GeometryArray objects that are not a
      * subclass of IndexedGeometryArray), if
-     * <code>texCoordSetCount&nbsp;<&nbsp;0</code>, or if any element
-     * in <code>texCoordSetMap[]&nbsp;>=&nbsp;texCoordSetCount</code>.
+     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>, or if any element
+     * in <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>.
      *
      * @since Java 3D 1.2
      */
@@ -662,14 +662,12 @@ public abstract class GeometryArray extends Geometry {
      * @param vertexAttrCount the number of vertex attributes
      * in this GeometryArray object. If <code>vertexFormat</code>
      * does not include <code>VERTEX_ATTRIBUTES</code>, the
-     * <code>vertexAttrCount</code> parameter is not used.<p>
+     * <code>vertexAttrCount</code> parameter must be 0.<p>
      *
-     * @param vertexAttrFormats is an array of flags that specify the
-     * formats of the vertex attributes. Each element in the array is
-     * a flag that specifies the data format and dimensionality of the
-     * attribute, one of: <code>FLOAT</code>, <code>TUPLE2F</code>,
-     * <code>TUPLE3F</code>, or <code>TUPLE4F</code>. The length of
-     * the array must be equal to <code>vertexAttrCount</code>.<p>
+     * @param vertexAttrSizes is an array that specifes the size of
+     * each vertex attribute. Each element in the array specifies the
+     * number of components in the attribute, from 1 to 4. The length
+     * of the array must be equal to <code>vertexAttrCount</code>.<p>
      *
      * @param vertexAttrNames is an array of names for the vertex
      * attributes. Each element in the array is a String that
@@ -678,7 +676,7 @@ public abstract class GeometryArray extends Geometry {
      * equal to <code>vertexAttrCount</code>.<p>
      *
      * @exception IllegalArgumentException if
-     * <code>vertexCount&nbsp;<&nbsp;0</code>, if vertexFormat does
+     * <code>vertexCount&nbsp;&lt;&nbsp;0</code>, if vertexFormat does
      * NOT include <code>COORDINATES</code>, if the
      * <code>INTERLEAVED</code> bit is set without the
      * <code>BY_REFERENCE</code> bit being set, if the
@@ -687,14 +685,15 @@ public abstract class GeometryArray extends Geometry {
      * the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
      * geometry arrays (that is, GeometryArray objects that are not a
      * subclass of IndexedGeometryArray), if
-     * <code>texCoordSetCount&nbsp;<&nbsp;0</code>, if any element
-     * in <code>texCoordSetMap[]&nbsp;>=&nbsp;texCoordSetCount</code>,
-     *
-     * if <code>vertexAttrCount&nbsp;<&nbsp;0</code>, if
-     * <code>vertexAttrFormats.length&nbsp;!=&nbsp;vertexFormatCount</code>,
-     * if any of the elements of the <code>vertexAttrFormats[]</code>
-     * array are not one of the allowed values, or if
-     * <code>vertexAttrNames.length&nbsp;!=&nbsp;vertexFormatCount</code>.
+     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>, if any element
+     * in <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>,
+     * if <code>vertexAttrCount&nbsp;&gt;&nbsp;0</code> and the
+     * <code>VERTEX_ATTRIBUTES</code> bit is not set,
+     * if <code>vertexAttrCount&nbsp;&lt;&nbsp;0</code>, if
+     * <code>vertexAttrSizes.length&nbsp;!=&nbsp;vertexAttrCount</code>,
+     * if any element in <code>vertexAttrSizes[]</code> is <code>&lt; 1</code> or
+     * <code>&gt; 4</code>, or if
+     * <code>vertexAttrNames.length&nbsp;!=&nbsp;vertexAttrCount</code>.
      *
      * @since Java 3D 1.4
      */
@@ -703,7 +702,7 @@ public abstract class GeometryArray extends Geometry {
 			 int texCoordSetCount,
 			 int[] texCoordSetMap,
 			 int vertexAttrCount,
-			 int[] vertexAttrFormats,
+			 int[] vertexAttrSizes,
 			 String[] vertexAttrNames) {
 
         if (vertexCount < 0)
@@ -753,7 +752,7 @@ public abstract class GeometryArray extends Geometry {
 	}
 
 	// Until they are implemented...
-	if (vertexAttrCount != 0 || vertexAttrFormats != null || vertexAttrNames != null) {
+	if (vertexAttrCount != 0 || vertexAttrSizes != null || vertexAttrNames != null) {
 	    throw new RuntimeException("not implemented");
 	}
 
@@ -762,7 +761,7 @@ public abstract class GeometryArray extends Geometry {
         ((GeometryArrayRetained)this.retained).createGeometryArrayData(
 	    vertexCount, vertexFormat,
 	    texCoordSetCount, texCoordSetMap,
-	    vertexAttrCount, vertexAttrFormats, vertexAttrNames);
+	    vertexAttrCount, vertexAttrSizes, vertexAttrNames);
 
     }
 
@@ -859,16 +858,16 @@ public abstract class GeometryArray extends Geometry {
 
 
     /**
-     * Retrieves the vertex attribute format array from this
+     * Retrieves the vertex attribute sizes array from this
      * GeometryArray object.
      *
-     * @param vertexAttrFormats an array that will receive a copy of
-     * the vertex attribute format array.  The array must hold at least
+     * @param vertexAttrSizes an array that will receive a copy of
+     * the vertex attribute sizes array.  The array must hold at least
      * <code>vertexAttrCount</code> elements.
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttrFormats(int[] vertexAttrFormats) {
+    public void getVertexAttrSizes(int[] vertexAttrSizes) {
 	throw new RuntimeException("not implemented");
     }
 
@@ -936,30 +935,30 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if any of the following are
      * true:
      * <ul>
-     * <code>validVertexCount < 0</code>,<br>
-     * <code>initialVertexIndex + validVertexCount > vertexCount</code>,<br>
-     * <code>initialCoordIndex + validVertexCount > vertexCount</code>,<br>
-     * <code>initialColorIndex + validVertexCount > vertexCount</code>,<br>
-     * <code>initialNormalIndex + validVertexCount > vertexCount</code>,<br>
-     * <code>initialTexCoordIndex + validVertexCount > vertexCount</code>,<br>
-     * <code>initialVertexAttrIndex + validVertexCount > vertexCount</code>
+     * <code>validVertexCount &lt; 0</code>,<br>
+     * <code>initialVertexIndex + validVertexCount &gt; vertexCount</code>,<br>
+     * <code>initialCoordIndex + validVertexCount &gt; vertexCount</code>,<br>
+     * <code>initialColorIndex + validVertexCount &gt; vertexCount</code>,<br>
+     * <code>initialNormalIndex + validVertexCount &gt; vertexCount</code>,<br>
+     * <code>initialTexCoordIndex + validVertexCount &gt; vertexCount</code>,<br>
+     * <code>initialVertexAttrIndex + validVertexCount &gt; vertexCount</code>
      * </ul>
      * <p>
      * @exception ArrayIndexOutOfBoundsException if the geometry data format
      * is <code>BY_REFERENCE</code> and any the following
      * are true for non-null array references:
      * <ul>
-     * <code>CoordRef.length</code> < <i>num_words</i> *
+     * <code>CoordRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialCoordIndex + validVertexCount</code>),<br>
-     * <code>ColorRef.length</code> < <i>num_words</i> *
+     * <code>ColorRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialColorIndex + validVertexCount</code>),<br>
-     * <code>NormalRef.length</code> < <i>num_words</i> *
+     * <code>NormalRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialNormalIndex + validVertexCount</code>),<br>
-     * <code>TexCoordRef.length</code> < <i>num_words</i> *
+     * <code>TexCoordRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialTexCoordIndex + validVertexCount</code>),<br>
-     * <code>VertexAttrRef.length</code> < <i>num_words</i> *
+     * <code>VertexAttrRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialVertexAttrIndex + validVertexCount</code>),<br>
-     * <code>InterleavedVertices.length</code> < <i>words_per_vertex</i> *
+     * <code>InterleavedVertices.length</code> &lt; <i>words_per_vertex</i> *
      * (<code>initialVertexIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which variant of
@@ -978,7 +977,7 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray96"));
 
 	((GeometryArrayRetained)this.retained).setValidVertexCount(validVertexCount);
-	// NOTE: the checks for initial*Index + validVertexCount >
+	// NOTE: the checks for initial*Index + validVertexCount &gt;
 	// vertexCount need to be done in the retained method
     }
 
@@ -1099,15 +1098,15 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if either of the following are
      * true:
      * <ul>
-     * <code>initialVertexIndex < 0</code> or<br>
-     * <code>initialVertexIndex + validVertexCount > vertexCount</code><br>
+     * <code>initialVertexIndex &lt; 0</code> or<br>
+     * <code>initialVertexIndex + validVertexCount &gt; vertexCount</code><br>
      * </ul>
      *
      * @exception ArrayIndexOutOfBoundsException if the geometry data format
      * is <code>INTERLEAVED</code>, the InterleavedVertices array is
      * non-null, and:
      * <ul>
-     * <code>InterleavedVertices.length</code> < <i>num_words</i> *
+     * <code>InterleavedVertices.length</code> &lt; <i>num_words</i> *
      * (<code>initialVertexIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which vertex formats are enabled.
@@ -3998,14 +3997,14 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if either of the following are
      * true:
      * <ul>
-     * <code>initialCoordIndex < 0</code> or<br>
-     * <code>initialCoordIndex + validVertexCount > vertexCount</code><br>
+     * <code>initialCoordIndex &lt; 0</code> or<br>
+     * <code>initialCoordIndex + validVertexCount &gt; vertexCount</code><br>
      * </ul>
      * <p>
      * @exception ArrayIndexOutOfBoundsException if
      * the CoordRef array is non-null and:
      * <ul>
-     * <code>CoordRef.length</code> < <i>num_words</i> *
+     * <code>CoordRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialCoordIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which variant of
@@ -4076,14 +4075,14 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if either of the following are
      * true:
      * <ul>
-     * <code>initialColorIndex < 0</code> or<br>
-     * <code>initialColorIndex + validVertexCount > vertexCount</code><br>
+     * <code>initialColorIndex &lt; 0</code> or<br>
+     * <code>initialColorIndex + validVertexCount &gt; vertexCount</code><br>
      * </ul>
      * <p>
      * @exception ArrayIndexOutOfBoundsException if
      * the ColorRef array is non-null and:
      * <ul>
-     * <code>ColorRef.length</code> < <i>num_words</i> *
+     * <code>ColorRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialColorIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which variant of
@@ -4154,14 +4153,14 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if either of the following are
      * true:
      * <ul>
-     * <code>initialNormalIndex < 0</code> or<br>
-     * <code>initialNormalIndex + validVertexCount > vertexCount</code><br>
+     * <code>initialNormalIndex &lt; 0</code> or<br>
+     * <code>initialNormalIndex + validVertexCount &gt; vertexCount</code><br>
      * </ul>
      * <p>
      * @exception ArrayIndexOutOfBoundsException if normals
      * the NormalRef array is non-null and:
      * <ul>
-     * <code>NormalRef.length</code> < <i>num_words</i> *
+     * <code>NormalRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialNormalIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which variant of
@@ -4235,14 +4234,14 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if either of the following are
      * true:
      * <ul>
-     * <code>initialTexCoordIndex < 0</code> or<br>
-     * <code>initialTexCoordIndex + validVertexCount > vertexCount</code><br>
+     * <code>initialTexCoordIndex &lt; 0</code> or<br>
+     * <code>initialTexCoordIndex + validVertexCount &gt; vertexCount</code><br>
      * </ul>
      * <p>
      * @exception ArrayIndexOutOfBoundsException if
      * the TexCoordRef array is non-null and:
      * <ul>
-     * <code>TexCoordRef.length</code> < <i>num_words</i> *
+     * <code>TexCoordRef.length</code> &lt; <i>num_words</i> *
      * (<code>initialTexCoordIndex + validVertexCount</code>)<br>
      * </ul>
      * where <i>num_words</i> depends on which variant of
@@ -4337,7 +4336,7 @@ public abstract class GeometryArray extends Geometry {
      * java.nio.FloatBuffer or a java.nio.DoubleBuffer object.
      *
      * @exception ArrayIndexOutOfBoundsException if
-     * <code>coords.getBuffer().limit() <
+     * <code>coords.getBuffer().limit() &lt;
      * 3 * (initialCoordIndex + validVertexCount)</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if this GeometryArray
@@ -4420,7 +4419,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if the specified array is
      * non-null and any other coordinate reference is also non-null.
      * @exception ArrayIndexOutOfBoundsException if
-     * <code>coords.length < 3 * (initialCoordIndex + validVertexCount)</code>.
+     * <code>coords.length &lt; 3 * (initialCoordIndex + validVertexCount)</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if this GeometryArray
      * object is a subclass of IndexedGeometryArray, and any element
@@ -4509,7 +4508,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception IllegalArgumentException if the specified array is
      * non-null and any other coordinate reference is also non-null.
      * @exception ArrayIndexOutOfBoundsException if
-     * <code>coords.length < 3 * (initialCoordIndex + validVertexCount)</code>.
+     * <code>coords.length &lt; 3 * (initialCoordIndex + validVertexCount)</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if this GeometryArray
      * object is a subclass of IndexedGeometryArray, and any element
@@ -4712,7 +4711,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception ArrayIndexOutOfBoundsException if none of the
      * <code>COLOR</code> bits are set in the
      * <code>vertexFormat</code>, or if
-     * <code>colors.getBuffer().limit() < </code> <i>num_words</i> <code> *
+     * <code>colors.getBuffer().limit() &lt; </code> <i>num_words</i> <code> *
      * (initialColorIndex + validVertexCount)</code>,
      * where <i>num_words</i> is 3 or 4 depending on the vertex color format.
      *
@@ -4805,7 +4804,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception ArrayIndexOutOfBoundsException if none of the
      * <code>COLOR</code> bits are set in the
      * <code>vertexFormat</code>, or if
-     * <code>colors.length < </code> <i>num_words</i> <code> *
+     * <code>colors.length &lt; </code> <i>num_words</i> <code> *
      * (initialColorIndex + validVertexCount)</code>,
      * where <i>num_words</i> is 3 or 4 depending on the vertex color format.
      *
@@ -4902,7 +4901,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception ArrayIndexOutOfBoundsException if none of the
      * <code>COLOR</code> bits are set in the
      * <code>vertexFormat</code>, or if
-     * <code>colors.length < </code> <i>num_words</i> <code> *
+     * <code>colors.length &lt; </code> <i>num_words</i> <code> *
      * (initialColorIndex + validVertexCount)</code>,
      * where <i>num_words</i> is 3 or 4 depending on the vertex color format.
      *
@@ -5234,7 +5233,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception ArrayIndexOutOfBoundsException if
      * <code>NORMALS</code> bit is not set in the
      * <code>vertexFormat</code>, or if
-     * <code>normals.getBuffer().limit() <
+     * <code>normals.getBuffer().limit() &lt;
      * 3 * (initialNormalIndex + validVertexCount)</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if this GeometryArray
@@ -5320,7 +5319,7 @@ public abstract class GeometryArray extends Geometry {
      * @exception ArrayIndexOutOfBoundsException if
      * <code>NORMALS</code> bit is not set in the
      * <code>vertexFormat</code>, or if
-     * <code>normals.length < 3 * (initialNormalIndex + validVertexCount)</code>.
+     * <code>normals.length &lt; 3 * (initialNormalIndex + validVertexCount)</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if this GeometryArray
      * object is a subclass of IndexedGeometryArray, and any element
@@ -5479,7 +5478,7 @@ public abstract class GeometryArray extends Geometry {
      * <code>TEXTURE_COORDINATE</code> bits are set in the
      * <code>vertexFormat</code>, or if texCoordSet is out of range,
      * or if
-     * <code>texCoords.getBuffer().limit() < </code> <i>num_words</i>
+     * <code>texCoords.getBuffer().limit() &lt; </code> <i>num_words</i>
      * <code> * (initialTexCoordIndex + validVertexCount)</code>,
      * where <i>num_words</i> is 2, 3, or 4 depending on the vertex
      * texture coordinate format.
@@ -5592,7 +5591,7 @@ public abstract class GeometryArray extends Geometry {
      * <code>TEXTURE_COORDINATE</code> bits are set in the
      * <code>vertexFormat</code>, or if texCoordSet is out of range,
      * or if
-     * <code>texCoords.length < </code> <i>num_words</i> <code> *
+     * <code>texCoords.length &lt; </code> <i>num_words</i> <code> *
      * (initialTexCoordIndex + validVertexCount)</code>,
      * where <i>num_words</i> is 2, 3, or 4 depending on the vertex
      * texture coordinate format.
@@ -5840,7 +5839,7 @@ public abstract class GeometryArray extends Geometry {
      * or is <code>USE_NIO_BUFFER</code>.
      *
      * @exception ArrayIndexOutOfBoundsException if
-     * <code>vertexData.length</code> < <i>words_per_vertex</i> *
+     * <code>vertexData.length</code> &lt; <i>words_per_vertex</i> *
      * (<code>initialVertexIndex + validVertexCount</code>),
      * where <i>words_per_vertex</i> depends on which formats are enabled.
      *
@@ -5952,7 +5951,7 @@ public abstract class GeometryArray extends Geometry {
      * java.nio.FloatBuffer object.
      *
      * @exception ArrayIndexOutOfBoundsException if
-     * <code>vertexData.getBuffer().limit()</code> < <i>words_per_vertex</i> *
+     * <code>vertexData.getBuffer().limit()</code> &lt; <i>words_per_vertex</i> *
      * (<code>initialVertexIndex + validVertexCount</code>),
      * where <i>words_per_vertex</i> depends on which formats are enabled.
      *
