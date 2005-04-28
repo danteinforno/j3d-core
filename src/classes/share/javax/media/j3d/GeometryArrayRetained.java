@@ -255,6 +255,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // texture unit.  -1 means no corresponding texCoord data offset
     int [] texCoordSetMapOffset = null;
 
+    // Vertex attribute information
+    int vertexAttrCount = 0;
+    int[] vertexAttrSizes = null;
+    String[] vertexAttrNames = null;
+
+
     // This point to a list of VertexBuffers in a Vector structure
     // Each element correspond to a D3D context that create this VB.
     // Note that this GeometryArray can be used by multiple ctx.

@@ -598,12 +598,6 @@ getPropertiesFromCurrentContext(
 	ctxInfo->arb_transpose_matrix = JNI_TRUE;
     }
 
-#ifdef OBSOLETE_HW_COMPRESSED_GEOM
-    if(isExtensionSupported(tmpExtensionStr, "GL_SUNX_geometry_compression")) {
-	ctxInfo->geometry_compression_sunx = JNI_TRUE ;
-    }
-#endif /* OBSOLETE_HW_COMPRESSED_GEOM */
-    
 #if defined(UNIX)
     /*
      * setup ARB_multisample, under windows this is setup in
@@ -692,33 +686,6 @@ getPropertiesFromCurrentContext(
 	ctxInfo->extMask |= javax_media_j3d_Canvas3D_ARB_TRANSPOSE_MATRIX;
     }
     
-#ifdef OBSOLETE_HW_COMPRESSED_GEOM
-    /*
-     * Check for compressed geometry extensions and see if hardware
-     * acceleration is supported in the runtime environment.
-     */
-    if (ctxInfo->geometry_compression_sunx) {
-	cgHwStr = (char *)glGetString(GL_COMPRESSED_GEOM_ACCELERATED_SUNX) ;
-    }
-
-    if (cgHwStr == 0 || strstr(cgHwStr, " ")) {
-	ctxInfo->geometry_compression_accelerated = 0 ;
-       
-    } else {
-	char *tmp = strdup(cgHwStr) ;
-
-	ctxInfo->geometry_compression_accelerated_major_version =
-	    atoi(strtok(tmp, ".")) ;
-	ctxInfo->geometry_compression_accelerated_minor_version =
-	    atoi(strtok(0, ".")) ;
-	ctxInfo->geometry_compression_accelerated_subminor_version =
-	    atoi(strtok(0, ".")) ;
-
-	free(tmp) ;
-	ctxInfo->geometry_compression_accelerated = 1 ;
-    }
-#endif /* OBSOLETE_HW_COMPRESSED_GEOM */
-
     /* Setup GL_EXT_separate_specular_color */
     if(ctxInfo->seperate_specular_color) {
 	ctxInfo->extMask |= javax_media_j3d_Canvas3D_EXT_SEPARATE_SPECULAR_COLOR;
@@ -3001,7 +2968,6 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->videoResizeAvailable = JNI_FALSE;
     ctxInfo->global_alpha_sun = JNI_FALSE;
     ctxInfo->constant_data_sun = JNI_FALSE;
-    ctxInfo->geometry_compression_sunx = JNI_FALSE;
     
     /* EXT extensions */
     ctxInfo->abgr_ext = JNI_FALSE;
@@ -3037,11 +3003,6 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->textureLodAvailable = JNI_FALSE;
     ctxInfo->textureLodBiasAvailable = JNI_FALSE;
     
-    ctxInfo->geometry_compression_accelerated = JNI_FALSE;
-    ctxInfo->geometry_compression_accelerated_major_version = 0;
-    ctxInfo->geometry_compression_accelerated_minor_version = 0;
-    ctxInfo->geometry_compression_accelerated_subminor_version = 0;
-
     /* extension mask */
     ctxInfo->extMask = 0;
     ctxInfo->textureExtMask = 0;
