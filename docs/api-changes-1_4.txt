@@ -78,22 +78,22 @@ I. New/deprecated fields, constructors, methods
 	public void setVertexAttrs(int vertexAttrNum, int index,
 				   Point4f[] vertexAttrs,
 				   int start, int length)
-	public void getVertexAttribute(int vertexAttrNum, int index,
-				       float[] vertexAttr)
-	public void getVertexAttribute(int vertexAttrNum, int index,
-				       Point2f vertexAttr)
-	public void getVertexAttribute(int vertexAttrNum, int index,
-				       Point3f vertexAttr)
-	public void getVertexAttribute(int vertexAttrNum, int index,
-				       Point4f vertexAttr)
-	public void getVertexAttributes(int vertexAttrNum, int index,
-					float[] vertexAttrs)
-	public void getVertexAttributes(int vertexAttrNum, int index,
-					Point2f[] vertexAttrs)
-	public void getVertexAttributes(int vertexAttrNum, int index,
-					Point3f[] vertexAttrs)
-	public void getVertexAttributes(int vertexAttrNum, int index,
-					Point4f[] vertexAttrs)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  float[] vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point2f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point3f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point4f vertexAttr)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs)
 	public void setInitialVertexAttrIndex(int vertexAttrNum,
 					      int initialVertexAttrIndex)
 	public int getInitialVertexAttrIndex(int vertexAttrNum)

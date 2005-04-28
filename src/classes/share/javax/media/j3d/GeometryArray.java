@@ -4547,8 +4547,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttribute(int vertexAttrNum, int index,
-				   float[] vertexAttr) {
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      float[] vertexAttr) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4562,7 +4562,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttribute(
+	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
 	*/
     }
@@ -4590,8 +4590,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttribute(int vertexAttrNum, int index,
-				   Point2f vertexAttr) {
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point2f vertexAttr) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4610,7 +4610,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttribute(
+	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
 	*/
     }
@@ -4638,8 +4638,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttribute(int vertexAttrNum, int index,
-				   Point3f vertexAttr) {
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point3f vertexAttr) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4658,7 +4658,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttribute(
+	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
 	*/
     }
@@ -4686,8 +4686,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttribute(int vertexAttrNum, int index,
-				   Point4f vertexAttr) {
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point4f vertexAttr) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4706,7 +4706,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttribute(
+	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
 	*/
     }
@@ -4739,8 +4739,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttributes(int vertexAttrNum, int index,
-				    float[] vertexAttrs) {
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       float[] vertexAttrs) {
 
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
@@ -4755,7 +4755,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttributes(
+	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
 	*/
     }
@@ -4791,8 +4791,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttributes(int vertexAttrNum, int index,
-				    Point2f[] vertexAttrs) {
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point2f[] vertexAttrs) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4811,7 +4811,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttributes(
+	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
 	*/
     }
@@ -4847,8 +4847,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttributes(int vertexAttrNum, int index,
-				    Point3f[] vertexAttrs) {
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point3f[] vertexAttrs) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4867,7 +4867,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttributes(
+	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
 	*/
     }
@@ -4903,8 +4903,8 @@ public abstract class GeometryArray extends Geometry {
      *
      * @since Java 3D 1.4
      */
-    public void getVertexAttributes(int vertexAttrNum, int index,
-				    Point4f[] vertexAttrs) {
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point4f[] vertexAttrs) {
 	if (isLiveOrCompiled()) {
 	    if (!this.getCapability(ALLOW_VERTEX_ATTR_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GeometryArray127"));
@@ -4923,7 +4923,7 @@ public abstract class GeometryArray extends Geometry {
 
 	throw new RuntimeException("not implemented");
 	/*
-	((GeometryArrayRetained)this.retained).getVertexAttributes(
+	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
 	*/
     }
