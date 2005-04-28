@@ -84,7 +84,6 @@
 #include "javax_media_j3d_Canvas3D.h"
 #include "javax_media_j3d_ColoringAttributes.h"
 #include "javax_media_j3d_ColoringAttributesRetained.h"
-#include "javax_media_j3d_CompressedGeometryRetained.h"
 #include "javax_media_j3d_DepthComponentRetained.h"
 #include "javax_media_j3d_DetailTextureImage.h"
 #include "javax_media_j3d_DirectionalLightRetained.h"
@@ -132,10 +131,6 @@
 #include "javax_media_j3d_TextureUnitStateRetained.h"
 #include "javax_media_j3d_TransparencyAttributes.h"
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
-
-#ifndef GL_SUNX_geometry_compression
-#define GL_COMPRESSED_GEOM_ACCELERATED_SUNX   0x81D0
-#endif /* GL_SUNX_geometry_compression */
 
 /*
  * Define these constants here as a workaround for conflicting
@@ -461,8 +456,6 @@ typedef struct {
     jboolean global_alpha_sun;
     /* GL_SUNX_constant_data */
     jboolean constant_data_sun;
-    /* GL_SUNX_geometry_compression */
-    jboolean geometry_compression_sunx;
 	 
     /* GL_EXT_abgr */
     jboolean abgr_ext;
@@ -557,12 +550,7 @@ typedef struct {
 
     /* GL_SGIX_texture_lod_bias */
     jboolean textureLodBiasAvailable;
-    
-    jboolean geometry_compression_accelerated;
-    int geometry_compression_accelerated_major_version;
-    int geometry_compression_accelerated_minor_version;
-    int geometry_compression_accelerated_subminor_version;
-	 
+
     /* extension mask */
     jint extMask;
     jint textureExtMask;
