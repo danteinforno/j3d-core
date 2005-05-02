@@ -107,11 +107,11 @@ printInfoLog(GLhandleARB obj) {
  */
 
 /*
- * Class:     javax_media_j3d_GLSLShaderProgram
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    updateNative
  * Signature: (JLjava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
+JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNative(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -353,7 +353,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgram_updateNative(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform1i(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -394,7 +394,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1i(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform1f(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -435,7 +435,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform1f(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform2i(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -487,7 +487,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2i(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform2f(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -539,7 +539,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform2f(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform3i(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -591,7 +591,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3i(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform3f(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -643,7 +643,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform3f(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform4i(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -695,7 +695,7 @@ Java_javax_media_j3d_GLSLShaderProgram_setUniform4i(
 
 
 JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgram_setUniform4f(
+Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,

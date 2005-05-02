@@ -22,10 +22,6 @@ package javax.media.j3d;
  */
 
 public class GLSLShaderProgram extends ShaderProgram {
-    private SourceCodeShader vertexShader = null; // TODO: make this an array
-    private SourceCodeShader fragmentShader = null; // TODO: make this an array
-    private int shaderProgramId = 0;
-
 
     /**
      * Constructs a GLSL shader program node component.
@@ -35,6 +31,7 @@ public class GLSLShaderProgram extends ShaderProgram {
      */
     public GLSLShaderProgram() {
     }
+
 
     /**
      * Copies the specified array of shaders into this shader
@@ -59,226 +56,36 @@ public class GLSLShaderProgram extends ShaderProgram {
      * array is <em>not</em> a SourceCodeShader.
      */
     public void setShaders(Shader[] shaders) {
+	
 	if (isLiveOrCompiled()) {
 	    if(!this.getCapability(ALLOW_SHADERS_WRITE)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GLSLShaderProgram0"));
 	    }
 	}
-
-	// TODO: move the rest of this into a GLSLShaderProgramRetained class
-
-	// TODO: create an array of shaders rather than one of each
-
-	if (shaders == null) {
-	    vertexShader = fragmentShader = null;
-	    return;
-	}
-
-	// Check shaders for valid shading language and class type
-	for (int i = 0; i < shaders.length; i++) {
-	    if (shaders[i].getShadingLanguage() != Shader.SHADING_LANGUAGE_GLSL) {
-		throw new IllegalArgumentException(J3dI18N.getString("GLSLShaderProgram2"));
-	    }
-
-	    // Try to cast shader to SourceCodeShader; it will throw
-	    // ClassCastException if it isn't.
-	    SourceCodeShader shad = (SourceCodeShader)shaders[i];
-	}
-
-	vertexShader = fragmentShader = null;
-	// Copy vertex and fragment shader
-	// TODO: handle array of shaders
-	for (int i = 0; i < shaders.length; i++) {
-	    if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
-		vertexShader = (SourceCodeShader)shaders[i];
-	    }
-	    else { // Shader.SHADER_TYPE_FRAGMENT
-		fragmentShader = (SourceCodeShader)shaders[i];
-	    }
-	}
+ 	((GLSLShaderProgramRetained)this.retained).setShaders(shaders);
     }
 
     // Implement abstract getShaders method (inherit javadoc from parent class)
     public Shader[] getShaders() {
+
 	if (isLiveOrCompiled()) {
 	    if(!this.getCapability(ALLOW_SHADERS_READ)) {
 		throw new CapabilityNotSetException(J3dI18N.getString("GLSLShaderProgram1"));
 	    }
 	}
 
-	throw new RuntimeException("not implemented");
+ 	return ((GLSLShaderProgramRetained)this.retained).getShaders();
     }
-
-
-    private native int updateNative(long ctx,
-				    int shaderProgram,
-				    String vtxShader,
-				    String fragShader);
-
-    private native void setUniform1i(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     int value);
-    private native void setUniform1f(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     float value);
-    private native void setUniform2i(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     int[] value);
-    private native void setUniform2f(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     float[] value);
-    private native void setUniform3i(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     int[] value);
-    private native void setUniform3f(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     float[] value);
-    private native void setUniform4i(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     int[] value);
-    private native void setUniform4f(long ctx,
-				     int shaderProgram,
-				     String attrName,
-				     float[] value);
-    private native void setUniformMatrix3f(long ctx,
-					   int shaderProgram,
-					   String attrName,
-					   float[] value);
-    private native void setUniformMatrix4f(long ctx,
-					   int shaderProgram,
-					   String attrName,
-					   float[] value);
-
-    void updateNative(long ctx) {
-	String vertexShaderStr = null;
-	String fragmentShaderStr = null;
-
-	if (vertexShader != null) {
-	    vertexShaderStr = vertexShader.getShaderSource();
-	}
-	if (fragmentShader != null) {
-	    fragmentShaderStr = fragmentShader.getShaderSource();
-	}
-
-	shaderProgramId = updateNative(ctx,
-				       shaderProgramId,
-				       vertexShaderStr,
-				       fragmentShaderStr);
-    }
-
-    void disableNative(long ctx) {
-	updateNative(ctx, 0, null, null);
-    }
-
 
     /**
-     * Update native value for ShaderAttributeValue class
+     * Creates a retained mode GLSLShaderProgramRetained object that this
+     * GLSLShaderProgram component object will point to.
      */
-    void setUniformAttrValue(long ctx, ShaderAttributeValue sav) {
-	switch (sav.classType) {
-	case ShaderAttributeObject.TYPE_INTEGER:
-	    setUniform1i(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 ((int[])sav.attrWrapper.getRef())[0]);
-	    break;
-
-	case ShaderAttributeObject.TYPE_FLOAT:
-	    setUniform1f(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 ((float[])sav.attrWrapper.getRef())[0]);
-	    break;
-
-	case ShaderAttributeObject.TYPE_DOUBLE:
-	    throw new RuntimeException("not implemented");
-
-	case ShaderAttributeObject.TYPE_TUPLE2I:
-	    setUniform2i(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (int[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE2F:
-	    setUniform2f(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (float[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE2D:
-	    throw new RuntimeException("not implemented");
-
-	case ShaderAttributeObject.TYPE_TUPLE3I:
-	    setUniform3i(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (int[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE3F:
-	    setUniform3f(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (float[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE3D:
-	    throw new RuntimeException("not implemented");
-
-	case ShaderAttributeObject.TYPE_TUPLE4I:
-	    setUniform4i(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (int[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE4F:
-	    setUniform4f(ctx,
-			 shaderProgramId,
-			 sav.getAttributeName(),
-			 (float[])sav.attrWrapper.getRef());
-	    break;
-
-	case ShaderAttributeObject.TYPE_TUPLE4D:
-	    throw new RuntimeException("not implemented");
-
-	case ShaderAttributeObject.TYPE_MATRIX3F:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    setUniformMatrix3f(ctx,
-			 shaderProgramId,
-			       sav.getAttributeName(),
-			       (float[])sav.attrWrapper.getRef());
-	    break;
-	    */
-	case ShaderAttributeObject.TYPE_MATRIX3D:
-	    throw new RuntimeException("not implemented");
-	case ShaderAttributeObject.TYPE_MATRIX4F:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    setUniformMatrix4f(ctx,
-			 shaderProgramId,
-			       sav.getAttributeName(),
-			       (float[])sav.attrWrapper.getRef());
-	    break;
-	    */
-	case ShaderAttributeObject.TYPE_MATRIX4D:
-	    throw new RuntimeException("not implemented");
-
-	default:
-	    // Should never get here
-	    assert(false);
-	    return;
-	}
+    void createRetained() {
+	this.retained = new GLSLShaderProgramRetained();
+	this.retained.setSource(this);
+	System.out.println("GLSLShaderProgram.createRetained()");
     }
+
 
 }

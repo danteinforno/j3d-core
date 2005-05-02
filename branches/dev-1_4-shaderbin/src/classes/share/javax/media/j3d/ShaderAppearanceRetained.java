@@ -31,10 +31,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     /* KCR: BEGIN CG SHADER HACK */
     // TODO: Change this to ShaderProgramRetained shaderProgram ...
     // Shader program  object
-    // ShaderProgramRetained shaderProgram = null;
+ 
+    ShaderProgramRetained shaderProgram = null;
     // ShaderAttributeSetRetained shaderAttributeSet = null;
 
-    ShaderProgram shaderProgram = null;
     ShaderAttributeSet shaderAttributeSet = null;
 
     /* KCR: END CG SHADER HACK */
@@ -67,6 +67,8 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     static final int ALL_SOLE_USERS = 0;
     */
 
+    static final int SHADER_PROGRAM = 0x0800;
+
     // A pointer to the scene graph appearance object
     ShaderAppearanceRetained sgApp = null;
 
@@ -74,12 +76,41 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     /**
      * Set the shader program object to the specified object.
      * @param shaderProgram object that specifies the desired shader program
+     * and shader program attributes.
      */
-    void setShaderProgram(ShaderProgram shaderProgram) {
+    void setShaderProgram(ShaderProgram sp) {
 	/* KCR: BEGIN CG SHADER HACK */
 	// TODO: implement this for real once we have a ShaderProgramRetained object
 	this.shaderProgram = shaderProgram;
 	/* KCR: END CG SHADER HACK */
+
+	synchronized(liveStateLock) {
+	    if (source.isLive()) {
+
+		if (this.shaderProgram != null) {
+		    this.shaderProgram.clearLive(refCount);
+		    this.shaderProgram.removeMirrorUsers(this);
+		}
+
+		if (sp != null) {
+		    ((ShaderProgramRetained)sp.retained).setLive(inBackgroundGroup, 
+								 refCount);
+		    ((ShaderProgramRetained)sp.retained).copyMirrorUsers(this);
+	    	}
+		sendMessage(TEXTURE,  
+			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null), 
+			    true);
+
+	    } 
+
+
+	    if (sp == null) {
+		this.shaderProgram = null;
+	    } else {
+		this.shaderProgram = (ShaderProgramRetained)sp.retained;
+	    }
+	}
+
     }
 
 
@@ -88,10 +119,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * @return current shader program object
      */
     ShaderProgram getShaderProgram() {
-	/* KCR: BEGIN CG SHADER HACK */
-	// TODO: implement this for real once we have a ShaderProgramRetained object
-	return this.shaderProgram;
-	/* KCR: END CG SHADER HACK */
+	return (shaderProgram == null ? null : (ShaderProgram)shaderProgram.source);	
     }
 
 
@@ -144,6 +172,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     synchronized void updateMirrorObject(int component, Object value) {
 	super.updateMirrorObject(component, value);
 
+
 	/*
 // TODO: IMPLEMENT THIS
 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
@@ -170,14 +199,15 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
 	/*
 // TODO: IMPLEMENT THIS
-	if (shaderProgram != null) {
-	    shaderProgram.setLive(backgroundGroup, refCount);
-	}
 
 	if (shaderParameters != null) {
 	    shaderParameters.setLive(backgroundGroup, refCount);
 	}
 	*/
+
+	if (shaderProgram != null) {
+	    shaderProgram.setLive(backgroundGroup, refCount);
+	}
 
 	// Increment the reference count and initialize the appearance
 	// mirror object
@@ -192,15 +222,17 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     void clearLive(int refCount) {
 	super.clearLive(refCount);
 
+	if (shaderProgram != null) {
+	    shaderProgram.clearLive(refCount);
+	}
+
 	/*
-// TODO: IMPLEMENT THIS
+	// TODO: IMPLEMENT THIS
+
 	if (shaderParameters != null) {
 	    shaderParameters.clearLive(refCount);
 	}
 
-	if (shaderProgram != null) {
-	    shaderProgram.clearLive(refCount);
-	}
 	*/
     }
 

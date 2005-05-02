@@ -24,7 +24,12 @@ package javax.media.j3d;
  */
 
 public class SourceCodeShader extends Shader {
-    String shaderSource = null;
+
+    /**
+     * Not a public constructor, for internal use
+     */
+    SourceCodeShader() {
+    }
 
     /**
      * Constructs a new shader object of the specified shading
@@ -40,9 +45,13 @@ public class SourceCodeShader extends Shader {
      *
      * @param shaderSource the shader source code
      */
+
     public SourceCodeShader(int shadingLanguage, int shaderType, String shaderSource) {
-	super(shadingLanguage, shaderType);
-	this.shaderSource = shaderSource;
+ 	((SourceCodeShaderRetained)this.retained).set(shadingLanguage, 
+						      shaderType,
+						      shaderSource);
+	System.out.println("Create SourceCodeShader");
+
     }
 
     /**
@@ -51,6 +60,62 @@ public class SourceCodeShader extends Shader {
      * @return the shader source string.
      */
     public String getShaderSource() {
-	return shaderSource;
+	return ((SourceCodeShaderRetained)this.retained).getShaderSource();
     }
+
+
+    /**
+     * Creates a retained mode SourceCodeShaderRetained object that this
+     * SourceCodeShader component object will point to.
+     */
+    void createRetained() {
+	this.retained = new SourceCodeShaderRetained();
+	this.retained.setSource(this);
+	System.out.println("SourceCodeShader.createRetained()");
+    }
+    
+    /**
+     * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
+     */
+    public NodeComponent cloneNodeComponent() {
+	SourceCodeShaderRetained scsRetained = (SourceCodeShaderRetained) retained;
+	
+	SourceCodeShader scs = new SourceCodeShader(scsRetained.getShadingLanguage(),
+						    scsRetained.getShaderType(),
+						    scsRetained.getShaderSource());
+	scs.duplicateNodeComponent(this);
+	return scs;
+    }
+
+      
+   /**
+     * Copies all node information from <code>originalNodeComponent</code> 
+     * into the current node.  This method is called from the
+     * <code>duplicateNode</code> method. This routine does
+     * the actual duplication of all "local data" (any data defined in
+     * this object). 
+     *
+     * @param originalNodeComponent the original node to duplicate
+     * @param forceDuplicate when set to <code>true</code>, causes the
+     *  <code>duplicateOnCloneTree</code> flag to be ignored.  When
+     *  <code>false</code>, the value of each node's
+     *  <code>duplicateOnCloneTree</code> variable determines whether
+     *  NodeComponent data is duplicated or copied.
+     *
+     * @see Node#cloneTree
+     * @see NodeComponent#setDuplicateOnCloneTree
+     */
+    void duplicateAttributes(NodeComponent originalNodeComponent,
+			     boolean forceDuplicate) { 
+	super.duplicateAttributes(originalNodeComponent, forceDuplicate);
+
+	String sc = ((SourceCodeShaderRetained) originalNodeComponent.retained).getShaderSource();
+
+	if (sc != null) {
+	    ((SourceCodeShaderRetained) retained).setShaderSource(sc);
+	}
+
+
+    }
+
 }

@@ -56,9 +56,10 @@ class ShaderBin implements ObjectUpdate {
     // Should this  be a separate mirror object of ShaderProgram ? 
 
     // ShaderAppearanceRetained shaderAppearance = null;
-    // ShaderProgramRetained shaderProgram = null;
+
+    ShaderProgramRetained shaderProgram = null;
     // ShaderAttributeSetRetained shaderAttributeSet = null;
-    ShaderProgram shaderProgram = null;
+    // ShaderProgram shaderProgram = null;
     ShaderAttributeSet shaderAttributeSet = null;
     
     // ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
@@ -94,8 +95,8 @@ class ShaderBin implements ObjectUpdate {
      */
     boolean equals(ShaderAppearanceRetained sApp) {
 	
-	// ShaderProgramRetained sp;
-	ShaderProgram sp;
+	ShaderProgramRetained sp;
+	// ShaderProgram sp;
 	ShaderAttributeSet ss;
 	
 	if (sApp == null) {

@@ -62,8 +62,6 @@ package javax.media.j3d;
  */
 
 public abstract class Shader extends NodeComponent {
-    private int shadingLanguage;
-    private int shaderType;
 
     /**
      * This constant indicates the GLSL shading language. It is one
@@ -94,12 +92,16 @@ public abstract class Shader extends NodeComponent {
 
 
     /**
+     * Not a public constructor, for internal use
+     */
+    Shader() {
+    }
+
+    /**
      * Package scope constructor so it can't be subclassed by classes
      * outside the javax.media.j3d package.
      */
     Shader(int shadingLanguage, int shaderType) {
-	this.shadingLanguage = shadingLanguage;
-	this.shaderType = shaderType;
     }
 
     /**
@@ -110,7 +112,7 @@ public abstract class Shader extends NodeComponent {
      * <code>SHADING_LANGUAGE_CG</code>.
      */
     public int getShadingLanguage() {
-	return shadingLanguage;
+	return ((ShaderRetained)this.retained).getShadingLanguage();
     }
 
     /**
@@ -121,6 +123,7 @@ public abstract class Shader extends NodeComponent {
      * <code>SHADER_TYPE_FRAGMENT</code>.
      */
     public int getShaderType() {
-	return shaderType;
+	return ((ShaderRetained)this.retained).getShaderType();
     }
 }
+
