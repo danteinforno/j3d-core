@@ -74,7 +74,7 @@ public abstract class ShaderProgram extends NodeComponent {
      * subclass.
      */
     public abstract void setShaders(Shader[] shaders);
-
+    
     /**
      * Retrieves the array of shaders from this shader program. A
      * shallow copy of the array is returned. The return value may
@@ -86,22 +86,6 @@ public abstract class ShaderProgram extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public abstract Shader[] getShaders();
-
-
-    /**
-     * Method to update the native shader program.
-     */
-    abstract void updateNative(long ctx);
-
-    /**
-     * Method to disable the native shader program.
-     */
-    abstract void disableNative(long ctx);
-
-    /**
-     * Method to update the native shader attributes
-     */
-    abstract void setUniformAttrValue(long ctx, ShaderAttributeValue sav);
 
 
     // Default shader error listener class
