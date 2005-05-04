@@ -32,7 +32,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
     private ArrayList userList = new ArrayList();
 
     // shaderId use by native code. One per Canvas.
-    private int[] shaderPerCanvasId;   
+    private long[] shaderIdPerCanvas;   
     
     // Each bit corresponds to a unique renderer if shared context
     // or a unique canvas otherwise.
