@@ -100,6 +100,149 @@ printInfoLog(GLhandleARB obj) {
 }
 #endif /* !COMPILE_GLSL_SHADERS */
 
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jint  shaderType,
+    jlong shaderId[])
+{
+
+    /* Process  shader */
+    /*
+    fprintf(stderr, "    shaderType == 0x%x\n", shaderType);
+    */
+
+    shaderId[0] = 0; /* Reset */
+    if (shaderType == 0) {
+	/* create the vertex shader */
+	shaderId[0] = pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+    }
+    else if (shaderType == 1) {
+	/* create the fragment shader */
+	shaderId[0] = pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+    }
+    
+    return NULL; /* Will handle error reporting later. Return null for now */
+}
+
+
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderId)
+{
+
+
+
+    
+    return NULL;
+}
+
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderId,
+    jstring program)
+{
+
+    GLint status;
+
+    /* Null-terminated "C" strings */
+    GLcharARB *shaderString = NULL;
+
+    shaderString = (GLcharARB *)strJavaToC(env, program);
+    if (shaderString == NULL) {	
+	fprintf(stderr, "Error in compileShader (1)\n");
+	return NULL;
+    }
+
+    pfnglShaderSourceARB(shaderId, 1, &shaderString, NULL);
+    pfnglCompileShaderARB(shaderId);
+    pfnglGetObjectParameterivARB(shaderId,
+				 GL_OBJECT_COMPILE_STATUS_ARB,
+				 &status);
+    fprintf(stderr,
+	    "GLSLShaderProgram COMPILE : shaderId = %d -- ", shaderId);
+    if (status) {
+	fprintf(stderr, "SUCCESSFUL\n");
+    }
+    else {
+	fprintf(stderr, "FAILED\n");
+	printInfoLog(shaderId);
+    }
+    
+    free(shaderString);
+    
+    
+    return NULL;
+    
+}
+
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_createShaderProgram(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId[])    
+{
+    
+    shaderProgramId[0] = pfnglCreateProgramObjectARB();
+
+    return NULL;
+}
+
+
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId)
+{
+
+    return NULL;
+}
+
+
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jint  numOfShaders,
+    jlong shaderId[])
+{
+    GLint status;
+    int i;
+
+    for(i=0; i<numOfShaders; i++) {
+	pfnglAttachObjectARB(shaderProgramId, shaderId[i]);
+    }
+
+    pfnglLinkProgramARB(shaderProgramId);
+    pfnglGetObjectParameterivARB(shaderProgramId,
+				 GL_OBJECT_LINK_STATUS_ARB,
+				 &status);
+    fprintf(stderr, "GLSLShaderProgram LINK : shaderProgramId = %d -- ", shaderProgramId);
+    if (status) {
+	fprintf(stderr, "SUCCESSFUL\n");
+    }
+    else {
+	fprintf(stderr, "FAILED\n");
+	printInfoLog(shaderProgramId);
+	pfnglUseProgramObjectARB(0);
+    }
+
+
+    return NULL;
+}
 
 /*
  * TODO: pass in an array of shaders (no need to distinguish

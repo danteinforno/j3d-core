@@ -23,6 +23,31 @@ import javax.vecmath.*;
  * CgShaderProgram object.
  */
 abstract class ShaderProgramRetained extends NodeComponentRetained {
+    
+    // Each bit corresponds to a unique renderer if shared context
+    // or a unique canvas otherwise.
+    // This mask specifies which renderer/canvas has loaded the
+    // shader program. 0 means no renderer/canvas has loaded the shader
+    // program 1 at the particular bit means that renderer/canvas has 
+    // loaded the shader program. 0 means otherwise.
+    int resourceCreationMask = 0x0;
+
+    // Each bit corresponds to a unique renderer if shared context
+    // or a unique canvas otherwise
+    // This mask specifies if shader program are up-to-date.
+    // 0 at a particular bit means shader program are not up-to-date.
+    // 1 means otherwise. If it specifies 0, then it needs to go
+    // through the [*** imageUpdateInfo ***] to update the shader
+    // program accordingly.
+    // 
+    int resourceUpdatedMask = 0x0; 
+
+
+    // shaderProgramId use by native code. One per Canvas.
+    protected long[] shaderProgramIds;   
+
+    // an array of shaders used by this shader program
+    protected ShaderRetained[] shaders;
 
     /**
      * Copies the specified array of shaders into this shader
@@ -72,26 +97,37 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     abstract void setUniformAttrValue(long ctx, ShaderAttributeValue sav);
 
 
+
+    /**
+     * Method to create the native shader.
+     */
+    abstract ShaderError createShader(long ctx, int cvRdrIndex, ShaderRetained shader);
+
+    /**
+     * Method to destroy the native shader.
+     */
+    abstract ShaderError destroyShader(long ctx, int cvRdrIndex, ShaderRetained shader);
+
+    /**
+     * Method to compile the native shader.
+     */
+    abstract ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader);
+
+
+    /**
+     * Method to create the native shader program.
+     */
+    abstract ShaderError createShaderProgram(long ctx, int cvRdrIndex);
+
+    /**
+     * Method to destroy the native shader program.
+     */
+    abstract ShaderError destroyShaderProgram(long ctx, int cvRdrIndex);
+
+    /**
+     * Method to link the native shader program.
+     */
+    abstract ShaderError linkShaderProgram(long ctx, int cvRdrIndex, ShaderRetained[] shaders);
+
+
 }
-/* 
-       --- Chien.
-    In ShaderProgramRetained.java
-    
-    abstract long createShader(long ctx);
-    abstract void destroyShader(long ctx, long shaderId);
-    abstract long compileShader(long ctx, long shaderId, ....);
-    abstract void link(long ctx, long shaderId[], ...);
-
-    // Texture Object Id used by native code.
-    int objectId = -1;   Has to be a array of objectId. One per Canvas.
-    
-    // Each bit corresponds to a unique renderer if shared context
-    // or a unique canvas otherwise.
-    // This mask specifies which renderer/canvas has loaded the
-    // texture images. 0 means no renderer/canvas has loaded the texture.
-    // 1 at the particular bit means that renderer/canvas has loaded the
-    // texture. 0 means otherwise.
-    int resourceCreationMask = 0x0;
-
-
-*/

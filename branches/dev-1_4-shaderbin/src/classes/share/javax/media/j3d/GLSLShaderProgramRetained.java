@@ -22,6 +22,8 @@ package javax.media.j3d;
  */
 
 class GLSLShaderProgramRetained extends ShaderProgramRetained {
+
+    // TODO : Use the members in ShaderProgramRetained -- Chien.
     private SourceCodeShader vertexShader = null; // TODO: make this an array
     private SourceCodeShader fragmentShader = null; // TODO: make this an array
     private int shaderProgramId = 0;
@@ -138,6 +140,81 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 					   int shaderProgram,
 					   String attrName,
 					   float[] value);
+
+    /* New native interfaces */
+    private native ShaderError createShader(long ctx, int shaderType, long[] shaderId);
+    private native ShaderError destroyShader(long ctx, long shaderId);
+    private native ShaderError compileShader(long ctx, long shaderId, String program);
+
+    private native ShaderError createShaderProgram(long ctx, long[] shaderProgramId);
+    private native ShaderError destroyShaderProgram(long ctx, long shaderProgramId);
+    private native ShaderError linkShaderProgram(long ctx, long shaderProgramId,
+						 long[] shaderId);
+
+    /*
+    private native ShaderError createUniformLocation(long ctx,
+						     long shaderProgramId,
+						     String attrName,
+						     long[] uniformLocation);
+
+    private native ShaderError setUniform1i(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int value);
+
+    private native ShaderError setUniform3f(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    float[] value);    
+    */
+
+    /**
+     * Method to create the native shader.
+     */
+    ShaderError createShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
+	System.out.println("GLSLShaderProgram : createShader not implemented yet!");
+	return null;
+    }
+
+    /**
+     * Method to destroy the native shader.
+     */
+    ShaderError destroyShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
+	System.out.println("GLSLShaderProgram : destroyShader not implemented yet!");
+	return null;
+    }
+    
+    /**
+     * Method to compile the native shader.
+     */
+    ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
+	System.out.println("GLSLShaderProgram : compileShader not implemented yet!");
+	return null;
+    }
+
+    /**
+     * Method to create the native shader program.
+     */
+    ShaderError createShaderProgram(long ctx, int cvRdrIndex) {
+	System.out.println("GLSLShaderProgram : createShaderProgram not implemented yet!");
+	return null;
+    }
+
+    /**
+     * Method to destroy the native shader program.
+     */
+    ShaderError destroyShaderProgram(long ctx, int cvRdrIndex) {
+	System.out.println("GLSLShaderProgram : destroyShaderProgram not implemented yet!");
+	return null;
+    }
+
+    /**
+     * Method to link the native shader program.
+     */
+    ShaderError linkShaderProgram(long ctx, int cvRdrIndex, ShaderRetained[] shaders) {
+	System.out.println("GLSLShaderProgram : linkShaderProgram not implemented yet!");
+	return null;
+    }
 
     void updateNative(long ctx) {
 	String vertexShaderStr = null;

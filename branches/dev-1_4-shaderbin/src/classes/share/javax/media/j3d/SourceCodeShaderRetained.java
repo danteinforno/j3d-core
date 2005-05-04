@@ -55,7 +55,7 @@ class SourceCodeShaderRetained extends ShaderRetained {
 
     final void setShaderSource(String sc) {
 	this.shaderSource = shaderSource;
-    }    
+    }
 
     void setLive(boolean inBackgroundGroup, int refCount) {
 	super.setLive(inBackgroundGroup, refCount);
