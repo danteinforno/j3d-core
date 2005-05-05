@@ -102,7 +102,7 @@ void JNICALL Java_javax_media_j3d_RasterRetained_execute(JNIEnv *env,
 	D3dImageComponent* d3dImage = 
 	    D3dImageComponent::find(&RasterList, d3dCtx, hashCode);
 
-	LPDIRECT3DTEXTURE8 surf = NULL ;
+	LPDIRECT3DTEXTURE9 surf = NULL ;
 
 	if ((d3dImage == NULL) || (d3dImage->surf == NULL)) {
 
@@ -200,7 +200,7 @@ void JNICALL Java_javax_media_j3d_RasterRetained_execute(JNIEnv *env,
 		if (FAILED(hr)) {
 		    if (debug) {
 			printf("[Java3D] Fail to get depth stencil surface %s\n",
-			       DXGetErrorString8(hr));
+			       DXGetErrorString9(hr));
 		    }
 		    return;
 		}
