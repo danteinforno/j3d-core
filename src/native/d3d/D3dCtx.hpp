@@ -47,8 +47,8 @@ typedef struct _D3DTLVERTEX {
     float tu, tv;
 } D3DTLVERTEX;
 
-typedef vector<LPDIRECT3DRESOURCE8> LPDIRECT3DRESOURCE8Vector;
-typedef vector<LPDIRECT3DVERTEXBUFFER8> LPDIRECT3DVERTEXBUFFER8Vector;
+typedef vector<LPDIRECT3DRESOURCE9> LPDIRECT3DRESOURCE8Vector;
+typedef vector<LPDIRECT3DVERTEXBUFFER9> LPDIRECT3DVERTEXBUFFER8Vector;
 
 class D3dCtx {
 public:
@@ -58,16 +58,16 @@ public:
     D3dDriverInfo  *driverInfo;   // Driver use
     D3dDeviceInfo  *deviceInfo;   // Device use 
     
-    LPDIRECT3D8       pD3D;       // Direct3D interface
-    LPDIRECT3DDEVICE8 pDevice;    // Instance of D3D Device
+    LPDIRECT3D9       pD3D;       // Direct3D interface
+    LPDIRECT3DDEVICE9 pDevice;    // Instance of D3D Device
     
-    LPDIRECT3DSURFACE8 depthStencilSurface;
+    LPDIRECT3DSURFACE9 depthStencilSurface;
 
     // This is used for readRaster and offscreen rendering
     // Only allocate the memory area if necessary
-    LPDIRECT3DSURFACE8 frontSurface;
+    LPDIRECT3DSURFACE9 frontSurface;
 
-    LPDIRECT3DSURFACE8 backSurface;
+    LPDIRECT3DSURFACE9 backSurface;
 
     // Parameters use for CreateDevice()
     D3DPRESENT_PARAMETERS d3dPresent; 
@@ -113,11 +113,11 @@ public:
     DWORD zEnable;
 
     // Ambient material used when coloring Attributes
-    D3DMATERIAL8 ambientMaterial;
+    D3DMATERIAL9 ambientMaterial;
 
     // temporary variables for ambient light setting
-    D3DLIGHT8 savedLight;
-    D3DMATERIAL8 savedMaterial;
+    D3DLIGHT9 savedLight;
+    D3DMATERIAL9 savedMaterial;
     BOOL savedLightEnable;
 
     // temporary variables used for building VertexBuffer
@@ -132,17 +132,17 @@ public:
     INT *bindTextureId;
     DWORD bindTextureIdLen;
 
-    LPDIRECT3DTEXTURE8 *textureTable;
+    LPDIRECT3DTEXTURE9 *textureTable;
     DWORD textureTableLen;
 
     // Volume Texture related variables
     // Since 2d & 3d texture ID can't be the same from Java3D.
     // We don't need bindVolumeId
-    LPDIRECT3DVOLUMETEXTURE8 *volumeTable;
+    LPDIRECT3DVOLUMETEXTURE9 *volumeTable;
     DWORD volumeTableLen;
 
     // Texture Cube Mapping related variables
-    LPDIRECT3DCUBETEXTURE8 *cubeMapTable;
+    LPDIRECT3DCUBETEXTURE9 *cubeMapTable;
     DWORD cubeMapTableLen;
     
     // true if hardware support MultiTexture
@@ -171,8 +171,8 @@ public:
 
     // This is used for to transform vertex 
     // from world to screen coordinate
-    LPDIRECT3DVERTEXBUFFER8 srcVertexBuffer;
-    LPDIRECT3DVERTEXBUFFER8 dstVertexBuffer;
+    LPDIRECT3DVERTEXBUFFER9 srcVertexBuffer;
+    LPDIRECT3DVERTEXBUFFER9 dstVertexBuffer;
 
     // For Rect of texture map in Raster write
     D3DTLVERTEX rasterRect[4];
@@ -215,11 +215,11 @@ public:
     BOOL resetColorTarget;
 
     // Use for QuadArray
-    LPDIRECT3DINDEXBUFFER8 quadIndexBuffer;
+    LPDIRECT3DINDEXBUFFER9 quadIndexBuffer;
     DWORD quadIndexBufferSize;
 
     // Use for Quad Polygon Line mode
-    LPDIRECT3DINDEXBUFFER8 lineModeIndexBuffer;
+    LPDIRECT3DINDEXBUFFER9 lineModeIndexBuffer;
 
     // Use temporary for reindexing
     DWORD *reIndexifyTable;
@@ -280,7 +280,7 @@ public:
     VOID setPresentParams(JNIEnv *env, jobject obj);
     VOID setAmbientLightMaterial();
     VOID restoreDefaultLightMaterial();
-    VOID freeResource(LPDIRECT3DRESOURCE8 surf);
+    VOID freeResource(LPDIRECT3DRESOURCE9 surf);
     VOID freeVB(LPD3DVERTEXBUFFER vb);
     
     VOID freeList();
