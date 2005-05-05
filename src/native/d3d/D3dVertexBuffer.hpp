@@ -27,10 +27,10 @@ class D3dVertexBuffer {
 public:
 
     // Actual buffer memory to hold all the vertices
-    LPDIRECT3DVERTEXBUFFER8 buffer;
+    LPDIRECT3DVERTEXBUFFER9 buffer;
 
     // Indexed buffer for rendering IndexedGeometry
-    LPDIRECT3DINDEXBUFFER8 indexBuffer;
+    LPDIRECT3DINDEXBUFFER9 indexBuffer;
 
     // D3D type of this Vertex Buffer
     D3DPRIMITIVETYPE        primitiveType;
