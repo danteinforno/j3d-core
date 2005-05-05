@@ -35,9 +35,9 @@
 #include <jni.h>
 #include <math.h>
 #define D3D_OVERLOADS
-#include <d3d8.h>
-#include <dxerr8.h>
-#include <d3dx8.h>
+#include <d3d9.h>
+#include <dxerr9.h>
+#include <d3dx9.h>
 #include <vector>
 #include <algorithm>
 using namespace std ;
@@ -52,3 +52,4 @@ using namespace std ;
 #include "D3dDisplayList.hpp"
 #include "D3dImageComponent.hpp"
 #endif
+
