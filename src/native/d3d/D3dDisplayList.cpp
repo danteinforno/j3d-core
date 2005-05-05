@@ -137,7 +137,7 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 						 DWORD vcount,
 						 DWORD indexCount)
 {
-    LPDIRECT3DDEVICE8 device = d3dCtx->pDevice; 
+    LPDIRECT3DDEVICE9 device = d3dCtx->pDevice; 
     D3dVertexBuffer **r;
     UINT i;
     HRESULT hr;
@@ -158,43 +158,46 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 					D3DUSAGE_WRITEONLY,
 					vb->vertexFormat,
 					D3DPOOL_DEFAULT,
-					&vb->buffer);
+					&vb->buffer,
+					NULL);
     } else {
 	hr = device->CreateVertexBuffer(vb->stride*vcount,
 					D3DUSAGE_WRITEONLY|D3DUSAGE_POINTS,
 					vb->vertexFormat,
 					D3DPOOL_DEFAULT,
-					&vb->buffer);	    
+					&vb->buffer,
+					NULL);	    
     }
 
     if (FAILED(hr)) {
 	return NULL;
     }
+   	BYTE *bdst = NULL;    
+	WORD *wdst = NULL;    
+	UINT *idst = NULL;
 
-    BYTE *bdst = NULL;
-    WORD *wdst = NULL;
-    UINT *idst = NULL;
-
-    hr = vb->buffer->Lock(0, 0, (BYTE**) &bdst, 0);
+    hr = vb->buffer->Lock(0, 0,(VOID**) &bdst , 0);
     if (FAILED(hr)) {
 	SafeRelease(vb->buffer);
 	return NULL;
     }
 
-    if (indexCount > 0) {
+    if (indexCount > 0) { 
 	if (indexCount <= 0xffff) {
 	    hr = device->CreateIndexBuffer(indexCount*sizeof(WORD),
 					   D3DUSAGE_WRITEONLY,
 					   D3DFMT_INDEX16,
 					   D3DPOOL_DEFAULT,
-					   &vb->indexBuffer);
+					   &vb->indexBuffer,
+					   NULL);
 	    
 	} else {
 	    hr = device->CreateIndexBuffer(indexCount*sizeof(UINT),
 					   D3DUSAGE_WRITEONLY,
 					   D3DFMT_INDEX32,
 					   D3DPOOL_DEFAULT,
-					   &vb->indexBuffer);
+					   &vb->indexBuffer,
+					   NULL);
 	}
 	if (FAILED(hr)) {
 	    vb->buffer->Unlock();
@@ -202,9 +205,9 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	    return NULL;
 	}
 	if (indexCount <= 0xffff) {
-	    hr = vb->indexBuffer->Lock(0, 0, (BYTE**) &wdst, 0);
+	    hr = vb->indexBuffer->Lock(0, 0,(VOID**)  &wdst, 0);
 	} else {
-	    hr = vb->indexBuffer->Lock(0, 0, (BYTE**) &idst, 0);
+	    hr = vb->indexBuffer->Lock(0, 0,(VOID**)  &idst, 0);
 	}
 	if (FAILED(hr)) {
 	    vb->buffer->Unlock();
@@ -214,10 +217,10 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	}
     }
 
-    BYTE *bsrc = NULL;
-    WORD *wsrc = NULL;
-    UINT *isrc = NULL;
-    UINT offset = 0;
+   	BYTE *bsrc = NULL;   
+	WORD *wsrc = NULL;   
+	UINT *isrc = NULL;    
+	UINT offset = 0;
     DWORD len;
     BOOL stripType = true;
 
@@ -236,7 +239,7 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
     } 
 
     for (r = vstart; r != vend; r++) {
-	hr = (*r)->buffer->Lock(0, 0, (BYTE **) &bsrc, 0);
+	hr = (*r)->buffer->Lock(0, 0,(VOID**) &bsrc, 0);
 
 	if (FAILED(hr)) {
 	    vb->buffer->Unlock();
@@ -250,9 +253,9 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 
 	if (indexCount > 0) {
 	    if (indexCount <= 0xffff) {
-		hr = (*r)->indexBuffer->Lock(0, 0, (BYTE**) &wsrc, 0);
+		hr = (*r)->indexBuffer->Lock(0, 0, (VOID**)&wsrc, 0);
 	    } else {
-		hr = (*r)->indexBuffer->Lock(0, 0, (BYTE**) &isrc, 0);
+		hr = (*r)->indexBuffer->Lock(0, 0,(VOID**) &isrc, 0);
 	    }
 	    if (FAILED(hr)) {
 		(*r)->buffer->Unlock();
