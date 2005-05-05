@@ -187,7 +187,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
     // However we use the following texturemapping function instead
     // so this will not invoke.
     if (d3dCtx->backSurface == NULL) {
-	device->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO,
+	device->GetBackBuffer(0,0, D3DBACKBUFFER_TYPE_MONO,//iSwapChain is 0
 			      &d3dCtx->backSurface);
     }    
     jbyte *byteData = (jbyte *) (env->GetPrimitiveArrayCritical(
@@ -262,7 +262,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
          env, texture, ctx, 0, minX, minY, J3D_RGBA, format,
 	 minX, minY, rasWidth, maxX-minX, maxY-minY, imageYdown);
 
-    LPDIRECT3DTEXTURE8 surf = d3dCtx->textureTable[objectId];
+    LPDIRECT3DTEXTURE9 surf = d3dCtx->textureTable[objectId];
 
     if (surf == NULL) {
 	if (debug) {
@@ -366,7 +366,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	id = env->GetFieldID(pa2d_class, "height", "I");
 	int height = env->GetIntField(pa2d, id);
 	
-	LPDIRECT3DTEXTURE8 surf;
+	LPDIRECT3DTEXTURE9 surf;
 
 	if ((d3dImage == NULL) || (d3dImage->surf == NULL)) {
 	    surf = createSurfaceFromImage(env, pa2d, ctx,
@@ -599,7 +599,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
 	if (D3DERR_DEVICENOTRESET == hr) {
 	    if (debug) {
 		printf("Buffer swap error %s, try Reset() the surface... \n",
-		       DXGetErrorString8(hr));	    
+		       DXGetErrorString9(hr));	    
 	    }
 	    retCode = d3dCtx->resetSurface(env, obj);
 	    GetDevice2();
@@ -607,7 +607,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
 	    if (FAILED(hr)) {
 		if (debug) {
 		    printf("Buffer swap error %s \n",
-			   DXGetErrorString8(hr));
+			   DXGetErrorString9(hr));
 		}
 	    }
 	} 
@@ -891,11 +891,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
     }
 
     if (d3dCtx->backSurface == NULL) {
-	HRESULT hr = device->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO,
+	HRESULT hr = device->GetBackBuffer(0,0, D3DBACKBUFFER_TYPE_MONO, //iSwapChain is 0
 					   &d3dCtx->backSurface);
 	if (FAILED(hr)) {
 	    printf("[Java 3D] GetBackBuffer fail %s\n",
-		   DXGetErrorString8(hr));
+		   DXGetErrorString9(hr));
 	    return;
 	}
     }
