@@ -47,7 +47,7 @@ D3DFORMAT d3dDepthFormat[D3DDEPTHFORMATSIZE] = {D3DFMT_D15S1,
 
 // This should match the depth bit in the above array
 int d3dDepthTable[D3DDEPTHFORMATSIZE] = {15, 24, 24, 16, 16, 32};
-D3DLIGHT8 ambientLight; 
+D3DLIGHT9 ambientLight; 
 
 D3dDriverInfo::D3dDriverInfo()
 {
@@ -97,7 +97,7 @@ VOID computeRGBDepth(D3dDriverInfo *pDriver)
 
 }
 
-VOID buildDriverList(LPDIRECT3D8 pD3D)
+VOID buildDriverList(LPDIRECT3D9 pD3D)
 {
     numDriver =  pD3D->GetAdapterCount();
 
@@ -120,7 +120,7 @@ VOID buildDriverList(LPDIRECT3D8 pD3D)
     {
 	pDriver = new D3dDriverInfo();
 	d3dDriverList[i] = pDriver;
-        pD3D->GetAdapterIdentifier(i, D3DENUM_NO_WHQL_LEVEL,
+        pD3D->GetAdapterIdentifier(i, 0,
 				     &pDriver->adapterIdentifier);
         pD3D->GetAdapterDisplayMode(i, &pDriver->desktopMode);
 	computeRGBDepth(pDriver);
@@ -129,7 +129,7 @@ VOID buildDriverList(LPDIRECT3D8 pD3D)
 
 	for (int j = 0; j < numDeviceTypes; j++ )
         {
-	    D3DCAPS8 d3dCaps;
+	    D3DCAPS9 d3dCaps;
             D3dDeviceInfo* pDevice = pDriver->d3dDeviceList[j];
             pDevice->deviceType = deviceTypes[j];
             pD3D->GetDeviceCaps(i, deviceTypes[j], &d3dCaps);
@@ -152,7 +152,8 @@ VOID buildDriverList(LPDIRECT3D8 pD3D)
 		strcpy(pDevice->deviceName, "Hardware Rasterizer");
 	    } else {
 		strcpy(pDevice->deviceName, "Reference Rasterizer");
-	    }
+		}
+
 
 	    for (int k=0; k < D3DDEPTHFORMATSIZE; k++) {
 		pDevice->depthFormatSupport[k] =
@@ -181,7 +182,8 @@ VOID buildDriverList(LPDIRECT3D8 pD3D)
 		if (SUCCEEDED(pD3D->CheckDeviceMultiSampleType(i, deviceTypes[j],
 							       pDriver->desktopMode.Format,
 							       TRUE,
-							       (D3DMULTISAMPLE_TYPE) mtype))) {
+							       (D3DMULTISAMPLE_TYPE) mtype,NULL),
+								   )) {
 		    pDevice->multiSampleSupport |= bitmask;
 		}
 		bitmask <<= 1;
@@ -226,7 +228,7 @@ VOID printInfo()
     D3dDriverInfo *pDriver;
     for (int i=0; i < numDriver; i++) {
 	pDriver  = d3dDriverList[i];
-	D3DADAPTER_IDENTIFIER8 *id = &pDriver->adapterIdentifier;
+	D3DADAPTER_IDENTIFIER9 *id = &pDriver->adapterIdentifier;
 	D3DDISPLAYMODE *dm = &pDriver->desktopMode;
         printf("\n[Display Driver] %s, %s, Product %d\n",
 	       id->Driver, id->Description,
@@ -262,18 +264,19 @@ VOID printInfo()
 // Construct the D3dDriverList by enumerate all the drivers
 VOID D3dDriverInfo::initialize(JNIEnv *env) 
 {
-    HINSTANCE hD3D8DLL = LoadLibrary( "D3D8.DLL" );
+    HINSTANCE hD3D9DLL = LoadLibrary( "D3D9.DLL" );
 
-    // Simply see if D3D8.dll exists.
-    if ( hD3D8DLL == NULL )
+    // Simply see if D3D9.dll exists.
+    if ( hD3D9DLL == NULL )
     {
 	D3dCtx::d3dError(D3DNOTFOUND);
 	return;
     }
-    FreeLibrary(hD3D8DLL);
+    FreeLibrary(hD3D9DLL);
 
 
-    LPDIRECT3D8 pD3D = Direct3DCreate8( D3D_SDK_VERSION );
+    LPDIRECT3D9 pD3D = Direct3DCreate9( D3D_SDK_VERSION );
+    printf("Using Direct3D 9.0 or higher.\n");
 
     if (pD3D == NULL) {
 	D3dCtx::d3dError(D3DNOTFOUND);
