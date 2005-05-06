@@ -276,6 +276,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
 	ctxProperties->pfnglUseProgramObjectARB(0);
     }
 
+    (*env)->ReleaseLongArrayElements(env, shaderIdArray, shaderIdPtr, JNI_ABORT); 
+
     return NULL; /* Will handle error reporting later. Return null for now */
 }
 

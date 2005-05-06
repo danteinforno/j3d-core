@@ -3065,6 +3065,14 @@ public class Canvas3D extends Canvas {
      * <td><b>Value Type</b></td>
      * </tr>
      * <tr>
+     * <td><code>shadingLanguageCg</code></td>
+     * <td>Boolean</td>
+     * </tr>
+     * <tr>
+     * <td><code>shadingLanguageGLSL</code></td>
+     * <td>Boolean</td>
+     * </tr>
+     * <tr>
      * <td><code>doubleBufferAvailable</code></td>
      * <td>Boolean</td>
      * </tr>
@@ -3169,6 +3177,22 @@ public class Canvas3D extends Canvas {
      * <p>
      * <ul>
      * <li>
+     * <code>shadingLanguageCg</code>
+     * <ul>
+     * A Boolean indicating whether or not Cg shading Language
+     * is available for this Canvas3D. 
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>shadingLanguageGLSL</code>
+     * <ul>
+     * A Boolean indicating whether or not GLSL shading Language
+     * is available for this Canvas3D.     
+     * </ul>
+     * </li>
+     *
+     * <li>
      * <code>doubleBufferAvailable</code>
      * <ul>
      * A Boolean indicating whether or not double buffering
@@ -3199,7 +3223,6 @@ public class Canvas3D extends Canvas {
      * requests to enable scene antialiasing will be ignored.
      * </ul>
      * </li>
-     *
      *
      * <li>
      * <code>sceneAntialiasingNumPasses</code>
@@ -3559,6 +3582,12 @@ public class Canvas3D extends Canvas {
 
         keys.add("textureUnitStateMax");
         values.add(new Integer(numTexUnitSupported));
+
+	keys.add("shadingLanguageGLSL");
+	values.add(new Boolean(shadingLanguageGLSL));
+
+	keys.add("shadingLanguageCg");
+	values.add(new Boolean(shadingLanguageCg));
 
 	keys.add("native.version");
 	values.add(nativeGraphicsVersion);
@@ -3983,7 +4012,7 @@ public class Canvas3D extends Canvas {
 	} else {
 	    if (rightStereoPass) {
 		//  Only set cache in right stereo pass, otherwise
-		//  if the left stero pass set the cache value, 
+		//  if the left stereo pass set the cache value, 
 		//  setModelViewMatrix() in right stereo pass will not 
 		//  perform in RenderMolecules.
 		this.modelMatrix = mTrans;
