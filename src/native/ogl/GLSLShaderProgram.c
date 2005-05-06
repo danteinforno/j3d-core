@@ -55,35 +55,15 @@ extern char *strJavaToC(JNIEnv *env, jstring str);
 #ifdef COMPILE_GLSL_SHADERS
 /* KCR: BEGIN GLSL SHADER HACK */
 
-/* TODO: these need to be fields in the ctxInfo struct */
-PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB = NULL;
-PFNGLCOMPILESHADERARBPROC pfnglCompileShaderARB = NULL;
-PFNGLCREATEPROGRAMOBJECTARBPROC pfnglCreateProgramObjectARB = NULL;
-PFNGLCREATESHADEROBJECTARBPROC pfnglCreateShaderObjectARB = NULL;
-PFNGLGETINFOLOGARBPROC pfnglGetInfoLogARB = NULL;
-PFNGLGETOBJECTPARAMETERIVARBPROC pfnglGetObjectParameterivARB = NULL;
-PFNGLLINKPROGRAMARBPROC pfnglLinkProgramARB = NULL;
-PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB = NULL;
-PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB = NULL;
-PFNGLGETUNIFORMLOCATIONARBPROC pfnglGetUniformLocationARB = NULL;
-PFNGLUNIFORM1IARBPROC pfnglUniform1iARB = NULL;
-PFNGLUNIFORM1FARBPROC pfnglUniform1fARB = NULL;
-PFNGLUNIFORM2IARBPROC pfnglUniform2iARB = NULL;
-PFNGLUNIFORM2FARBPROC pfnglUniform2fARB = NULL;
-PFNGLUNIFORM3IARBPROC pfnglUniform3iARB = NULL;
-PFNGLUNIFORM3FARBPROC pfnglUniform3fARB = NULL;
-PFNGLUNIFORM4IARBPROC pfnglUniform4iARB = NULL;
-PFNGLUNIFORM4FARBPROC pfnglUniform4fARB = NULL;
-
 static void
-printInfoLog(GLhandleARB obj) {
+printInfoLog(GraphicsContextPropertiesInfo* ctxProperties, GLhandleARB obj) {
     int infoLogLength = 0;
     int len = 0;
     GLcharARB *infoLog;
 
-    pfnglGetObjectParameterivARB(obj,
-				 GL_OBJECT_INFO_LOG_LENGTH_ARB,
-				 &infoLogLength);
+    ctxProperties->pfnglGetObjectParameterivARB(obj,
+						GL_OBJECT_INFO_LOG_LENGTH_ARB,
+						&infoLogLength);
     if (infoLogLength > 0) {
 	infoLog = (GLcharARB *)malloc(infoLogLength);
 	if (infoLog == NULL) {
@@ -92,7 +72,7 @@ printInfoLog(GLhandleARB obj) {
 	    return;
 	}
 
-	pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
+	ctxProperties->pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
 	fprintf(stderr, "InfoLog: infoLogLength = %d, len = %d\n",
 		infoLogLength, len);
 	fprintf(stderr, "%s\n", infoLog);
@@ -100,34 +80,55 @@ printInfoLog(GLhandleARB obj) {
 }
 #endif /* !COMPILE_GLSL_SHADERS */
 
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    createShader
+ * Signature: (JI[J)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jint  shaderType,
-    jlong shaderId[])
+    jlongArray shaderIdArray)
 {
+
+    jlong *shaderIdPtr;
+    GLhandleARB shaderHandle;
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
+
 
     /* Process  shader */
     /*
-    fprintf(stderr, "    shaderType == 0x%x\n", shaderType);
+    fprintf(stderr, "    shaderType == %d\n", shaderType);
     */
-
-    shaderId[0] = 0; /* Reset */
-    if (shaderType == 0) {
+    if (shaderType == javax_media_j3d_Shader_SHADER_TYPE_VERTEX) { 
 	/* create the vertex shader */
-	shaderId[0] = pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
     }
-    else if (shaderType == 1) {
-	/* create the fragment shader */
-	shaderId[0] = pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+    else if (shaderType == javax_media_j3d_Shader_SHADER_TYPE_FRAGMENT) { 
+	    /* create the fragment shader */
+	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
     }
+    else {
+	/* Problem ! */
+    }
+    
+    shaderIdPtr[0] = (jlong) shaderHandle;
+    (*env)->ReleaseLongArrayElements(env, shaderIdArray, shaderIdPtr, 0); 
+
     
     return NULL; /* Will handle error reporting later. Return null for now */
 }
 
-
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    destroyShader
+ * Signature: (JJ)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
     JNIEnv *env,
@@ -135,13 +136,15 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
     jlong ctxInfo,
     jlong shaderId)
 {
-
-
-
     
-    return NULL;
+    return NULL; /* Will handle error reporting later. Return null for now */
 }
 
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    compileShader
+ * Signature: (JJLjava/lang/String;)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     JNIEnv *env,
@@ -149,10 +152,13 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     jlong ctxInfo,
     jlong shaderId,
     jstring program)
-{
-
+{    
     GLint status;
-
+    jlong *shaderIdPtr;
+    GLhandleARB shaderHandle;
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    
     /* Null-terminated "C" strings */
     GLcharARB *shaderString = NULL;
 
@@ -162,11 +168,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
 	return NULL;
     }
 
-    pfnglShaderSourceARB(shaderId, 1, &shaderString, NULL);
-    pfnglCompileShaderARB(shaderId);
-    pfnglGetObjectParameterivARB(shaderId,
-				 GL_OBJECT_COMPILE_STATUS_ARB,
-				 &status);
+    ctxProperties->pfnglShaderSourceARB(shaderId, 1, &shaderString, NULL);
+    ctxProperties->pfnglCompileShaderARB(shaderId);
+    ctxProperties->pfnglGetObjectParameterivARB(shaderId,
+						GL_OBJECT_COMPILE_STATUS_ARB,
+						&status);
     fprintf(stderr,
 	    "GLSLShaderProgram COMPILE : shaderId = %d -- ", shaderId);
     if (status) {
@@ -174,30 +180,47 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     }
     else {
 	fprintf(stderr, "FAILED\n");
-	printInfoLog(shaderId);
+	printInfoLog(ctxProperties, shaderId); /* TODO - Replace witht detail message in
+						  the return ShaderError. */
     }
     
-    free(shaderString);
-    
-    
-    return NULL;
+    free(shaderString);    
+    return NULL; /* Will handle error reporting later. Return null for now */
     
 }
 
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    createShaderProgram
+ * Signature: (J[J)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_createShaderProgram(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jlong shaderProgramId[])    
+    jlongArray shaderProgramIdArray)    
 {
-    
-    shaderProgramId[0] = pfnglCreateProgramObjectARB();
 
-    return NULL;
+    jlong *shaderProgramIdPtr;
+    GLhandleARB shaderProgramHandle;
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    shaderProgramIdPtr = (*env)->GetLongArrayElements(env, shaderProgramIdArray, NULL);
+
+    shaderProgramHandle = ctxProperties->pfnglCreateProgramObjectARB();
+
+    shaderProgramIdPtr[0] = (jlong) shaderProgramHandle;
+    (*env)->ReleaseLongArrayElements(env, shaderProgramIdArray, shaderProgramIdPtr, 0);
+    
+    return NULL; /* Will handle error reporting later. Return null for now */
 }
 
-
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    destroyShaderProgram
+ * Signature: (JJ)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
     JNIEnv *env,
@@ -206,42 +229,54 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
     jlong shaderProgramId)
 {
 
-    return NULL;
+    return NULL; /* Will handle error reporting later. Return null for now */
 }
 
-
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    linkShaderProgram
+ * Signature: (JJ[J)Ljavax/media/j3d/ShaderError;
+ */
 JNIEXPORT jobject JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jlong shaderProgramId,
-    jint  numOfShaders,
-    jlong shaderId[])
+    jlongArray shaderIdArray)
 {
     GLint status;
     int i;
+    GLhandleARB shaderHandle;
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    jlong *shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
+    jsize shaderIdArrayLength = (*env)->GetArrayLength(env,  shaderIdArray);
 
-    for(i=0; i<numOfShaders; i++) {
-	pfnglAttachObjectARB(shaderProgramId, shaderId[i]);
+    
+    fprintf(stderr, "shaderIdArrayLength %d\n", shaderIdArrayLength);
+    
+    for(i=0; i<shaderIdArrayLength; i++) {
+	ctxProperties->pfnglAttachObjectARB(shaderProgramId, shaderIdPtr[i]);
     }
 
-    pfnglLinkProgramARB(shaderProgramId);
-    pfnglGetObjectParameterivARB(shaderProgramId,
-				 GL_OBJECT_LINK_STATUS_ARB,
-				 &status);
+    ctxProperties->pfnglLinkProgramARB(shaderProgramId);
+    ctxProperties->pfnglGetObjectParameterivARB(shaderProgramId,
+						GL_OBJECT_LINK_STATUS_ARB,
+						&status);
     fprintf(stderr, "GLSLShaderProgram LINK : shaderProgramId = %d -- ", shaderProgramId);
     if (status) {
 	fprintf(stderr, "SUCCESSFUL\n");
     }
     else {
 	fprintf(stderr, "FAILED\n");
-	printInfoLog(shaderProgramId);
-	pfnglUseProgramObjectARB(0);
+	printInfoLog(ctxProperties, shaderProgramId);/* TODO - Replace witht detail message in
+							the return ShaderError. */
+	
+	ctxProperties->pfnglUseProgramObjectARB(0);
     }
 
-
-    return NULL;
+    return NULL; /* Will handle error reporting later. Return null for now */
 }
 
 /*
@@ -283,92 +318,10 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
     GLcharARB *fragmentShaderString = NULL;
 
     static GLboolean firstTime = GL_TRUE;
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    if (firstTime) {
-#if defined(UNIX)
-	pfnglAttachObjectARB =
-	    (PFNGLATTACHOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glAttachObjectARB");
-	pfnglCompileShaderARB =
-	    (PFNGLCOMPILESHADERARBPROC)dlsym(RTLD_DEFAULT, "glCompileShaderARB");
-	pfnglCreateProgramObjectARB =
-	    (PFNGLCREATEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateProgramObjectARB");
-	pfnglCreateShaderObjectARB =
-	    (PFNGLCREATESHADEROBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateShaderObjectARB");
-	pfnglGetInfoLogARB =
-	    (PFNGLGETINFOLOGARBPROC)dlsym(RTLD_DEFAULT, "glGetInfoLogARB");
-	pfnglGetObjectParameterivARB =
-	    (PFNGLGETOBJECTPARAMETERIVARBPROC)dlsym(RTLD_DEFAULT, "glGetObjectParameterivARB");
-	pfnglLinkProgramARB =
-	    (PFNGLLINKPROGRAMARBPROC)dlsym(RTLD_DEFAULT, "glLinkProgramARB");
-	pfnglShaderSourceARB =
-	    (PFNGLSHADERSOURCEARBPROC)dlsym(RTLD_DEFAULT, "glShaderSourceARB");
-	pfnglUseProgramObjectARB =
-	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
-	pfnglGetUniformLocationARB =
-	    (PFNGLGETUNIFORMLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetUniformLocationARB");
-	pfnglUniform1iARB =
-	    (PFNGLUNIFORM1IARBPROC)dlsym(RTLD_DEFAULT, "glUniform1iARB");
-	pfnglUniform1fARB =
-	    (PFNGLUNIFORM1FARBPROC)dlsym(RTLD_DEFAULT, "glUniform1fARB");
-	pfnglUniform2iARB =
-	    (PFNGLUNIFORM2IARBPROC)dlsym(RTLD_DEFAULT, "glUniform2iARB");
-	pfnglUniform2fARB =
-	    (PFNGLUNIFORM2FARBPROC)dlsym(RTLD_DEFAULT, "glUniform2fARB");
-	pfnglUniform3iARB =
-	    (PFNGLUNIFORM3IARBPROC)dlsym(RTLD_DEFAULT, "glUniform3iARB");
-	pfnglUniform3fARB =
-	    (PFNGLUNIFORM3FARBPROC)dlsym(RTLD_DEFAULT, "glUniform3fARB");
-	pfnglUniform4iARB =
-	    (PFNGLUNIFORM4IARBPROC)dlsym(RTLD_DEFAULT, "glUniform4iARB");
-	pfnglUniform4fARB =
-	    (PFNGLUNIFORM4FARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fARB");
-#endif
-#ifdef WIN32
-	pfnglAttachObjectARB =
-	    (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	pfnglCompileShaderARB =
-	    (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	pfnglCreateProgramObjectARB =
-	    (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	pfnglCreateShaderObjectARB =
-	    (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	pfnglGetInfoLogARB =
-	    (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	pfnglGetObjectParameterivARB =
-	    (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	pfnglLinkProgramARB =
-	    (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	pfnglShaderSourceARB =
-	    (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	pfnglUseProgramObjectARB =
-	    (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	pfnglGetUniformLocationARB =
-	    (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	pfnglUniform1iARB =
-	    (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	pfnglUniform1fARB =
-	    (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-	pfnglUniform2iARB =
-	    (PFNGLUNIFORM2IARBPROC)wglGetProcAddress("glUniform2iARB");
-	pfnglUniform2fARB =
-	    (PFNGLUNIFORM2FARBPROC)wglGetProcAddress("glUniform2fARB");
-	pfnglUniform3iARB =
-	    (PFNGLUNIFORM3IARBPROC)wglGetProcAddress("glUniform3iARB");
-	pfnglUniform3fARB =
-	    (PFNGLUNIFORM3FARBPROC)wglGetProcAddress("glUniform3fARB");
-	pfnglUniform4iARB =
-	    (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
-	pfnglUniform4fARB =
-	    (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
-#endif
-	if (pfnglCreateShaderObjectARB == NULL) {
-	    fprintf(stderr, "Java 3D ERROR : GLSLShader extension not available\n");
-	}
 
-	firstTime = GL_FALSE;
-    }
-
-    if (pfnglCreateShaderObjectARB == NULL) {
+    if (ctxProperties->pfnglCreateShaderObjectARB == NULL) {
 	return 0;
     }
 
@@ -380,7 +333,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	/*
 	fprintf(stderr, "    vertexShader and fragmentShader are NULL\n");
 	*/
-	pfnglUseProgramObjectARB(0);
+	ctxProperties->pfnglUseProgramObjectARB(0);
 	return 0;
     }
 
@@ -389,7 +342,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	/*
 	fprintf(stderr, "    glUseProgramObject(%d)\n", glShaderProgram);
 	*/
-	pfnglUseProgramObjectARB(glShaderProgram);
+	ctxProperties->pfnglUseProgramObjectARB(glShaderProgram);
 	return glShaderProgram;
     }
 
@@ -409,10 +362,10 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	 */
 	if (glVertexShader == 0) {
 	    /* create the vertex shader */
-	    glVertexShader = pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	    pfnglShaderSourceARB(glVertexShader, 1, &vertexShaderString, NULL);
-	    pfnglCompileShaderARB(glVertexShader);
-	    pfnglGetObjectParameterivARB(glVertexShader,
+	    glVertexShader = ctxProperties->pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	    ctxProperties->pfnglShaderSourceARB(glVertexShader, 1, &vertexShaderString, NULL);
+	    ctxProperties->pfnglCompileShaderARB(glVertexShader);
+	    ctxProperties->pfnglGetObjectParameterivARB(glVertexShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
 	    fprintf(stderr,
@@ -423,7 +376,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	    }
 	    else {
 		fprintf(stderr, "FAILED\n");
-		printInfoLog(glVertexShader);
+		printInfoLog(ctxProperties, glVertexShader);
 	    }
 	}
 	free(vertexShaderString);
@@ -445,10 +398,10 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	 */
 	if (glFragmentShader == 0) {
 	    /* create the fragment shader */
-	    glFragmentShader = pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-	    pfnglShaderSourceARB(glFragmentShader, 1, &fragmentShaderString, NULL);
-	    pfnglCompileShaderARB(glFragmentShader);
-	    pfnglGetObjectParameterivARB(glFragmentShader,
+	    glFragmentShader = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	    ctxProperties->pfnglShaderSourceARB(glFragmentShader, 1, &fragmentShaderString, NULL);
+	    ctxProperties->pfnglCompileShaderARB(glFragmentShader);
+	    ctxProperties->pfnglGetObjectParameterivARB(glFragmentShader,
 				      GL_OBJECT_COMPILE_STATUS_ARB,
 				      &status);
 	    fprintf(stderr,
@@ -459,23 +412,23 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 	    }
 	    else {
 		fprintf(stderr, "FAILED\n");
-		printInfoLog(glFragmentShader);
+		printInfoLog(ctxProperties, glFragmentShader);
 	    }
 	}
 	free(fragmentShaderString);
     }
 
     /* Link the shader (if first time) */
-    glShaderProgram = pfnglCreateProgramObjectARB();
+    glShaderProgram = ctxProperties->pfnglCreateProgramObjectARB();
     if (vertexShader != 0) {
-	pfnglAttachObjectARB(glShaderProgram, glVertexShader);
+	ctxProperties->pfnglAttachObjectARB(glShaderProgram, glVertexShader);
     }
     if (fragmentShader != 0) {
-	pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
+	ctxProperties->pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
     }
-    pfnglLinkProgramARB(glShaderProgram);
+    ctxProperties->pfnglLinkProgramARB(glShaderProgram);
     
-    pfnglGetObjectParameterivARB(glShaderProgram,
+    ctxProperties->pfnglGetObjectParameterivARB(glShaderProgram,
 				 GL_OBJECT_LINK_STATUS_ARB,
 				 &status);
     fprintf(stderr, "GLSLShaderProgram LINK : glShaderProgram = %d -- ", glShaderProgram);
@@ -484,12 +437,12 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
     }
     else {
 	fprintf(stderr, "FAILED\n");
-	printInfoLog(glShaderProgram);
-	pfnglUseProgramObjectARB(0);
+	printInfoLog(ctxProperties, glShaderProgram);
+	ctxProperties->pfnglUseProgramObjectARB(0);
 	return 0;
     }
 
-    pfnglUseProgramObjectARB(glShaderProgram);
+    ctxProperties->pfnglUseProgramObjectARB(glShaderProgram);
     return glShaderProgram;
 #endif /* !COMPILE_GLSL_SHADERS */
 }
@@ -506,10 +459,12 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
 {
 #ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
-
+    
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -522,7 +477,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
     /*
     fprintf(stderr,
 	    "str = %s, loc = %d, val = %d\n",
@@ -531,7 +486,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform1iARB(loc, value);
+    ctxProperties->pfnglUniform1iARB(loc, value);
 #endif /* COMPILE_GLSL_SHADERS */
 }
 
@@ -552,6 +507,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -563,7 +520,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
     /*
     fprintf(stderr,
 	    "str = %s, loc = %d, val = %f\n",
@@ -572,7 +529,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform1fARB(loc, value);
+    ctxProperties->pfnglUniform1fARB(loc, value);
 #endif /* COMPILE_GLSL_SHADERS */
 }
 
@@ -593,6 +550,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     jint *values;
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
@@ -605,7 +564,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -618,7 +577,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform2iARB(loc, values[0], values[1]);
+    ctxProperties->pfnglUniform2iARB(loc, values[0], values[1]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
@@ -646,6 +605,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -657,7 +618,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -670,7 +631,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform2fARB(loc, values[0], values[1]);
+    ctxProperties->pfnglUniform2fARB(loc, values[0], values[1]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
@@ -698,6 +659,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -709,7 +672,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -722,7 +685,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform3iARB(loc, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3iARB(loc, values[0], values[1], values[2]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
@@ -750,6 +713,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -761,7 +726,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -774,7 +739,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform3fARB(loc, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3fARB(loc, values[0], values[1], values[2]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
@@ -802,6 +767,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -813,7 +780,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -826,7 +793,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform4iARB(loc, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4iARB(loc, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
@@ -854,6 +821,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     GLint loc = -1;
     GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     if (attrNameString == NULL) {
 	return;
@@ -865,7 +834,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
      * TODO: we need to separate the string lookup from the setting of
      * the value
      */
-    loc = pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
+    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
 
     /* Get array values */
     values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
@@ -878,7 +847,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     free(attrNameString);
 
     /* Load attribute */
-    pfnglUniform4fARB(loc, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4fARB(loc, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     table->ReleasePrimitiveArrayCritical(env,
