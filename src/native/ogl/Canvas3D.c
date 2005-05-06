@@ -116,7 +116,7 @@ int isExtensionSupported(const char *allExtensions, const char *extension)
 
 
 
-void checkShaderExtensions( char *tmpExtensionStr, GraphicsContextPropertiesInfo* ctxInfo) {
+void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextPropertiesInfo* ctxInfo) {
 
     if(isExtensionSupported(tmpExtensionStr, "GL_ARB_shader_objects")
        && isExtensionSupported(tmpExtensionStr, "GL_ARB_shading_language_100")) {
@@ -745,7 +745,7 @@ getPropertiesFromCurrentContext(
      * checking of the shader extensions is done in checkTextureExtensions(),
      * so that the same function can be used for queryContext as well
      */
-    checkShaderExtensions(tmpExtensionStr, ctxInfo);
+    checkGLSLShaderExtensions(tmpExtensionStr, ctxInfo);
     
     /* ... */
     
@@ -1092,6 +1092,13 @@ void setupCanvasProperties(
 
     rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "texture3DDepthMax", "I");
     (*(table->SetIntField))(env, obj, rsc_field, param);
+
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "shadingLanguageGLSL", "Z");
+    (*(table->SetBooleanField))(env, obj, rsc_field, ctxInfo->shadingLanguageGLSL);
+
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "shadingLanguageCg", "Z");
+    (*(table->SetBooleanField))(env, obj, rsc_field, ctxInfo->shadingLanguageCg);
+    
 }
 
 JNIEXPORT
