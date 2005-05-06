@@ -132,6 +132,8 @@
 #include "javax_media_j3d_TextureUnitStateRetained.h"
 #include "javax_media_j3d_TransparencyAttributes.h"
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
+#include "javax_media_j3d_GLSLShaderProgramRetained.h"
+#include "javax_media_j3d_Shader.h"
 
 #ifndef GL_SUNX_geometry_compression
 #define GL_COMPRESSED_GEOM_ACCELERATED_SUNX   0x81D0
@@ -566,7 +568,11 @@ typedef struct {
     /* extension mask */
     jint extMask;
     jint textureExtMask;
-	 
+
+    /* shader language  support */
+    jboolean  shadingLanguageGLSL;
+    jboolean  shadingLanguageCg;
+    
     /* function pointers */
     MYPFNGLBLENDCOLORPROC glBlendColor;
     MYPFNGLBLENDCOLOREXTPROC glBlendColorEXT;
@@ -599,6 +605,27 @@ typedef struct {
     MYPFNGLDETAILTEXFUNCSGI glDetailTexFuncSGIS;
     MYPFNGLTEXFILTERFUNCSGI glTexFilterFuncSGIS;
 
+    /* Programmable Shader */
+    PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB;
+    PFNGLCOMPILESHADERARBPROC pfnglCompileShaderARB;
+    PFNGLCREATEPROGRAMOBJECTARBPROC pfnglCreateProgramObjectARB;
+    PFNGLCREATESHADEROBJECTARBPROC pfnglCreateShaderObjectARB;
+    PFNGLGETINFOLOGARBPROC pfnglGetInfoLogARB;
+    PFNGLGETOBJECTPARAMETERIVARBPROC pfnglGetObjectParameterivARB;
+    PFNGLLINKPROGRAMARBPROC pfnglLinkProgramARB;
+    PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB;
+    PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB;
+    PFNGLGETUNIFORMLOCATIONARBPROC pfnglGetUniformLocationARB;
+    PFNGLUNIFORM1IARBPROC pfnglUniform1iARB;
+    PFNGLUNIFORM1FARBPROC pfnglUniform1fARB;
+    PFNGLUNIFORM2IARBPROC pfnglUniform2iARB;
+    PFNGLUNIFORM2FARBPROC pfnglUniform2fARB;
+    PFNGLUNIFORM3IARBPROC pfnglUniform3iARB;
+    PFNGLUNIFORM3FARBPROC pfnglUniform3fARB;
+    PFNGLUNIFORM4IARBPROC pfnglUniform4iARB;
+    PFNGLUNIFORM4FARBPROC pfnglUniform4fARB; 
+
+    
 #if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
 #endif /* UNIX_ */

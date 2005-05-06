@@ -63,6 +63,7 @@ package javax.media.j3d;
 
 public abstract class Shader extends NodeComponent {
 
+
     /**
      * This constant indicates the GLSL shading language. It is one
      * of the possible values of the shadingLanguage parameter.

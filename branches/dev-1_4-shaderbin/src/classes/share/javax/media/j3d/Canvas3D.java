@@ -410,7 +410,6 @@ public class Canvas3D extends Canvas {
     //
     int textureColorTableSize;
 
-
     boolean multiTexAccelerated = false;
 
     // number of simultaneous Texture unit support for this canvas.
@@ -428,6 +427,10 @@ public class Canvas3D extends Canvas {
 
     // index iof last enabled texture unit 
     int lastActiveTexUnit = -1;
+
+    // True if shadingLanguage is supported, otherwise false.
+    boolean shadingLanguageGLSL = false;
+    boolean shadingLanguageCg = false;
 
     // Query properties
     J3dQueryProps queryProps;
