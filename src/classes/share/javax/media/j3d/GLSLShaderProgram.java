@@ -36,6 +36,18 @@ public class GLSLShaderProgram extends ShaderProgram {
     public GLSLShaderProgram() {
     }
 
+    // Implement abstract setVertexAttrNames method (inherit javadoc from parent class)
+    public void setVertexAttrNames(String[] vertexAttrNames) {
+	checkForLiveOrCompiled();
+
+	throw new RuntimeException("not implemented");
+    }
+
+    // Implement abstract getVertexAttrNames method (inherit javadoc from parent class)
+    public String[] getVertexAttrNames() {
+	throw new RuntimeException("not implemented");
+    }
+
     /**
      * Copies the specified array of shaders into this shader
      * program. This method makes a shallow copy of the array. The

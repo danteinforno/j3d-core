@@ -43,13 +43,11 @@ I. New/deprecated fields, constructors, methods
 			     int texCoordSetCount,
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
-			     int[] vertexAttrSizes,
-			     String[] vertexAttrNames)
+			     int[] vertexAttrSizes)
 
     New methods:
 	public int getVertexAttrCount()
 	public void getVertexAttrSizes(int[] vertexAttrSizes)
-	public void getVertexAttrNames(String[] vertexAttrNames)
 	public void setVertexAttr(int vertexAttrNum, int index,
 				  float[] vertexAttr)
 	public void setVertexAttr(int vertexAttrNum, int index,
@@ -111,8 +109,7 @@ I. New/deprecated fields, constructors, methods
 			     int texCoordSetCount,
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
-			     int[] vertexAttrSizes,
-			     String[] vertexAttrNames)
+			     int[] vertexAttrSizes)
 
 
     Node
