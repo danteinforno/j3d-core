@@ -48,12 +48,48 @@ public abstract class ShaderProgram extends NodeComponent {
 	CapabilityBits.SHADER_PROGRAM_ALLOW_SHADERS_WRITE;
 
 
+    /*
+     * Default values (copied from GeometryArray.java):
+     *
+     * vertexAttrNames : null<br>
+     *
+     * TODO: decide whether to make vertexAttrNames: A) immutable;
+     * B) mutable for non-live/non-compiled scene graphs only; or
+     * C) mutable at runtime (with a capability bit).
+     */
+
     /**
      * Package scope constructor so it can't be subclassed by classes
      * outside the javax.media.j3d package.
      */
     ShaderProgram() {
     }
+
+    /**
+     * Sets the vertex attribute names array for this ShaderProgram
+     * object. Each element in the array specifies the shader
+     * attribute name that is bound to the corresponding numbered
+     * vertex attribute within a GeometryArray object that uses this
+     * shader program. Array element 0 specifies the name of
+     * GeometryArray vertex attribute 0, array element 1 specifies the
+     * name of GeometryArray vertex attribute 1, and so forth.
+     *
+     * @param vertexAttrNames array of vertex attribute names for this
+     * shader program. A copy of this array is made.
+     *
+     * @exception RestrictedAccessException if the method is called
+     * when this object is part of live or compiled scene graph.
+     */
+    public abstract void setVertexAttrNames(String[] vertexAttrNames);
+
+    /**
+     * Retrieves the vertex attribute names array from this
+     * GeometryArray object.
+     *
+     * @return a copy of this ShaderProgram's array of vertex attribute names.
+     */
+    public abstract String[] getVertexAttrNames();
+
 
     /**
      * Copies the specified array of shaders into this shader

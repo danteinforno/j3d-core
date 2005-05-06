@@ -229,12 +229,6 @@ public class TriangleArray extends GeometryArray {
      * number of components in the attribute, from 1 to 4. The length
      * of the array must be equal to <code>vertexAttrCount</code>.<p>
      *
-     * @param vertexAttrNames is an array of names for the vertex
-     * attributes. Each element in the array is a String that
-     * specifies the shader attribute name that is bound to the
-     * corresponding vertex attribute. The length of the array must be
-     * equal to <code>vertexAttrCount</code>.<p>
-     *
      * @exception IllegalArgumentException if
      * <code>vertexCount&nbsp;&lt;&nbsp;0</code>, if vertexFormat does
      * NOT include <code>COORDINATES</code>, if the
@@ -249,11 +243,10 @@ public class TriangleArray extends GeometryArray {
      * in <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>,
      * if <code>vertexAttrCount&nbsp;&gt;&nbsp;0</code> and the
      * <code>VERTEX_ATTRIBUTES</code> bit is not set,
-     * if <code>vertexAttrCount&nbsp;&lt;&nbsp;0</code>, if
+     * if <code>vertexAttrCount&nbsp;&lt;&nbsp;0</code>, or if
      * <code>vertexAttrSizes.length&nbsp;!=&nbsp;vertexAttrCount</code>,
      * if any element in <code>vertexAttrSizes[]</code> is <code>&lt; 1</code> or
-     * <code>&gt; 4</code>, or if
-     * <code>vertexAttrNames.length&nbsp;!=&nbsp;vertexAttrCount</code>.
+     * <code>&gt; 4</code>.
      *
      * @exception IllegalArgumentException if vertexCount is less than 3
      * or vertexCount is <i>not</i> a multiple of 3
@@ -265,13 +258,12 @@ public class TriangleArray extends GeometryArray {
 			 int texCoordSetCount,
 			 int[] texCoordSetMap,
 			 int vertexAttrCount,
-			 int[] vertexAttrSizes,
-			 String[] vertexAttrNames) {
+			 int[] vertexAttrSizes) {
 
 
 	super(vertexCount, vertexFormat,
 	      texCoordSetCount, texCoordSetMap,
-	      vertexAttrCount, vertexAttrSizes, vertexAttrNames);
+	      vertexAttrCount, vertexAttrSizes);
 
         if (vertexCount < 3 || ((vertexCount%3) != 0))
 	    throw new IllegalArgumentException(J3dI18N.getString("TriangleArray0"));
