@@ -159,7 +159,7 @@ D3dCtx::D3dCtx(JNIEnv* env, jobject obj, HWND _hwnd, BOOL _offScreen,
     if (d3dDriverList == NULL) {
 	/*
 	 * This happen when either
-	 * (1) D3D v8.0 not install or
+	 * (1) D3D v9.0 not install or
 	 * (2) Not enough memory    or
 	 * (3) No adapter found in the system.
 	 */
@@ -1314,16 +1314,19 @@ VOID D3dCtx::setCanvasProperty(JNIEnv *env, jobject obj)
 	id = env->GetFieldID(canvasCls, "texture3DDepthMax", "I");
 	env->SetIntField(obj, id, deviceInfo->maxTextureDepth);
 
-	// new in 1.3.2
+	// issue 135 
 	// private String nativeGraphicsVendor = "<UNKNOWN>";
     // private String nativeGraphicsRenderer = "<UNKNOWN>";
 	id = env->GetFieldID(canvasCls, "nativeGraphicsVendor", "Ljava/lang/String;");
-	char *nGVendor = driverInfo->adapterIdentifier.DeviceName ;
-	    env->SetObjectField(obj, id, env->NewStringUTF(nGVendor));
+	//char *nGVendor = driverInfo->adapterIdentifier.DeviceName ;
+      char *nGVendor = deviceInfo->deviceVendor ;
+      env->SetObjectField(obj, id, env->NewStringUTF(nGVendor));
+	//  printf("DEBUG vendor : %s ", nGVendor);
 
 	id = env->GetFieldID(canvasCls, "nativeGraphicsRenderer", "Ljava/lang/String;");
-		    char *nGRenderer = driverInfo->adapterIdentifier.Description;
-	    env->SetObjectField(obj, id, env->NewStringUTF(nGRenderer));
+	//	    char *nGRenderer = driverInfo->adapterIdentifier.Description;
+        char *nGRenderer = deviceInfo->deviceRenderer;
+	    env->SetObjectField(obj, id, env->NewStringUTF(nGRenderer));		
 
 
     }

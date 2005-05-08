@@ -97,6 +97,40 @@ VOID computeRGBDepth(D3dDriverInfo *pDriver)
 
 }
 
+
+VOID setInfo(D3dDeviceInfo* pDevice,D3DADAPTER_IDENTIFIER9 *identifier)
+{ 
+	 char* str = (char *)"UNKNOW Vendor             ";
+	 
+     switch( identifier->VendorId )
+     {
+     // A more complete list can be found from http://www.pcidatabase.com/vendors.php?sort=id
+     case 0x1002:   str = (char *) "ATI Technologies Inc.";                break;
+     case 0x1013:   str = (char *) "Cirrus Logic.";                        break;
+     case 0x1023:   str = (char *) "Trident Microsistems.";                break;
+     case 0x102B:   str = (char *) "Matrox Electronic Systems Ltd.";       break;     
+     case 0x108E:   str = (char *) "Sun Microsystems.";                    break;
+     case 0x10DE:   str = (char *) "NVIDIA Corporation";                   break;
+     case 0x121A:   str = (char *) "3dfx Interactive Inc";                 break;
+	 case 0x3D3D:   str = (char *) "3Dlabs Inc, Ltd.";                     break;
+     case 0x5333:   str = (char *) "S3 Graphics Co., Ltd.";                break;
+     case 0x8086:   str = (char *) "Intel Corporation";                    break;
+     default:      sprintf( str, "vendor ID %x.",identifier->VendorId);
+		 break;
+     }
+     pDevice->deviceVendor = str;
+        
+     pDevice->deviceRenderer = identifier->Description;
+ 
+     char version[ 128 ];
+     sprintf( version, "%d.%d.%d.%d", HIWORD( identifier->DriverVersion.HighPart ),
+		      LOWORD( identifier->DriverVersion.HighPart ), 
+			  HIWORD( identifier->DriverVersion.LowPart ), 
+			  LOWORD( identifier->DriverVersion.LowPart ) );
+     pDevice->deviceVersion = (char *)version;
+}
+
+
 VOID buildDriverList(LPDIRECT3D9 pD3D)
 {
     numDriver =  pD3D->GetAdapterCount();
@@ -127,6 +161,7 @@ VOID buildDriverList(LPDIRECT3D9 pD3D)
 	pDriver->hMonitor = pD3D->GetAdapterMonitor(i);
 	pDriver->iAdapter = i;
 
+    
 	for (int j = 0; j < numDeviceTypes; j++ )
         {
 	    D3DCAPS9 d3dCaps;
@@ -153,7 +188,8 @@ VOID buildDriverList(LPDIRECT3D9 pD3D)
 	    } else {
 		strcpy(pDevice->deviceName, "Reference Rasterizer");
 		}
-
+       	//issue 135 put here info about vendor and device model
+		setInfo(pDevice, &pDriver->adapterIdentifier);
 
 	    for (int k=0; k < D3DDEPTHFORMATSIZE; k++) {
 		pDevice->depthFormatSupport[k] =
@@ -317,7 +353,6 @@ VOID D3dDriverInfo::initialize(JNIEnv *env)
     CopyColor(ambientLight.Ambient, 1.0f, 1.0f, 1.0f, 1.0f);
     CopyColor(ambientLight.Specular, 0, 0, 0, 1.0f);
 }
-
 
 
 

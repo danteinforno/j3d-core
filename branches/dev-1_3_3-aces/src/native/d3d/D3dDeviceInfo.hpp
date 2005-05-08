@@ -29,6 +29,10 @@ public:
     BOOL desktopCompatible;      // Can render in desktop mode
     BOOL fullscreenCompatible;   // Can render in fullscreen mode
                                  // using current desktop mode setting
+	//issue 135 - adding device info
+	char* deviceVendor;
+	char* deviceRenderer;
+	char* deviceVersion;
 
     // each bitmask correspond to the support of
     // D3DMULTISAMPLE_i_SAMPLES type, i = 2...16
@@ -81,6 +85,8 @@ public:
     D3DMULTISAMPLE_TYPE getBestMultiSampleType();
     int getTextureFeaturesMask();
     void findDepthStencilFormat(int minZDepth);
+
+
 };
 
 #endif
