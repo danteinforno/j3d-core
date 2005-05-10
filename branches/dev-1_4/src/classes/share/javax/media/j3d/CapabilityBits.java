@@ -373,6 +373,8 @@ class CapabilityBits extends Object {
     static final int
 	RENDERING_ATTRIBUTES_ALLOW_IGNORE_VERTEX_COLORS_WRITE		= 10;
     static final int RENDERING_ATTRIBUTES_ALLOW_DEPTH_ENABLE_WRITE	= 11;
+    static final int RENDERING_ATTRIBUTES_ALLOW_DEPTH_TEST_FUNCTION_READ = 12;
+    static final int RENDERING_ATTRIBUTES_ALLOW_DEPTH_TEST_FUNCTION_WRITE = 13;
 
     // TexCoordGeneration extends NodeComponent 
     static final int TEX_COORD_GENERATION_ALLOW_ENABLE_READ		= 0;
