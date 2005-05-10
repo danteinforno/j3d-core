@@ -56,8 +56,6 @@ extern "C" {
 /* Current version at http://oss.sgi.com/projects/ogl-sample/registry/ */
 #define GL_GLEXT_VERSION 25
 
-xyzzy;
-
 #ifndef GL_VERSION_1_2
 #define GL_UNSIGNED_BYTE_3_3_2            0x8032
 #define GL_UNSIGNED_SHORT_4_4_4_4         0x8033
