@@ -863,9 +863,6 @@ public class Canvas3D extends Canvas {
 
     // The following three methods are used in multi-pass case
 
-    // Native method for setting the depth func
-    native void setDepthFunc(long ctx, int func);
-
     // native method for setting blend color
     native void setBlendColor(long ctx, float red, float green, 
 			      float blue, float alpha);

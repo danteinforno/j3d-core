@@ -166,6 +166,28 @@ I. New/deprecated fields, constructors, methods
 	public void getRead(Transform3D read, long deltaT)
 
 
+    RenderingAttributes
+    -----------
+    New fields:
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
+
+    New constructors:
+	public RenderingAttributes(boolean depthBufferEnable,
+				   boolean depthBufferWriteEnable,
+				   int depthTestFunction,
+				   float alphaTestValue,
+				   int alphaTestFunction,
+				   boolean visible,
+				   boolean ignoreVertexColors,
+				   boolean rasterOpEnable,
+				   int rasterOp)
+
+    New methods:
+	public void setDepthTestFunction(int function)
+	public int getDepthTestFunction()
+
+
 II. Reparented classes
 
     NONE
