@@ -1138,7 +1138,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
      * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
      */
 
-    if(!offScreen) {  // Fix to issue 104 
+    if(!offScreen) {  /* Fix to issue 104 */
 	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->onScreenPFormat <= 0)) {
 	    printErrorMessage("Canvas3D_createNewContext: onScreen PixelFormat is invalid");
 	    return 0;
@@ -1159,11 +1159,11 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     
     SetPixelFormat(hdc, PixelFormatID, NULL);
 
-    // fprintf(stderr, "Before wglCreateContext\n");
+    /* fprintf(stderr, "Before wglCreateContext\n"); */
 
     hrc = wglCreateContext( hdc );
 
-    // fprintf(stderr, "After wglCreateContext hrc = 0x%x\n", hrc);
+    /* fprintf(stderr, "After wglCreateContext hrc = 0x%x\n", hrc); */
 
     if (!hrc) {
 	err = GetLastError();
@@ -1179,9 +1179,9 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 	wglShareLists( (HGLRC) sharedCtx, hrc );
     } 
 
-    // fprintf(stderr, "Before wglMakeCurrent\n");
+    /* fprintf(stderr, "Before wglMakeCurrent\n"); */
     result = wglMakeCurrent(hdc, hrc);
-    // fprintf(stderr, "After wglMakeCurrent result = %d\n", result);
+    /* fprintf(stderr, "After wglMakeCurrent result = %d\n", result); */
 
     if (!result) {
 	err = GetLastError();
@@ -3243,7 +3243,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
      * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
      */    
 
-    // Fix to issue 104
+    /* Fix to issue 104 */
     if(!offScreen) {
 	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->onScreenPFormat <= 0)) {
 	    printErrorMessage("Canvas3D_createNewContext: onScreen PixelFormat is invalid");
