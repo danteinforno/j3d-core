@@ -557,7 +557,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_COLOR_LOGIC_OP);
-//    fprintf(stderr, "resetting depth func");
+    /* fprintf(stderr, "resetting depth func");*/
 
 }
 
@@ -579,8 +579,8 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 {
     if (db_enable_override == JNI_FALSE) {
         if (db_enable == JNI_TRUE) {
-            glEnable(GL_DEPTH_TEST);
             int func = GL_LEQUAL;
+            glEnable(GL_DEPTH_TEST);
             switch (db_func) {
             case javax_media_j3d_RenderingAttributes_ALWAYS:
                 func = GL_ALWAYS;
@@ -634,7 +634,11 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     else {
 	glEnable(GL_COLOR_MATERIAL);
     }	
-//[PEPE] NOTE: shouldn't this switch be moved in 'enable' part of the at_func test above, just like i did for db_func?
+
+    /*
+     * [PEPE] NOTE: shouldn't this switch be moved in 'enable' part of
+     * the at_func test above, just like i did for db_func?
+     */
     switch (at_func) {
 	case javax_media_j3d_RenderingAttributes_ALWAYS:
 	    glAlphaFunc(GL_ALWAYS, at_value);
