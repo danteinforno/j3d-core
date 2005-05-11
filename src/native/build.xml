@@ -387,30 +387,20 @@
 
   </target>
 
-  <target name="compile-debug" depends="fail-if-not-x86_64, nativeSetup-debug, dependencyCheck, genJavah" unless="nativeOGLBuild.notRequired">
+  <target name="compile-debug" depends="nativeSetup-debug, dependencyCheck, genJavah" unless="nativeOGLBuild.notRequired">
 	<ant antfile="build-${platform}.xml" dir="${build.rend}" target="compile"/>
 	<ant antfile="build-${platform}.xml" dir="share" target="compile"/>
   </target>
 
-  <target name="compile-opt" depends="fail-if-not-x86_64, nativeSetup-opt, dependencyCheck, genJavah" 
+  <target name="compile-opt" depends="nativeSetup-opt, dependencyCheck, genJavah" 
 	  unless="nativeOGLBuild.notRequired">
 	   <ant antfile="build-${platform}.xml" dir="${build.rend}" target="compile"/>
 	   <ant antfile="build-${platform}.xml" dir="share" target="compile"/>
   </target>
 
-  <target name="dist" depends="fail-if-not-x86_64">
+  <target name="dist">
 	   <ant antfile="build-${platform}.xml" dir="${build.rend}" target="dist"/>
 	   <ant antfile="build-${platform}.xml" dir="share" target="dist"/>
-  </target>
-
-  <!--
-  /*
-   *  TODO: remove the following error check once we add code to
-   *  only do the 64-bit build if isSolarisOnX86_64 property is set.
-   */
-   -->
-  <target name="fail-if-not-x86_64" unless="isSolarisOnX86_64">
-    <fail message="ERROR: 64-bit support is required, but not available"/>
   </target>
 
 </project>
