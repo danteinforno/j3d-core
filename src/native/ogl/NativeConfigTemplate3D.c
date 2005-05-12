@@ -16,7 +16,7 @@
  * of the Java 3D API.
  */
 
-#if defined(__linux__)
+#if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
 
@@ -26,7 +26,7 @@
 
 #include "gldefs.h"
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -43,7 +43,7 @@ extern int isExtensionSupported(const char *allExtensions, const char *extension
 /* by MIK OF CLASSX */
 extern jboolean getJavaBoolEnv(JNIEnv *env, char* envStr);
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 
 /* Fix for issue 20 */
 #define  MAX_GLX_ATTRS_LENGTH 100
@@ -543,7 +543,7 @@ jboolean JNICALL Java_javax_media_j3d_J3dGraphicsConfig_isValidVisualID(
    return (nitems == 1);
 
 }
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 
 #ifdef WIN32
@@ -972,7 +972,7 @@ int find_DB_AA_S_PixelFormat( HDC hdc, PixelFormatInfo * pFormatInfo,
     if (dbVal == UNNECESSARY || dbVal== PREFERRED) {
 	index = dbIndex;
 	wglAttrs[index++] = WGL_DOUBLE_BUFFER_ARB;
-	wglAttrs[index++] = FALSE;  // Partial fix to issue 100.
+	wglAttrs[index++] = FALSE;  /* Partial fix to issue 100. */
 	/*
 	 * Terminate by 2 zeros to avoid driver bugs
 	 * that assume attributes always come in pairs.

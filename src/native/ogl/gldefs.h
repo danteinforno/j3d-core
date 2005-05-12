@@ -23,15 +23,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(SOLARIS) || defined(LINUX)
 #define GLX_GLEXT_PROTOTYPES
 #define GLX_GLXEXT_PROTOTYPES
+#define UNIX
+
 #include <limits.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 
@@ -73,7 +74,6 @@
 #ifndef D3D
 #include <GL/gl.h>
 #include "wglext.h"
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 
@@ -84,7 +84,6 @@
 #include "javax_media_j3d_Canvas3D.h"
 #include "javax_media_j3d_ColoringAttributes.h"
 #include "javax_media_j3d_ColoringAttributesRetained.h"
-#include "javax_media_j3d_CompressedGeometryRetained.h"
 #include "javax_media_j3d_DepthComponentRetained.h"
 #include "javax_media_j3d_DetailTextureImage.h"
 #include "javax_media_j3d_DirectionalLightRetained.h"
@@ -132,10 +131,6 @@
 #include "javax_media_j3d_TextureUnitStateRetained.h"
 #include "javax_media_j3d_TransparencyAttributes.h"
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
-
-#ifndef GL_SUNX_geometry_compression
-#define GL_COMPRESSED_GEOM_ACCELERATED_SUNX   0x81D0
-#endif /* GL_SUNX_geometry_compression */
 
 /*
  * Define these constants here as a workaround for conflicting
@@ -303,7 +298,7 @@
 #define J3D_RGBA         javax_media_j3d_Texture_RGBA
 
 #ifndef D3D
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 extern void APIENTRY glBlendColor (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glBlendColorEXT (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glColorTable (GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid *);
@@ -347,7 +342,7 @@ extern void APIENTRY glTexSubImage3DEXT (GLenum, GLint, GLint, GLint, GLint, GLs
 extern int glXVideoResizeSUN( Display *, GLXDrawable, float);
 #endif
 
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -389,10 +384,10 @@ typedef void (APIENTRY * MYPFNGLSHARPENTEXFUNCSGI) (GLenum target, GLsizei n, co
 typedef void (APIENTRY * MYPFNGLDETAILTEXFUNCSGI) (GLenum target, GLsizei n, const GLfloat *points);
 typedef void (APIENTRY * MYPFNGLTEXFILTERFUNCSGI) (GLenum target, GLenum filter, GLsizei n, const GLfloat *points);
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 typedef GLXFBConfig * (APIENTRY * MYPFNGLXCHOOSEFBCONFIG) (Display *dpy, int screen, const int *attrib_list, int *nelements);
 typedef int (APIENTRY * MYPFNGLXVIDEORESIZESUN) (Display * dpy, GLXDrawable draw, float factor);
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 
 /* define the structure to hold the properties of graphics context */
@@ -461,8 +456,6 @@ typedef struct {
     jboolean global_alpha_sun;
     /* GL_SUNX_constant_data */
     jboolean constant_data_sun;
-    /* GL_SUNX_geometry_compression */
-    jboolean geometry_compression_sunx;
 	 
     /* GL_EXT_abgr */
     jboolean abgr_ext;
@@ -557,12 +550,7 @@ typedef struct {
 
     /* GL_SGIX_texture_lod_bias */
     jboolean textureLodBiasAvailable;
-    
-    jboolean geometry_compression_accelerated;
-    int geometry_compression_accelerated_major_version;
-    int geometry_compression_accelerated_minor_version;
-    int geometry_compression_accelerated_subminor_version;
-	 
+
     /* extension mask */
     jint extMask;
     jint textureExtMask;
@@ -599,9 +587,9 @@ typedef struct {
     MYPFNGLDETAILTEXFUNCSGI glDetailTexFuncSGIS;
     MYPFNGLTEXFILTERFUNCSGI glTexFilterFuncSGIS;
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 } GraphicsContextPropertiesInfo;
 
@@ -652,7 +640,7 @@ typedef struct OffScreenBufferInfoRec OffScreenBufferInfo;
 struct OffScreenBufferInfoRec {
     GLboolean isPbuffer; /* GL_TRUE if Pbuffer is used. */
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #endif
     
 #ifdef WIN32

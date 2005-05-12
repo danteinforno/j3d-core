@@ -345,6 +345,11 @@ class MasterControl {
     // put in display list
     boolean buildDisplayListIfPossible = false;
 
+    // The global shading language being used. Using a ShaderProgram
+    // with a shading language other than the one specified by
+    // globalShadingLanguage will cause a ShaderError to be generated,
+    int globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+
     
     // REQUESTCLEANUP messages argument
     static Integer REMOVEALLCTXS_CLEANUP = new Integer(1);
@@ -520,6 +525,26 @@ class MasterControl {
 	if (getProperty("j3d.disableSeparateSpecular") != null) {
 	    disableSeparateSpecularColor = true;
 	    System.err.println("Java 3D: separate specular color disabled if possible");
+	}
+
+	String slStr = getProperty("j3d.shadingLanguage");
+	if (slStr != null) {
+	    boolean found = false;
+	    if (slStr.equals("GLSL")) {
+		globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+		found = true;
+	    }
+	    else if (slStr.equals("Cg")) {
+		globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
+		found = true;
+	    }
+
+	    if (found) {
+		System.err.println("Setting global shading language to " + slStr);
+	    }
+	    else {
+		System.err.println("Unrecognized shading language: " + slStr);
+	    }
 	}
 
 	// Get the maximum number of texture units

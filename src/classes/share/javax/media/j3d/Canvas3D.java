@@ -863,9 +863,6 @@ public class Canvas3D extends Canvas {
 
     // The following three methods are used in multi-pass case
 
-    // Native method for setting the depth func
-    native void setDepthFunc(long ctx, int func);
-
     // native method for setting blend color
     native void setBlendColor(long ctx, float red, float green, 
 			      float blue, float alpha);
@@ -3040,6 +3037,25 @@ public class Canvas3D extends Canvas {
     public boolean getSceneAntialiasingAvailable() {
 	return ((Boolean)queryProperties().get("sceneAntialiasingAvailable")).
 	    booleanValue();
+    }
+
+
+    /**
+     * Returns a flag indicating whether or not the specified shading
+     * language is supported. A ShaderError will be generated if an
+     * unsupported shading language is used.
+     *
+     * @param shadingLanguage the shading language being queried, one of:
+     * <code>Shader.SHADING_LANGUAGE_GLSL</code> or
+     * <code>Shader.SHADING_LANGUAGE_CG</code>.
+     *
+     * @return true if the specified shading language is supported,
+     * false otherwise.
+     *
+     * @since Java 3D 1.4
+     */
+    public boolean isShadingLanguageSupported(int shadingLanguage) {
+	throw new RuntimeException("not implemented");
     }
 
 

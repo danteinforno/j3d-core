@@ -602,7 +602,8 @@ public class Material extends NodeComponent {
 	 * Capability read bit set will be displayed.
 	 */
 	public String toString() {
-		StringBuffer str=new StringBuffer("Material Object:");
+		StringBuffer str = new StringBuffer(getNamePrefix());
+		str.append("javax.media.j3d.Material: ");
 		Color3f color=new Color3f();
 		try {
 			getAmbientColor(color);
