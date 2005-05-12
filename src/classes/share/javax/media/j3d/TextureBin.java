@@ -38,9 +38,19 @@ class TextureBin extends Object implements ObjectUpdate {
     RenderBin renderBin = null;
 
     /**
-     * The AttribureBin that this TextureBin resides
+     * The EnvironmentSet that this TextureBin resides
+     */
+    EnvironmentSet environmentSet = null;
+
+    /**
+     * The AttributeBin that this TextureBin resides
      */
     AttributeBin attributeBin = null;
+
+    /**
+     * The ShaderBin that this TextureBin resides
+     */
+    ShaderBin shaderBin = null;
 
     /**
      * The references to the next and previous TextureBins in the
@@ -754,7 +764,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	    // sorted transparency
 	    if (transparentRMList == null &&
 		(renderBin.transpSortMode == View.TRANSPARENCY_SORT_NONE ||
-		attributeBin.environmentSet.lightBin.geometryBackground != null)) {
+		environmentSet.lightBin.geometryBackground != null)) {
 		//		System.out.println("========> addTransparentTextureBin "+this); 
 		transparentRMList = addAll(transparentRenderMoleculeMap, 
 				addTransparentRMs, transparentRMList, false);
@@ -1046,7 +1056,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	}
 	// If the renderMolecule removed is not opaque then ..
 	if (!r.isOpaqueOrInOG && transparentRMList == null && (renderBin.transpSortMode == View.TRANSPARENCY_SORT_NONE ||
-							       attributeBin.environmentSet.lightBin.geometryBackground != null)) {
+							       environmentSet.lightBin.geometryBackground != null)) {
 	    renderBin.removeTransparentObject(this);
 	}
 	// If the rm removed is the one that is referenced in the tinfo
@@ -1065,15 +1075,10 @@ class TextureBin extends Object implements ObjectUpdate {
 		renderBin.removeTextureBin(this);
 	    }
 
-            attributeBin.removeTextureBin(this);
+            shaderBin.removeTextureBin(this);
 	    texUnitState = null;
         }
     }
-
-
-    /* KCR: BEGIN GLSL & CG SHADER HACK */
-    static ShaderProgram lastShaderProgram = null;
-    /* KCR: END GLSL & CG SHADER HACK */
 
     /**
      * This method is called to update the state for this
@@ -1085,37 +1090,6 @@ class TextureBin extends Object implements ObjectUpdate {
 	
         boolean dirty = ((cv.canvasDirty & (Canvas3D.TEXTUREBIN_DIRTY|
 					    Canvas3D.TEXTUREATTRIBUTES_DIRTY)) != 0);
-
-	/* KCR: BEGIN GLSL & CG SHADER HACK */
-	if (app != null && app instanceof ShaderAppearanceRetained) {
-	    ShaderProgram shaderProgram =
-		((ShaderAppearanceRetained)app).shaderProgram;
-
-	    if (shaderProgram != null) {
-		// Update the native shader program attributes. Note that
-		// the current hack only works when the sole user
-		// optimization is in effect. The appearance with the
-		// Shader Program must have a frequently-writable texture
-		// and it must be the sole user of this texture bin.
-		shaderProgram.updateNative(cv.ctx);
-
-		ShaderAttributeSet shaderAttributeSet =
-		    ((ShaderAppearanceRetained)app).shaderAttributeSet;
-
-		if (shaderAttributeSet != null) {
-		    shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
-		}
-
-		lastShaderProgram = shaderProgram;
-	    }
-	}
-	else {
-	    // Hack to disable shaders
-	    if (lastShaderProgram != null) {
-		lastShaderProgram.disableNative(cv.ctx);
-	    }
-	}
-	/* KCR: END GLSL & CG SHADER HACK */
 
 	if (cv.textureBin == this  && !dirty) {
 	    return;
@@ -1400,7 +1374,7 @@ class TextureBin extends Object implements ObjectUpdate {
         // first check if there is fog in the path
 	// if there is, then turn off fog now and turn it back on
 	// for the last pass only
-        isFogEnabled = (attributeBin.environmentSet.fog != null);
+        isFogEnabled = (environmentSet.fog != null);
 
 	TextureUnitStateRetained tus;
 
@@ -1499,13 +1473,13 @@ class TextureBin extends Object implements ObjectUpdate {
 		transparentRMList = head;
 		if (transparentRMList == null &&
 		    (renderBin.transpSortMode == View.TRANSPARENCY_SORT_NONE ||
-		     attributeBin.environmentSet.lightBin.geometryBackground != null)) {
+		     environmentSet.lightBin.geometryBackground != null)) {
 		    renderBin.removeTransparentObject(this);
 		}
 		// Issue 129: remove the RM's render atoms from the
 		// list of transparent render atoms
 		if ((renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) &&
-		    (attributeBin.environmentSet.lightBin.geometryBackground == null)) {
+		    (environmentSet.lightBin.geometryBackground == null)) {
 		    r.addRemoveTransparentObject(renderBin, false);
 		}
 	    }
@@ -1514,7 +1488,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	RenderMolecule startList;
 	
 	// Now insert in the other bin
-	r.evalAlphaUsage(attributeBin.definingRenderingAttributes, texUnitState);
+	r.evalAlphaUsage(shaderBin.attributeBin.definingRenderingAttributes, texUnitState);
 	r.isOpaqueOrInOG = r.isOpaque() ||r.inOrderedGroup;
 	if (r.isOpaqueOrInOG) {
 	    startList = opaqueRMList;
@@ -1605,7 +1579,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	    // If transparent and not in bg geometry and inodepth sorted transparency
 	    if (transparentRMList == null&&
 		(renderBin.transpSortMode == View.TRANSPARENCY_SORT_NONE ||
-		 attributeBin.environmentSet.lightBin.geometryBackground != null)) {
+		 environmentSet.lightBin.geometryBackground != null)) {
 		transparentRMList = startList;
 		renderBin.addTransparentObject(this);
 	    }
@@ -1616,7 +1590,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	    // transparent render atoms
 	    // TODO: do we need to resort the list after the add???
 	    if ((renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) &&
-		(attributeBin.environmentSet.lightBin.geometryBackground == null)) {
+		(environmentSet.lightBin.geometryBackground == null)) {
 		r.addRemoveTransparentObject(renderBin, true);
 	    }
 	}
@@ -1705,10 +1679,10 @@ class TextureBin extends Object implements ObjectUpdate {
 	if (numEditingRenderMolecules == 0) {
 
 	    // if number of editing renderMolecules goes to 0,
-	    // inform the attributeBin that this textureBin goes to
+	    // inform the shaderBin that this textureBin goes to
 	    // zombie state
 
-	    attributeBin.decrActiveTextureBin();
+	    shaderBin.decrActiveTextureBin();
 	}
     }
 
@@ -1717,9 +1691,9 @@ class TextureBin extends Object implements ObjectUpdate {
 	if (numEditingRenderMolecules == 0) {
 
 	    // if this textureBin is in zombie state, inform
-	    // the attributeBin that this textureBin is activated again.
+	    // the shaderBin that this textureBin is activated again.
 
-	    attributeBin.incrActiveTextureBin();
+	    shaderBin.incrActiveTextureBin();
 	}
 	    
 	numEditingRenderMolecules++;

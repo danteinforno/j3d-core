@@ -118,7 +118,17 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 		    }
 		}
 		break;
-
+	    case J3dMessage.SHADER_PROGRAM_CHANGED: 
+		{
+		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
+		    int attrMask = ((Integer)m.args[1]).intValue();
+		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
+		    
+		    objList.add(m);
+		    nc.mirror.compChanged = 1;
+		    addMirrorObj = true;
+		}
+		break;
 	    case J3dMessage.TEXTURE_CHANGED: 
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];

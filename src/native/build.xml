@@ -281,6 +281,12 @@
      	     srcfile="${javahCoreSrc}/TransparencyAttributesRetained.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_TransparencyAttributesRetained.h"/>
 	    <uptodate
+     	     srcfile="${javahCoreSrc}/GLSLShaderProgramRetained.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_GLSLShaderProgramRetained.h"/>
+	    <uptodate
+     	     srcfile="${javahCoreSrc}/Shader.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_Shader.h"/>
+	    <uptodate
      	     srcfile="${javahUtilsSrc}/J3DTimer.java"
     	     targetfile="${javahUtilsTarget}/com_sun_j3d_utils_timer_J3DTimer.h"/>
 	  </and>
@@ -373,6 +379,8 @@
 	<class name="javax.media.j3d.TextureUnitStateRetained"/>
 	<class name="javax.media.j3d.TransparencyAttributes"/>
 	<class name="javax.media.j3d.TransparencyAttributesRetained"/>
+	<class name="javax.media.j3d.GLSLShaderProgramRetained"/>
+	<class name="javax.media.j3d.Shader"/>
 
     </javah>
 

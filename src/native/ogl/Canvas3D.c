@@ -114,6 +114,111 @@ int isExtensionSupported(const char *allExtensions, const char *extension)
     return 0;
 }
 
+
+
+void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextPropertiesInfo* ctxInfo) {
+
+    if(isExtensionSupported(tmpExtensionStr, "GL_ARB_shader_objects")
+       && isExtensionSupported(tmpExtensionStr, "GL_ARB_shading_language_100")) {
+
+#if defined(UNIX)
+	ctxInfo->pfnglAttachObjectARB =
+	    (PFNGLATTACHOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glAttachObjectARB");
+	ctxInfo->pfnglCompileShaderARB =
+	    (PFNGLCOMPILESHADERARBPROC)dlsym(RTLD_DEFAULT, "glCompileShaderARB");
+	ctxInfo->pfnglCreateProgramObjectARB =
+	    (PFNGLCREATEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateProgramObjectARB");
+	ctxInfo->pfnglCreateShaderObjectARB =
+	    (PFNGLCREATESHADEROBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateShaderObjectARB");
+	ctxInfo->pfnglglDeleteObjectARB =
+	    (PFNGLDELETEOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glDeleteObjectARB");
+	ctxInfo->pfnglGetInfoLogARB =
+	    (PFNGLGETINFOLOGARBPROC)dlsym(RTLD_DEFAULT, "glGetInfoLogARB");
+	ctxInfo->pfnglGetObjectParameterivARB =
+	    (PFNGLGETOBJECTPARAMETERIVARBPROC)dlsym(RTLD_DEFAULT, "glGetObjectParameterivARB");
+	ctxInfo->pfnglLinkProgramARB =
+	    (PFNGLLINKPROGRAMARBPROC)dlsym(RTLD_DEFAULT, "glLinkProgramARB");
+	ctxInfo->pfnglShaderSourceARB =
+	    (PFNGLSHADERSOURCEARBPROC)dlsym(RTLD_DEFAULT, "glShaderSourceARB");
+	ctxInfo->pfnglUseProgramObjectARB =
+	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
+	ctxInfo->pfnglGetUniformLocationARB =
+	    (PFNGLGETUNIFORMLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetUniformLocationARB");
+	ctxInfo->pfnglUniform1iARB =
+	    (PFNGLUNIFORM1IARBPROC)dlsym(RTLD_DEFAULT, "glUniform1iARB");
+	ctxInfo->pfnglUniform1fARB =
+	    (PFNGLUNIFORM1FARBPROC)dlsym(RTLD_DEFAULT, "glUniform1fARB");
+	ctxInfo->pfnglUniform2iARB =
+	    (PFNGLUNIFORM2IARBPROC)dlsym(RTLD_DEFAULT, "glUniform2iARB");
+	ctxInfo->pfnglUniform2fARB =
+	    (PFNGLUNIFORM2FARBPROC)dlsym(RTLD_DEFAULT, "glUniform2fARB");
+	ctxInfo->pfnglUniform3iARB =
+	    (PFNGLUNIFORM3IARBPROC)dlsym(RTLD_DEFAULT, "glUniform3iARB");
+	ctxInfo->pfnglUniform3fARB =
+	    (PFNGLUNIFORM3FARBPROC)dlsym(RTLD_DEFAULT, "glUniform3fARB");
+	ctxInfo->pfnglUniform4iARB =
+	    (PFNGLUNIFORM4IARBPROC)dlsym(RTLD_DEFAULT, "glUniform4iARB");
+	ctxInfo->pfnglUniform4fARB =
+	    (PFNGLUNIFORM4FARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fARB");
+#endif
+#ifdef WIN32
+	ctxInfo->pfnglAttachObjectARB =
+	    (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	ctxInfo->pfnglCompileShaderARB =
+	    (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	ctxInfo->pfnglCreateProgramObjectARB =
+	    (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
+	ctxInfo->pfnglCreateShaderObjectARB =
+	    (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	ctxInfo->pfnglglDeleteObjectARB =
+	    (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+	ctxInfo->pfnglGetInfoLogARB =
+	    (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	ctxInfo->pfnglGetObjectParameterivARB =
+	    (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
+	ctxInfo->pfnglLinkProgramARB =
+	    (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	ctxInfo->pfnglShaderSourceARB =
+	    (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	ctxInfo->pfnglUseProgramObjectARB =
+	    (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
+	ctxInfo->pfnglGetUniformLocationARB =
+	    (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+	ctxInfo->pfnglUniform1iARB =
+	    (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	ctxInfo->pfnglUniform1fARB =
+	    (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+	ctxInfo->pfnglUniform2iARB =
+	    (PFNGLUNIFORM2IARBPROC)wglGetProcAddress("glUniform2iARB");
+	ctxInfo->pfnglUniform2fARB =
+	    (PFNGLUNIFORM2FARBPROC)wglGetProcAddress("glUniform2fARB");
+	ctxInfo->pfnglUniform3iARB =
+	    (PFNGLUNIFORM3IARBPROC)wglGetProcAddress("glUniform3iARB");
+	ctxInfo->pfnglUniform3fARB =
+	    (PFNGLUNIFORM3FARBPROC)wglGetProcAddress("glUniform3fARB");
+	ctxInfo->pfnglUniform4iARB =
+	    (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
+	ctxInfo->pfnglUniform4fARB =
+	    (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
+#endif
+	
+    }
+
+    if (ctxInfo->pfnglCreateShaderObjectARB == NULL) {
+	fprintf(stderr, "Java 3D ERROR : GLSLShader extension not available\n");
+	ctxInfo->shadingLanguageGLSL = JNI_FALSE;	
+	
+    }
+    else {
+	fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");
+
+	ctxInfo->shadingLanguageGLSL = JNI_TRUE;	
+    }
+    
+}
+
+
+
 void checkTextureExtensions(
     JNIEnv *env,
     jobject obj,
@@ -640,7 +745,12 @@ getPropertiesFromCurrentContext(
      * so that the same function can be used for queryContext as well
      */
     checkTextureExtensions(env, obj, tmpExtensionStr, versionNumbers[1],
-				ctxInfo);
+			   ctxInfo);
+    /*
+     * checking of the shader extensions is done in checkTextureExtensions(),
+     * so that the same function can be used for queryContext as well
+     */
+    checkGLSLShaderExtensions(tmpExtensionStr, ctxInfo);
     
     /* ... */
     
@@ -960,6 +1070,13 @@ void setupCanvasProperties(
 
     rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "texture3DDepthMax", "I");
     (*(table->SetIntField))(env, obj, rsc_field, param);
+
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "shadingLanguageGLSL", "Z");
+    (*(table->SetBooleanField))(env, obj, rsc_field, ctxInfo->shadingLanguageGLSL);
+
+    rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "shadingLanguageCg", "Z");
+    (*(table->SetBooleanField))(env, obj, rsc_field, ctxInfo->shadingLanguageCg);
+    
 }
 
 JNIEXPORT
@@ -3007,6 +3124,9 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->extMask = 0;
     ctxInfo->textureExtMask = 0;
 
+    ctxInfo->shadingLanguageGLSL = JNI_FALSE;
+    ctxInfo->shadingLanguageCg = JNI_FALSE;
+    
     ctxInfo->glBlendColor = NULL;
     ctxInfo->glBlendColorEXT = NULL;    
     ctxInfo->glColorTable =  NULL;
@@ -3037,6 +3157,27 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->glSharpenTexFuncSGIS = NULL;
     ctxInfo->glDetailTexFuncSGIS = NULL;
     ctxInfo->glTexFilterFuncSGIS = NULL;
+
+    /* Programmable Shader */
+    ctxInfo->pfnglAttachObjectARB = NULL;
+    ctxInfo->pfnglCompileShaderARB = NULL;
+    ctxInfo->pfnglCreateProgramObjectARB = NULL;
+    ctxInfo->pfnglCreateShaderObjectARB = NULL;
+    ctxInfo->pfnglglDeleteObjectARB = NULL;
+    ctxInfo->pfnglGetInfoLogARB = NULL;
+    ctxInfo->pfnglGetObjectParameterivARB = NULL;
+    ctxInfo->pfnglLinkProgramARB = NULL;
+    ctxInfo->pfnglShaderSourceARB = NULL;
+    ctxInfo->pfnglUseProgramObjectARB = NULL;
+    ctxInfo->pfnglGetUniformLocationARB = NULL;
+    ctxInfo->pfnglUniform1iARB = NULL;
+    ctxInfo->pfnglUniform1fARB = NULL;
+    ctxInfo->pfnglUniform2iARB = NULL;
+    ctxInfo->pfnglUniform2fARB = NULL;
+    ctxInfo->pfnglUniform3iARB = NULL;
+    ctxInfo->pfnglUniform3fARB = NULL;
+    ctxInfo->pfnglUniform4iARB = NULL;
+    ctxInfo->pfnglUniform4fARB = NULL; 
 
 #if defined(UNIX)
     ctxInfo->glXVideoResizeSUN = NULL;
