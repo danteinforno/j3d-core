@@ -300,6 +300,7 @@ public class Canvas3D extends Canvas {
     static final int FOG_DIRTY                 = 0x2000;
     static final int MODELCLIP_DIRTY           = 0x4000;    
     static final int VIEW_MATRIX_DIRTY         = 0x8000;
+    // static final int SHADER_DIRTY              = 0x10000; Not ready for this yet -- Chien
 
     // Use to notify D3D Canvas when window change
     static final int RESIZE = 1;
@@ -409,7 +410,6 @@ public class Canvas3D extends Canvas {
     //
     int textureColorTableSize;
 
-
     boolean multiTexAccelerated = false;
 
     // number of simultaneous Texture unit support for this canvas.
@@ -427,6 +427,10 @@ public class Canvas3D extends Canvas {
 
     // index iof last enabled texture unit 
     int lastActiveTexUnit = -1;
+
+    // True if shadingLanguage is supported, otherwise false.
+    boolean shadingLanguageGLSL = false;
+    boolean shadingLanguageCg = false;
 
     // Query properties
     J3dQueryProps queryProps;
@@ -802,13 +806,14 @@ public class Canvas3D extends Canvas {
     static final int TEXTUREBIN_BIT	= 0x3;
     static final int RENDERMOLECULE_BIT	= 0x4;
     static final int TRANSPARENCY_BIT	= 0x5;
+    static final int SHADERBIN_BIT	= 0x6;
 
     // bitmask to specify if the corresponding "bin" needs to be updated
     int stateUpdateMask = 0;   
 
     // the set of current "bins" that is to be updated, the stateUpdateMask
     // specifies if each bin in this set is updated or not.
-    Object curStateToUpdate[] = new Object[6];
+    Object curStateToUpdate[] = new Object[7];
 
 
     // Native method for determining the number of texture unit supported
@@ -3076,6 +3081,14 @@ public class Canvas3D extends Canvas {
      * <td><b>Value Type</b></td>
      * </tr>
      * <tr>
+     * <td><code>shadingLanguageCg</code></td>
+     * <td>Boolean</td>
+     * </tr>
+     * <tr>
+     * <td><code>shadingLanguageGLSL</code></td>
+     * <td>Boolean</td>
+     * </tr>
+     * <tr>
      * <td><code>doubleBufferAvailable</code></td>
      * <td>Boolean</td>
      * </tr>
@@ -3180,6 +3193,22 @@ public class Canvas3D extends Canvas {
      * <p>
      * <ul>
      * <li>
+     * <code>shadingLanguageCg</code>
+     * <ul>
+     * A Boolean indicating whether or not Cg shading Language
+     * is available for this Canvas3D. 
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>shadingLanguageGLSL</code>
+     * <ul>
+     * A Boolean indicating whether or not GLSL shading Language
+     * is available for this Canvas3D.     
+     * </ul>
+     * </li>
+     *
+     * <li>
      * <code>doubleBufferAvailable</code>
      * <ul>
      * A Boolean indicating whether or not double buffering
@@ -3210,7 +3239,6 @@ public class Canvas3D extends Canvas {
      * requests to enable scene antialiasing will be ignored.
      * </ul>
      * </li>
-     *
      *
      * <li>
      * <code>sceneAntialiasingNumPasses</code>
@@ -3570,6 +3598,12 @@ public class Canvas3D extends Canvas {
 
         keys.add("textureUnitStateMax");
         values.add(new Integer(numTexUnitSupported));
+
+	keys.add("shadingLanguageGLSL");
+	values.add(new Boolean(shadingLanguageGLSL));
+
+	keys.add("shadingLanguageCg");
+	values.add(new Boolean(shadingLanguageCg));
 
 	keys.add("native.version");
 	values.add(nativeGraphicsVersion);
@@ -3994,7 +4028,7 @@ public class Canvas3D extends Canvas {
 	} else {
 	    if (rightStereoPass) {
 		//  Only set cache in right stereo pass, otherwise
-		//  if the left stero pass set the cache value, 
+		//  if the left stereo pass set the cache value, 
 		//  setModelViewMatrix() in right stereo pass will not 
 		//  perform in RenderMolecules.
 		this.modelMatrix = mTrans;
@@ -4180,12 +4214,13 @@ public class Canvas3D extends Canvas {
 	curStateToUpdate[bit] = bin;
     }
 
-    // update LightBin, EnvironmentSet, & AttributeBin if neccessary
+    // update LightBin, EnvironmentSet, AttributeBin & ShaderBin if neccessary
     // according to the stateUpdateMask
 
     static int ENV_STATE_MASK = (1 << LIGHTBIN_BIT) | 
-				(1 << ENVIRONMENTSET_BIT) |
-				(1 << ATTRIBUTEBIN_BIT);
+				(1 << ENVIRONMENTSET_BIT) |	
+	                        (1 << ATTRIBUTEBIN_BIT) |
+                                (1 << SHADERBIN_BIT);
 
     void updateEnvState() {
 
@@ -4205,6 +4240,12 @@ public class Canvas3D extends Canvas {
 	    ((AttributeBin)
 		curStateToUpdate[ATTRIBUTEBIN_BIT]).updateAttributes(this);
 	}
+
+	if ((stateUpdateMask & (1 << SHADERBIN_BIT)) != 0) {
+	    ((ShaderBin)
+		curStateToUpdate[SHADERBIN_BIT]).updateAttributes(this);
+	}
+
 
 	// reset the state update mask for those environment state bits
 	stateUpdateMask &= ~ENV_STATE_MASK;

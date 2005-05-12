@@ -217,7 +217,7 @@ public class ShaderAttributeSet extends NodeComponent {
     }
 
 
-    void updateNative(long ctx, ShaderProgram shaderProgram) {
+    void updateNative(long ctx, ShaderProgramRetained shaderProgram) {
 	Iterator it = attrs.values().iterator();
 	while (it.hasNext()) {
 	    ShaderAttribute sa = (ShaderAttribute)it.next();

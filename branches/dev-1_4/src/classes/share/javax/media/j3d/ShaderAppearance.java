@@ -132,12 +132,14 @@ public class ShaderAppearance extends Appearance {
      * not set and this object is part of live or compiled scene graph
      */
     public void setShaderProgram(ShaderProgram shaderProgram) {
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	*/
+
+        if (isLiveOrCompiled()) {
+	  if(!this.getCapability(ALLOW_SHADER_PROGRAM_WRITE))
+	    throw new CapabilityNotSetException(J3dI18N.getString("ShaderAppearance0"));
+	}
+
 	((ShaderAppearanceRetained)this.retained).setShaderProgram(shaderProgram);
+	
     }
 
 
@@ -149,11 +151,11 @@ public class ShaderAppearance extends Appearance {
      * not set and this object is part of live or compiled scene graph
      */
     public ShaderProgram getShaderProgram() {
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	*/
+
+        if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_SHADER_PROGRAM_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAppearance1"));
+	}
 	return ((ShaderAppearanceRetained)this.retained).getShaderProgram();
     }
 
