@@ -47,6 +47,18 @@ public class CgShaderProgram extends ShaderProgram {
 	throw new RuntimeException("not implemented");
     }
 
+    // Implement abstract setShaderAttrNames method (inherit javadoc from parent class)
+    public void setShaderAttrNames(String[] shaderAttrNames) {
+	checkForLiveOrCompiled();
+
+	throw new RuntimeException("not implemented");
+    }
+
+    // Implement abstract getShaderAttrNames method (inherit javadoc from parent class)
+    public String[] getShaderAttrNames() {
+	throw new RuntimeException("not implemented");
+    }
+
     /**
      * Copies the specified array of shaders into this shader
      * program. This method makes a shallow copy of the array. The
@@ -75,11 +87,7 @@ public class CgShaderProgram extends ShaderProgram {
      * array is <em>not</em> a SourceCodeShader.
      */
     public void setShaders(Shader[] shaders) {
-	if (isLiveOrCompiled()) {
-	    if(!this.getCapability(ALLOW_SHADERS_WRITE)) {
-		throw new CapabilityNotSetException(J3dI18N.getString("CgShaderProgram0"));
-	    }
-	}
+	checkForLiveOrCompiled();
 
 	// TODO: move the rest of this into a CgShaderProgramRetained class
 

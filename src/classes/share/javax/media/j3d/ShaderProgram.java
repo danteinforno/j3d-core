@@ -41,11 +41,11 @@ public abstract class ShaderProgram extends NodeComponent {
 	CapabilityBits.SHADER_PROGRAM_ALLOW_SHADERS_READ;
 
     /**
-     * Specifies that this ShaderProgram object allows writing
-     * its shaders.
+     * Specifies that this ShaderProgram object allows reading
+     * its shader or vertex attribute names.
      */
-    public static final int ALLOW_SHADERS_WRITE =
-	CapabilityBits.SHADER_PROGRAM_ALLOW_SHADERS_WRITE;
+    public static final int ALLOW_NAMES_READ =
+	CapabilityBits.SHADER_PROGRAM_ALLOW_NAMES_READ;
 
 
     /*
@@ -86,9 +86,42 @@ public abstract class ShaderProgram extends NodeComponent {
      * Retrieves the vertex attribute names array from this
      * GeometryArray object.
      *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
      * @return a copy of this ShaderProgram's array of vertex attribute names.
      */
     public abstract String[] getVertexAttrNames();
+
+
+    /**
+     * Sets the shader attribute names array for this ShaderProgram
+     * object. Each element in the array specifies a shader
+     * attribute name that may be set via a ShaderAttribute object.
+     * Only those attributes whose names that appear in the shader
+     * attribute names array can be set for a given shader program.
+     *
+     * <p>
+     * TODO: finish this.
+     *
+     * @param shaderAttrNames array of shader attribute names for this
+     * shader program. A copy of this array is made.
+     *
+     * @exception RestrictedAccessException if the method is called
+     * when this object is part of live or compiled scene graph.
+     */
+    public abstract void setShaderAttrNames(String[] shaderAttrNames);
+
+    /**
+     * Retrieves the shader attribute names array from this
+     * GeometryArray object.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @return a copy of this ShaderProgram's array of shader attribute names.
+     */
+    public abstract String[] getShaderAttrNames();
 
 
     /**
@@ -102,8 +135,8 @@ public abstract class ShaderProgram extends NodeComponent {
      * @param shaders array of Shader objects to be copied into this
      * ShaderProgram
      *
-     * @exception CapabilityNotSetException if appropriate capability is
-     * not set and this object is part of live or compiled scene graph
+     * @exception RestrictedAccessException if the method is called
+     * when this object is part of live or compiled scene graph.
      *
      * @exception IllegalArgumentException if the shading language of
      * any shader in the shaders array doesn't match the type of the

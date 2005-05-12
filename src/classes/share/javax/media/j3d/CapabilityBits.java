@@ -430,7 +430,7 @@ class CapabilityBits extends Object {
 
     // ShaderProgram extends NodeComponent 
     static final int SHADER_PROGRAM_ALLOW_SHADERS_READ			= 0;
-    static final int SHADER_PROGRAM_ALLOW_SHADERS_WRITE			= 1;
+    static final int SHADER_PROGRAM_ALLOW_NAMES_READ			= 1;
 
     // ShaderAttributeSet extends NodeComponent 
     static final int SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_READ		= 0;

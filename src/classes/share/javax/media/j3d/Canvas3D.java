@@ -3041,6 +3041,25 @@ public class Canvas3D extends Canvas {
 
 
     /**
+     * Returns a flag indicating whether or not the specified shading
+     * language is supported. A ShaderError will be generated if an
+     * unsupported shading language is used.
+     *
+     * @param shadingLanguage the shading language being queried, one of:
+     * <code>Shader.SHADING_LANGUAGE_GLSL</code> or
+     * <code>Shader.SHADING_LANGUAGE_CG</code>.
+     *
+     * @return true if the specified shading language is supported,
+     * false otherwise.
+     *
+     * @since Java 3D 1.4
+     */
+    public boolean isShadingLanguageSupported(int shadingLanguage) {
+	throw new RuntimeException("not implemented");
+    }
+
+
+    /**
      * Returns a read-only Map object containing key-value pairs that define
      * various properties for this Canvas3D.  All of the keys are
      * String objects.  The values are key-specific, but most will be
