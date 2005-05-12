@@ -135,7 +135,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    ctxProperties->pfnglglDeleteObjectARB(shaderId);
+    ctxProperties->pfnglglDeleteObjectARB( (GLhandleARB) shaderId);
     
     return NULL; /* Will handle error reporting later. Return null for now */
 }
@@ -154,8 +154,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     jstring program)
 {    
     GLint status;
-    jlong *shaderIdPtr;
-    GLhandleARB shaderHandle;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     
@@ -168,9 +166,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
 	return NULL;
     }
 
-    ctxProperties->pfnglShaderSourceARB(shaderId, 1, &shaderString, NULL);
-    ctxProperties->pfnglCompileShaderARB(shaderId);
-    ctxProperties->pfnglGetObjectParameterivARB(shaderId,
+    ctxProperties->pfnglShaderSourceARB((GLhandleARB)shaderId, 1, &shaderString, NULL);
+    ctxProperties->pfnglCompileShaderARB((GLhandleARB)shaderId);
+    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderId,
 						GL_OBJECT_COMPILE_STATUS_ARB,
 						&status);
     fprintf(stderr,
@@ -180,8 +178,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     }
     else {
 	fprintf(stderr, "FAILED\n");
-	printInfoLog(ctxProperties, shaderId); /* TODO - Replace witht detail message in
-						  the return ShaderError. */
+	/* TODO - Replace witht detail message in the return ShaderError. */
+	printInfoLog(ctxProperties, (GLhandleARB)shaderId);
     }
     
     free(shaderString);    
@@ -230,7 +228,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    ctxProperties->pfnglglDeleteObjectARB(shaderProgramId);
+    ctxProperties->pfnglglDeleteObjectARB((GLhandleARB)shaderProgramId);
 
     return NULL; /* Will handle error reporting later. Return null for now */
 }
@@ -250,7 +248,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
 {
     GLint status;
     int i;
-    GLhandleARB shaderHandle;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     jlong *shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
@@ -260,11 +257,12 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     fprintf(stderr, "shaderIdArrayLength %d\n", shaderIdArrayLength);
     
     for(i=0; i<shaderIdArrayLength; i++) {
-	ctxProperties->pfnglAttachObjectARB(shaderProgramId, shaderIdPtr[i]);
+	ctxProperties->pfnglAttachObjectARB((GLhandleARB)shaderProgramId,
+					    (GLhandleARB)shaderIdPtr[i]);
     }
 
-    ctxProperties->pfnglLinkProgramARB(shaderProgramId);
-    ctxProperties->pfnglGetObjectParameterivARB(shaderProgramId,
+    ctxProperties->pfnglLinkProgramARB((GLhandleARB)shaderProgramId);
+    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderProgramId,
 						GL_OBJECT_LINK_STATUS_ARB,
 						&status);
     fprintf(stderr, "GLSLShaderProgram LINK : shaderProgramId = %d -- ", shaderProgramId);
@@ -273,8 +271,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     }
     else {
 	fprintf(stderr, "FAILED\n");
-	printInfoLog(ctxProperties, shaderProgramId);/* TODO - Replace witht detail message in
-							the return ShaderError. */
+	/* TODO - Replace witht detail message in the return ShaderError. */
+	printInfoLog(ctxProperties, (GLhandleARB)shaderProgramId);
 	
 	ctxProperties->pfnglUseProgramObjectARB(0);
     }
