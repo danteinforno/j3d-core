@@ -51,7 +51,7 @@
   * build number that is greater than the previous build's build
   * number.
   -->
-  <property name="version_buildnum"   value="2"/>
+  <property name="version_buildnum"   value="3"/>
 
   <!--
   * The following property specifies the beta revision of the current
@@ -155,6 +155,12 @@
     <property name="install.bin" value="lib/sparc"/>
   </target>
 
+  <target name="setupSolarisX86" if="isSolarisOnX86">
+    <property name="ostype" value="solaris"/>
+    <property name="platform" value="solaris-x86-${build.comp}"/>
+    <property name="install.bin" value="lib/i386"/>
+  </target>
+
   <target name="setupLinux" if="isLinuxOnX86">	
     <property name="ostype" value="linux"/>
     <property name="platform" value="linux-i586"/>
@@ -181,7 +187,7 @@
   </target>
 
   <target name="setupPlatform"
-       depends="init, setupBuildType, setupSolaris, setupLinux, setupLinuxAmd64, setupLinuxIA64, setupWindows">
+       depends="init, setupBuildType, setupSolaris, setupSolarisX86, setupLinux, setupLinuxAmd64, setupLinuxIA64, setupWindows">
     <property name="build-debug-gen" location="${build}/${platform}/debug/gen"/>
     <property name="build-opt-gen" location="${build}/${platform}/opt/gen"/>
     <property name="docname" value="java3d-${version_file}-doc"/>
@@ -322,6 +328,26 @@
     <condition property="isSolarisOnSparc">
         <os name="SunOS" arch="sparc"/>
     </condition>   
+
+    <condition property="isSolarisOnX86">
+        <os name="SunOS" arch="x86"/>
+    </condition>
+
+    <condition property="isa_amd64">
+      <contains string="${sun.cpu.isalist}" substring="amd64"/>
+    </condition>
+
+    <available file="${java.home}/lib/amd64/libjawt.so" property="jre_amd64_present"/>
+
+    <!-- flag indicating that a 64-bit JVM is available for Solaris/x86 -->
+    <condition property="isSolarisOnX86_64">
+      <and>
+        <isset property="isSolarisOnX86"/>
+        <isset property="isa_amd64"/>
+        <isset property="jre_amd64_present"/>
+      </and>
+    </condition>
+
   </target>
 
   <target name="compile-debug" depends="setupPlatform">

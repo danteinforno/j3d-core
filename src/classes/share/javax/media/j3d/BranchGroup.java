@@ -156,8 +156,7 @@ public class BranchGroup extends Group {
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
      *
-     * @exception IllegalStateException if this Locale has been
-     * removed from its VirtualUniverse.
+     * @exception IllegalStateException if BranchGroup is not live.
      *
      * @see Locale#pickAll(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -233,8 +232,7 @@ public class BranchGroup extends Group {
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
      *
-     * @exception IllegalStateException if this Locale has been
-     * removed from its VirtualUniverse.
+     * @exception IllegalStateException if BranchGroup is not live.
      *
      * @see Locale#pickAllSorted(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -303,8 +301,7 @@ public class BranchGroup extends Group {
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
      *
-     * @exception IllegalStateException if this Locale has been
-     * removed from its VirtualUniverse.
+     * @exception IllegalStateException if BranchGroup is not live.
      *
      * @see Locale#pickClosest(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -371,8 +368,7 @@ public class BranchGroup extends Group {
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
      *
-     * @exception IllegalStateException if this Locale has been
-     * removed from its VirtualUniverse.
+     * @exception IllegalStateException if BranchGroup is not live.
      *
      * @see Locale#pickAny(int,int,javax.media.j3d.PickShape)
      * @see PickInfo

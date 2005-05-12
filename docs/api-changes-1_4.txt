@@ -23,6 +23,12 @@ No incompatible changes to the Java 3D 1.3 API are allowed.
 
 I. New/deprecated fields, constructors, methods
 
+    Canvas3D
+    --------
+    New methods:
+	public boolean isShadingLanguageSupported(int shadingLanguage)
+
+
     SceneGraphObject
     ----------------
     New methods:
@@ -43,13 +49,73 @@ I. New/deprecated fields, constructors, methods
 			     int texCoordSetCount,
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
-			     int[] vertexAttrFormats,
-			     String[] vertexAttrNames)
+			     int[] vertexAttrSizes)
 
     New methods:
 	public int getVertexAttrCount()
-	public void getVertexAttrFormats(int[] vertexAttrFormats)
-	public void getVertexAttrNames(String[] vertexAttrNames)
+	public void getVertexAttrSizes(int[] vertexAttrSizes)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  float[] vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point2f vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point3f vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point4f vertexAttr)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs,
+				   int start, int length)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  float[] vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point2f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point3f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point4f vertexAttr)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs)
+	public void setInitialVertexAttrIndex(int vertexAttrNum,
+					      int initialVertexAttrIndex)
+	public int getInitialVertexAttrIndex(int vertexAttrNum)
+	public void setVertexAttrRefBuffer(int vertexAttrNum, J3DBuffer vertexAttrs)
+	public J3DBuffer getVertexAttrRefBuffer(int vertexAttrNum)
+	public void setVertexAttrRefFloat(int vertexAttrNum, float[] vertexAttrs)
+	public float[] getVertexAttrRefFloat(int vertexAttrNum)
+
+
+    TriangleArray
+    -------------
+    New constructors:
+	public TriangleArray(int vertexCount,
+			     int vertexFormat,
+			     int texCoordSetCount,
+			     int[] texCoordSetMap,
+			     int vertexAttrCount,
+			     int[] vertexAttrSizes)
 
 
     Node
@@ -67,6 +133,8 @@ I. New/deprecated fields, constructors, methods
     New methods:
 	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
 	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void addShaderErrorListener(ShaderErrorListener listener)
+	public void removeShaderErrorListener(ShaderErrorListener listener)
 
 
     Locale
@@ -102,6 +170,28 @@ I. New/deprecated fields, constructors, methods
 	public void setPredictionPolicy(int policy)
 	public int getPredictionPolicy()
 	public void getRead(Transform3D read, long deltaT)
+
+
+    RenderingAttributes
+    -----------
+    New fields:
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
+
+    New constructors:
+	public RenderingAttributes(boolean depthBufferEnable,
+				   boolean depthBufferWriteEnable,
+				   int depthTestFunction,
+				   float alphaTestValue,
+				   int alphaTestFunction,
+				   boolean visible,
+				   boolean ignoreVertexColors,
+				   boolean rasterOpEnable,
+				   int rasterOp)
+
+    New methods:
+	public void setDepthTestFunction(int function)
+	public int getDepthTestFunction()
 
 
 II. Reparented classes

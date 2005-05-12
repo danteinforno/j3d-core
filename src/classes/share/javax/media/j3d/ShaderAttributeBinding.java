@@ -70,6 +70,10 @@ import javax.vecmath.*;
  * A list of these attributes for each shader language can be found in
  * the concrete subclass of ShaderProgram for that shader language.
  *
+ * <p>
+ * <font color="#ff0000"><i>NOTE: This class is not yet
+ * implemented.</i></font><br>
+ *
  * @see ShaderAttributeSet
  * @see ShaderProgram
  *
@@ -87,6 +91,9 @@ public class ShaderAttributeBinding extends ShaderAttribute {
      * @param j3dAttrName the name of the Java&nbsp;3D attribute
      * to bind to the shader attribute
      *
+     * @exception UnsupportedOperationException this class is not
+     * yet implemented
+     *
      * @exception NullPointerException if attrName or j3dAttrName is null
      *
      * @exception IllegalArgumentException if j3dAttrName is not the name
@@ -95,7 +102,9 @@ public class ShaderAttributeBinding extends ShaderAttribute {
     public ShaderAttributeBinding(String attrName, String j3dAttrName) {
 	super(attrName);
 	this.j3dAttrName = j3dAttrName;
-	throw new RuntimeException("not implemented");
+
+	// TODO: implement this class
+	throw new UnsupportedOperationException(J3dI18N.getString("ShaderAttributeBinding0"));
     }
 
     /**

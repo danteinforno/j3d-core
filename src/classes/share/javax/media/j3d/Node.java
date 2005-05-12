@@ -156,13 +156,6 @@ public abstract class Node extends SceneGraphObject {
 	    }
 	}
 
-	// TODO: remove this check once we add code to inhibit certain
-	// compile-time optimizations (e.g., graph flattening) when a
-	// any of a group node's children allow their parent to be read
-	if (isCompiled()) {
-	    throw new RuntimeException("Reading parent of compiled nodes not implemented");
-	}
-
 	NodeRetained nr = ((NodeRetained)this.retained).getParent();
 	return (nr == null ? null :  (Node) nr.getSource());
     }

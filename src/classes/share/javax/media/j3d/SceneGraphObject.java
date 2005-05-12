@@ -339,6 +339,7 @@ public abstract class SceneGraphObject extends Object {
      * only.
      *
      * @param name the new name of this object
+     *
      * @since Java 3D 1.4
      */
     public void setName( String name ) {
@@ -349,6 +350,7 @@ public abstract class SceneGraphObject extends Object {
      * Returns the name of this object.
      *
      * @return the name of this object
+     *
      * @since Java 3D 1.4
      */             
     public String getName() {
@@ -425,4 +427,25 @@ public abstract class SceneGraphObject extends Object {
 	    return originalNodeComponent;
 	}
     }
+
+    // Internal method to make a prefix out of the name of this object
+    String getNamePrefix() {
+	String name = getName();
+
+	if (name != null) {
+	    return "[" + name + "] ";
+	}
+
+	return "";
+    }
+
+    /**
+     * Returns a String representation of this SceneGraphObject.
+     * If its name is non-null, then it is concatenated with
+     * super.toString().
+     */
+    public String toString() {
+	return getNamePrefix() + super.toString();
+    }
+
 }
