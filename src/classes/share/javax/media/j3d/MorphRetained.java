@@ -200,6 +200,13 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
 	    }
 	    doErrorCheck(prevGeo, geo);
 	}
+
+	// Check the first one for vertex attributes
+	geo = (GeometryArrayRetained)geometryArrays[0].retained;
+	if ((geo.vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+	    throw new UnsupportedOperationException(J3dI18N.getString("MorphRetained9"));
+	}
+
 	// Check if the first one is in Immediate context
 	if (geometryArrays[0] != null) {
 	    geo = (GeometryArrayRetained)geometryArrays[0].retained;

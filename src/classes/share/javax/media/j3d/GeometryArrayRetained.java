@@ -89,6 +89,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // Offset (in words) within each vertex of the texture coordinate
     int textureOffset;
 
+    // Offset (in words) within each vertex of each vertex attribute
+    int[] vertexAttrOffsets;
+    
+    // Stride (size) of all vertex attributes
+    int vertexAttrStride;
+
     // alpha value for transparency and texture blending
     float[] lastAlpha = new float[1];
     float lastScreenAlpha = -1;
@@ -254,6 +260,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // this array contains offset to the texCoord data for each
     // texture unit.  -1 means no corresponding texCoord data offset
     int [] texCoordSetMapOffset = null;
+
+    // Vertex attribute information
+    int vertexAttrCount = 0;
+    int[] vertexAttrSizes = null;
+
 
     // This point to a list of VertexBuffers in a Vector structure
     // Each element correspond to a D3D context that create this VB.
@@ -1482,30 +1493,56 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 		
 
-    void createGeometryArrayData(int vertexCount, int vertexFormat)
-    {
+    void createGeometryArrayData(int vertexCount, int vertexFormat) {
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 	    createGeometryArrayData(vertexCount, vertexFormat, 1, 
-				defaultTexCoordSetMap);
+				    defaultTexCoordSetMap);
 	} else {
 	    createGeometryArrayData(vertexCount, vertexFormat, 0, null);
 	}
     }
 
     void createGeometryArrayData(int vertexCount, int vertexFormat,
-				 int texCoordSetCount, int[] texCoordSetMap) 
-    {
+				 int texCoordSetCount, int[] texCoordSetMap) {
+
+	createGeometryArrayData(vertexCount, vertexFormat,
+				texCoordSetCount, texCoordSetMap,
+				0, null);
+    }
+
+    void createGeometryArrayData(int vertexCount, int vertexFormat,
+				 int texCoordSetCount, int[] texCoordSetMap,
+				 int vertexAttrCount, int[] vertexAttrSizes) {
 	this.vertexFormat = vertexFormat;
 	this.vertexCount = vertexCount;
 	this.validVertexCount = vertexCount;
+
 	this.texCoordSetCount = texCoordSetCount;
-	this.texCoordSetMap = texCoordSetMap;
+	if (texCoordSetMap == null) {
+	    this.texCoordSetMap = null;
+	}
+	else {
+	    this.texCoordSetMap = (int[])texCoordSetMap.clone();
+	}
+
+	this.vertexAttrCount = vertexAttrCount;
+	if (vertexAttrSizes == null) {
+	    this.vertexAttrSizes = null;
+	}
+	else {
+	    this.vertexAttrSizes = (int[])vertexAttrSizes.clone();
+	}
+
+        this.vertexAttrStride = this.vertexAttrStride();
 	this.stride = this.stride();
+
+	this.vertexAttrOffsets = this.vertexAttrOffsets();
 	this.texCoordSetMapOffset = this.texCoordSetMapOffset();
-	this.textureOffset = 0;
+	this.textureOffset = this.textureOffset();
 	this.colorOffset = this.colorOffset();
 	this.normalOffset = this.normalOffset();
 	this.coordinateOffset = this.coordinateOffset();
+
 	if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
 	    this.vertexData = new float[this.vertexCount * this.stride];
 	}
@@ -1526,7 +1563,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 
     // used for GeometryArrays by Copy or interleaved
-    native void execute(long ctx,
+    private native void execute(long ctx,
 			GeometryArrayRetained geo, int geo_type, 
 			boolean isNonUniformScale,
 			boolean useAlpha,
@@ -1544,7 +1581,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 
     // used by GeometryArray by Reference with java arrays
-    native void executeVA(long ctx,
+    private native void executeVA(long ctx,
 			  GeometryArrayRetained geo, int geo_type, 
 			  boolean isNonUniformScale, 
 			  boolean multiScreen,
@@ -1564,7 +1601,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
  
 
     // used by GeometryArray by Reference with NIO buffer
-    native void executeVABuffer(long ctx,
+    private native void executeVABuffer(long ctx,
 				GeometryArrayRetained geo, int geo_type, 
 				boolean isNonUniformScale, 
 				boolean multiScreen,
@@ -1585,7 +1622,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				int cdirty);
 
     // used by GeometryArray by Reference in interleaved format with NIO buffer
-    native void executeInterleavedBuffer(long ctx,
+    private native void executeInterleavedBuffer(long ctx,
 					 GeometryArrayRetained geo, int geo_type, 
 					 boolean isNonUniformScale,
 					 boolean useAlpha,
@@ -1625,6 +1662,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	// no need to update alpha values if canvas supports global alpha
 	if (cv.supportGlobalAlpha()) {
 	    cv.setGlobalAlpha(cv.ctx, alpha);
+	    return mirrorFloatRefColors[0];
+	}
+
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
 	    return mirrorFloatRefColors[0];
 	}
 
@@ -1796,6 +1839,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    return mirrorUnsignedByteRefColors[0];
 	}
 
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
+	    return mirrorUnsignedByteRefColors[0];
+	}
+
 	// update alpha only if vertex format includes alpha
 	if (((vertexFormat | c4fAllocated) & GeometryArray.WITH_ALPHA) == 0)
 	    return mirrorUnsignedByteRefColors[0];
@@ -1951,6 +2000,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    return retVal;
 	}
 
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
+	    retVal[1] = vertexData;
+	    return retVal;
+	}
+
 	// update alpha only if vertex format includes alpha
 	if ((vertexFormat & GeometryArray.COLOR) == 0) {
 	    retVal[1] = vertexData;
@@ -2097,6 +2153,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	// no need to update alpha values if canvas supports global alpha
 	if (cv.supportGlobalAlpha()) {
 	    cv.setGlobalAlpha(cv.ctx, alpha);
+	    retVal[1] = null;
+	    return retVal;
+	}
+
+	// Issue 113
+	// TODO: Fix this for screen > 0, for now just ignore transparency
+	if (screen > 0) {
 	    retVal[1] = null;
 	    return retVal;
 	}
@@ -2616,7 +2679,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 
     // used for GeometryArrays
-    native void buildGA(long ctx, GeometryArrayRetained geo, int geo_type, 
+    private native void buildGA(long ctx, GeometryArrayRetained geo, int geo_type, 
 			boolean isNonUniformScale, boolean updateAlpha,
 			float alpha,
 			boolean ignoreVertexColors,
@@ -2628,8 +2691,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			double[] xform, double[] nxform,
 			float[] varray);
 
-   // used to Build Dlist GeometryArray by Reference with java arrays
-    native void buildGAForByRef(long ctx,
+    // used to Build Dlist GeometryArray by Reference with java arrays
+    private native void buildGAForByRef(long ctx,
 			  GeometryArrayRetained geo, int geo_type, 
 			  boolean isNonUniformScale,  boolean updateAlpha,
 			float alpha,
@@ -2646,8 +2709,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			double[] xform, double[] nxform);
 
 
-   // used to Build Dlist GeometryArray by Reference with java arrays
-    native void buildGAForBuffer(long ctx,
+    // used to Build Dlist GeometryArray by Reference with java arrays
+    private native void buildGAForBuffer(long ctx,
 			  GeometryArrayRetained geo, int geo_type, 
 			  boolean isNonUniformScale,  boolean updateAlpha,
 			float alpha,
@@ -3250,6 +3313,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    stride += texCoordStride * texCoordSetCount;
 	}
 
+	if ((this.vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+	    stride += vertexAttrStride;
+	}
+
+	//System.err.println("stride() = " + stride);
 	return stride;
     }
 
@@ -3267,6 +3335,61 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	     }
 	}
 	return texCoordSetMapOffset;
+    }
+
+    /**
+     * Returns the stride of the set of vertex attributes. This is the
+     * sum of the sizes of each vertex attribute.
+     * @return the stride of the vertex attribute data
+     */
+    int vertexAttrStride() {
+        int sum = 0;
+        for (int i = 0; i < vertexAttrCount; i++) {
+            sum += vertexAttrSizes[i];
+        }
+        return sum;
+    }
+    
+    /**
+     * Returns the offset in number of floats from the start of a vertex to
+     * each per-vertex vertex attribute.
+     * @return array of offsets in floats vertex start to the vertex attribute data
+     */
+    int[] vertexAttrOffsets() {
+	int[] offsets;
+        
+        // Create array of offsets to the start of each vertex attribute.
+        // The offset of the first attribute is always 0. If no vertex attributes exist,
+        // then we will allocate an array of length 1 to avoid some checking elsewhere.
+        if (vertexAttrCount > 0) {
+            offsets = new int[vertexAttrCount];
+        }
+        else {
+            offsets = new int[1];
+        }
+        offsets[0] = 0;
+        for (int i = 1; i < vertexAttrCount; i++) {
+            offsets[i] = offsets[i-1] + vertexAttrSizes[i-1];
+        }
+        
+        return offsets;
+    }
+
+    /**
+     * Returns the offset in number of floats from the start of a vertex to
+     * the per-vertex texture coordinate data.
+     * texture coordinate data always follows vertex attribute data
+     * @return the offset in floats vertex start to the tetxure data
+     */
+    int textureOffset()
+    {
+	int offset = vertexAttrOffsets[0];
+
+	if ((this.vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+	    offset += vertexAttrStride;
+	}
+
+	return offset;
     }
 
     /**
@@ -4890,7 +5013,171 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	
 	geomLock.unLock();
 	sendDataChangedMessage(false);
-    }      
+    }
+
+
+    /**
+     * Sets the vertex attribute associated with the vertex at the
+     * specified index in the specified vertex attribute number for
+     * this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index destination vertex index in this geometry array
+     * @param vertexAttr the Point2f containing the new vertex attribute
+     */
+    void setVertexAttr(int vertexAttrNum, int index,
+		       Point2f vertexAttr) {
+
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attribute associated with the vertex at the
+     * specified index in the specified vertex attribute number for
+     * this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index destination vertex index in this geometry array
+     * @param vertexAttr the Point3f containing the new vertex attribute
+     */
+    void setVertexAttr(int vertexAttrNum, int index,
+		       Point3f vertexAttr) {
+
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attribute associated with the vertex at the
+     * specified index in the specified vertex attribute number for
+     * this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index destination vertex index in this geometry array
+     * @param vertexAttr the Point4f containing the new vertex attribute
+     */
+    void setVertexAttr(int vertexAttrNum, int index,
+		       Point4f vertexAttr) {
+
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attributes associated with the vertices
+     * starting at the specified index in the specified vertex
+     * attribute number for this object using data in
+     * <code>vertexAttrs</code> starting at index <code>start</code> and
+     * ending at index <code>start+length</code>.
+     *
+     * @param index starting destination vertex index in this geometry array
+     * @param vertexAttrs source array of 1*n, 2*n, 3*n, or 4*n values
+     * containing n new vertex attributes
+     * @param start starting source vertex index in <code>vertexAttrs</code>
+     * array.
+     * @param length number of vertex attributes to be copied.
+     */
+    void setVertexAttrs(int vertexAttrNum, int index,
+			float[] vertexAttrs,
+			int start, int length) {
+
+        // @@@ KCR @@@
+	System.err.println("GARet.setVertexAttrs(" +
+			   vertexAttrNum + ", " +
+			   vertexAttrs + ", " +
+			   start + ", " +
+			   length + ")");
+
+        if ((this.vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
+            throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
+        }
+
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int size = vertexAttrSizes[vertexAttrNum];
+        int i, j, k;
+
+	geomLock.getLock();
+	// TODO: dirtyFlag |= VERTEX_ATTR_CHANGED;
+
+        for (i = start * size, j = offset, k = 0; k < length; i += size, j += this.stride, k++) {
+            for (int ii = 0; ii < size; ii++) {
+                this.vertexData[j+ii] = vertexAttrs[i+ii];
+            }
+        }
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
+    }
+
+    /**
+     * Sets the vertex attributes associated with the vertices
+     * starting at the specified index in the specified vertex
+     * attribute number for this object using data in
+     * <code>vertexAttrs</code> starting at index <code>start</code> and
+     * ending at index <code>start+length</code>.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index starting destination vertex index in this geometry array
+     * @param vertexAttrs source array of Point2f objects containing new
+     * vertex attributes
+     * @param start starting source vertex index in <code>vertexAttrs</code>
+     * array.
+     * @param length number of vertex attributes to be copied.
+     */
+    void setVertexAttrs(int vertexAttrNum, int index,
+			Point2f[] vertexAttrs,
+			int start, int length) {
+
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attributes associated with the vertices
+     * starting at the specified index in the specified vertex
+     * attribute number for this object using data in
+     * <code>vertexAttrs</code> starting at index <code>start</code> and
+     * ending at index <code>start+length</code>.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index starting destination vertex index in this geometry array
+     * @param vertexAttrs source array of Point3f objects containing new
+     * vertex attributes
+     * @param start starting source vertex index in <code>vertexAttrs</code>
+     * array.
+     * @param length number of vertex attributes to be copied.
+     */
+    void setVertexAttrs(int vertexAttrNum, int index,
+			Point3f[] vertexAttrs,
+			int start, int length) {
+
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attributes associated with the vertices
+     * starting at the specified index in the specified vertex
+     * attribute number for this object using data in
+     * <code>vertexAttrs</code> starting at index <code>start</code> and
+     * ending at index <code>start+length</code>.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index starting destination vertex index in this geometry array
+     * @param vertexAttrs source array of Point4f objects containing new
+     * vertex attributes
+     * @param start starting source vertex index in <code>vertexAttrs</code>
+     * array.
+     * @param length number of vertex attributes to be copied.
+     */
+    void setVertexAttrs(int vertexAttrNum, int index,
+			Point4f[] vertexAttrs,
+			int start, int length) {
+
+	throw new RuntimeException("not implemented");
+    }
+
 
     /**
      * Gets the coordinate associated with the vertex at
@@ -7435,7 +7722,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // Note that by next round sign*lastSign = 0 so it will
     // not pass the interest test. This should only happen once in the
     // loop because we already check for degenerate geometry before.
-				lastSign = 0; 
 			    }
 			}
 		    }
@@ -7467,7 +7753,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
@@ -7499,7 +7785,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
@@ -7529,7 +7815,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				isIntersect = ((t > -EPS) && (t < 1+EPS));
 				break;
 			    } else {
-				lastSign = 0; //degenerate line=>point
+				//degenerate line=>point
 			    }
 			}
 		    }
