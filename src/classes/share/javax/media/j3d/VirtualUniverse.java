@@ -15,6 +15,8 @@ package javax.media.j3d;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -155,6 +157,12 @@ public class VirtualUniverse extends Object {
     boolean isSceneGraphLock = false;
 
     private Object waitLock = new Object();
+    
+    private HashSet structureChangeListenerSet = null;
+
+    private HashSet shaderErrorListenerSet = null;
+    private ShaderErrorListener defaultShaderErrorListener =
+	ShaderProgram.getDefaultErrorListener();
 
     /**
      * Constructs a new VirtualUniverse.
@@ -990,4 +998,154 @@ public class VirtualUniverse extends Object {
 	    isSceneGraphLock = false;
 	}
     }
+    
+    /**
+     * Adds the specified GraphStructureChangeListener to the set of listeners
+     * that will be notified when the graph structure is changed on a live
+     * scene graph. If the specifed listener is null no action is taken and no 
+     * exception is thrown.
+     *
+     * @param listener the listener to add to the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void addGraphStructureChangeListener(GraphStructureChangeListener listener) {
+        if (listener == null) {
+            return;
+        }
+        
+        if (structureChangeListenerSet == null) {
+            structureChangeListenerSet = new HashSet();
+        }
+        
+        synchronized(structureChangeListenerSet) {
+            structureChangeListenerSet.add(listener);
+        }
+    }
+    
+    /**
+     * Removes the specified GraphStructureChangeListener from the set of listeners. This
+     * method performs no function, nor does it throw an exception if the specified listener
+     * is not currently in the set or is null.
+     *
+     * @param listener the listener to remove from the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void removeGraphStructureChangeListener(GraphStructureChangeListener listener) {
+        if (structureChangeListenerSet == null) {
+	    return;
+	}
+
+        synchronized(structureChangeListenerSet) {
+            structureChangeListenerSet.remove(listener);
+        }
+    }
+    
+    /**
+     * Processes all live BranchGroup add and removes and notifies
+     * any registered listeners. Used for add and remove
+     */
+    void notifyStructureChangeListeners(boolean add, Object parent, BranchGroup child) {
+        if (structureChangeListenerSet == null) {
+            return;
+	}
+        
+        synchronized(structureChangeListenerSet) {
+            Iterator it = structureChangeListenerSet.iterator();
+            while(it.hasNext()) {
+                if (add)
+                    ((GraphStructureChangeListener)it.next()).branchGroupAdded(parent, child);
+                else
+                    ((GraphStructureChangeListener)it.next()).branchGroupRemoved(parent, child);
+            }
+        }
+    }
+    
+    /**
+     * Processes all live BranchGroup moves and notifies
+     * any registered listeners. Used for moveTo
+     */
+    void notifyStructureChangeListeners(Object oldParent, Object newParent, BranchGroup child) {
+        if (structureChangeListenerSet == null) {
+            return;
+	}
+
+        synchronized(structureChangeListenerSet) {
+            Iterator it = structureChangeListenerSet.iterator();
+            while(it.hasNext()) {
+                ((GraphStructureChangeListener)it.next()).branchGroupMoved(oldParent, newParent, child);
+            }
+        }
+    }
+
+
+    /**
+     * Adds the specified ShaderErrorListener to the set of listeners
+     * that will be notified when a programmable shader error is
+     * detected on a live scene graph. If the specifed listener is
+     * null no action is taken and no exception is thrown.
+     *
+     * @param listener the listener to add to the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void addShaderErrorListener(ShaderErrorListener listener) {
+        if (listener == null) {
+            return;
+        }
+
+        if (shaderErrorListenerSet == null) {
+            shaderErrorListenerSet = new HashSet();
+        }
+
+        synchronized(shaderErrorListenerSet) {
+            shaderErrorListenerSet.add(listener);
+        }
+    }
+
+    /**
+     * Removes the specified ShaderErrorListener from the set of
+     * listeners. This method performs no function, nor does it throw
+     * an exception if the specified listener is not currently in the
+     * set or is null.
+     *
+     * @param listener the listener to remove from the set.
+     *
+     * @since Java 3D 1.4
+     */
+    public void removeShaderErrorListener(ShaderErrorListener listener) {
+        if (shaderErrorListenerSet == null) {
+	    return;
+	}
+
+        synchronized(shaderErrorListenerSet) {
+            shaderErrorListenerSet.remove(listener);
+        }
+    }
+
+    /**
+     * Notifies all listeners of a shader error. If no listeners exist, a default
+     * listener is notified.
+     */
+    void notifyShaderErrorListeners(ShaderError error) {
+	boolean errorReported = false;
+
+	// Notify all error listeners in the set
+        if (shaderErrorListenerSet != null) {
+	    synchronized(shaderErrorListenerSet) {
+		Iterator it = shaderErrorListenerSet.iterator();
+		while(it.hasNext()) {
+		    ((ShaderErrorListener)it.next()).errorOccurred(error);
+		    errorReported = true;
+		}
+	    }
+        }
+
+	// Notify the default error listener if the set is null or empty
+	if (!errorReported) {
+	    defaultShaderErrorListener.errorOccurred(error);
+	}
+    }
+
 }
