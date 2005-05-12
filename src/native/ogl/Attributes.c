@@ -554,8 +554,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
         glEnable(GL_DEPTH_TEST);
     }
     glAlphaFunc(GL_ALWAYS, 0.0f);
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_COLOR_LOGIC_OP);
+    /* fprintf(stderr, "resetting depth func");*/
+
 }
 
 JNIEXPORT
@@ -567,6 +570,7 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     jboolean db_enable_override,
     jboolean db_enable,
     jboolean db_write_enable,
+    jint db_func,
     jfloat at_value,
     jint at_func,
     jboolean ignoreVertexColors,
@@ -575,8 +579,37 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 {
     if (db_enable_override == JNI_FALSE) {
         if (db_enable == JNI_TRUE) {
+            int func = GL_LEQUAL;
             glEnable(GL_DEPTH_TEST);
-        } else {
+            switch (db_func) {
+            case javax_media_j3d_RenderingAttributes_ALWAYS:
+                func = GL_ALWAYS;
+                break;
+            case javax_media_j3d_RenderingAttributes_NEVER:
+                func = GL_NEVER;
+                break;
+            case javax_media_j3d_RenderingAttributes_EQUAL:
+                func = GL_EQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_NOT_EQUAL:
+                func = GL_NOTEQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_LESS:
+                func = GL_LESS;
+                break;
+            case javax_media_j3d_RenderingAttributes_LESS_OR_EQUAL:
+                func = GL_LEQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_GREATER:
+                func = GL_GREATER;
+                break;
+            case javax_media_j3d_RenderingAttributes_GREATER_OR_EQUAL:
+                func = GL_GEQUAL;
+                break;
+        }
+        glDepthFunc( func );
+
+      } else {
             glDisable(GL_DEPTH_TEST);
         }
     } 
@@ -602,6 +635,10 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 	glEnable(GL_COLOR_MATERIAL);
     }	
 
+    /*
+     * [PEPE] NOTE: shouldn't this switch be moved in 'enable' part of
+     * the at_func test above, just like i did for db_func?
+     */
     switch (at_func) {
 	case javax_media_j3d_RenderingAttributes_ALWAYS:
 	    glAlphaFunc(GL_ALWAYS, at_value);
@@ -3409,18 +3446,6 @@ void JNICALL Java_javax_media_j3d_TextureUnitStateRetained_updateTextureUnitStat
      */
 }
 
-JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setDepthFunc(
-    JNIEnv * env, 
-    jobject obj,
-    jlong ctxInfo,    
-    jint func)
-{
-    if (func == javax_media_j3d_RenderingAttributesRetained_LESS) 
-	glDepthFunc(GL_LESS);
-    else if (func == javax_media_j3d_RenderingAttributesRetained_LEQUAL)
-	glDepthFunc(GL_LEQUAL);
-}
 
 JNIEXPORT
 void JNICALL Java_javax_media_j3d_Canvas3D_setBlendColor(
@@ -3502,4 +3527,46 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
      * execute; for display list, texture unit has to match
      * texture unit state.
      */ 
+}
+
+
+/*
+ * strJavaToC
+ *
+ * Returns a copy of the specified Java String object as a new,
+ * null-terminated "C" string. The caller must free this string.
+ */
+char *
+strJavaToC(JNIEnv *env, jstring str)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+    jsize strUTFLen;		/* Number of UTF-8 bytes in String */
+    jbyte *strUTFBytes;		/* Array of UTF-8 bytes */
+    char *cString = NULL;	/* Null-terminated "C" string */
+
+    strUTFLen = table->GetStringUTFLength(env, str);
+    cString = (char *)malloc(strUTFLen + 1);
+    if (cString == NULL) {
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "malloc");
+	}
+	return NULL;
+    }
+
+    strUTFBytes = table->GetStringUTFChars(env, str, NULL);
+    if (strUTFBytes == NULL) {
+	free(cString);
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "GetStringUTFChars");
+	}
+	return NULL;
+    }
+
+    memcpy(cString, strUTFBytes, strUTFLen);
+    cString[strUTFLen] = '\0';
+    table->ReleaseStringUTFChars(env, str, strUTFBytes);
+
+    return cString;
 }

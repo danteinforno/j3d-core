@@ -940,7 +940,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
   }
 
     // used for GeometryArrays
-    native void executeIndexedGeometry(long ctx,
+    private native void executeIndexedGeometry(long ctx,
 			GeometryArrayRetained geo, int geo_type, 
 			boolean isNonUniformScale,
 			boolean useAlpha,
@@ -959,7 +959,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 			int[] indexCoord);
 
     // used for interleaved, by reference, nio buffer 
-    native void executeIndexedGeometryBuffer(long ctx,
+    private native void executeIndexedGeometryBuffer(long ctx,
 				       GeometryArrayRetained geo, int geo_type, 
 				       boolean isNonUniformScale,
 				       boolean useAlpha,
@@ -979,7 +979,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
 
 	
-    native void executeIndexedGeometryVA(long ctx,
+    private native void executeIndexedGeometryVA(long ctx,
 					 GeometryArrayRetained geo, int geo_type, 
 					 boolean isNonUniformScale, 
 					 boolean multiScreen,
@@ -1000,7 +1000,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					 int[] indexCoord);
 
     // non interleaved, by reference, nio buffer
-    native void executeIndexedGeometryVABuffer(long ctx,
+    private native void executeIndexedGeometryVABuffer(long ctx,
 					       GeometryArrayRetained geo, int geo_type, 
 					       boolean isNonUniformScale, 
 					       boolean multiScreen,
@@ -1022,7 +1022,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					       int[] indexCoord);
 
     // used for IndexedGeometry
-    native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
+    private native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
 				     boolean isNonUniformScale, boolean updateAlpha,
 				     float alpha,
 				     boolean ignoreVertexColors,

@@ -95,6 +95,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
     ArrayList lightBinFreelist = new ArrayList(5);
     ArrayList envSetFreelist = new ArrayList(5);
     ArrayList attrBinFreelist = new ArrayList(5);
+    ArrayList shaderBinFreelist = new ArrayList(5);
     ArrayList textureBinFreelist = new ArrayList(5);
     ArrayList renderMoleculeFreelist = new ArrayList(5);
     ArrayList transparentInfoFreeList = new ArrayList(5);
@@ -531,6 +532,15 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	}
 
 
+
+
+	// Maybe need to update ShaderBins here too. ---- Chien.
+
+
+
+
+
+
 	// Update the sole user TextureBins.
 	if (tbUpdateList.size() > 0) {
 	    TextureBin tb;
@@ -544,12 +554,12 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    // texture in the first texture unit state
 	    for (i = 0; i < size; i++) {
 		tb = (TextureBin) tbUpdateList.get(i);
-		// Bug Id : 4701430 - Have to be sure tb.attributeBin is
+		// Bug Id : 4701430 - Have to be sure tb.shaderBin is
 		// not equal to null. This is a temporary fix for j3d1.3.
 		if (((tb.tbFlag & TextureBin.RESORT) != 0) && 
-		    (tb.attributeBin != null)) {
+		    (tb.shaderBin != null)) {
 
-		    tb.attributeBin.reInsertTextureBin(tb);
+		    tb.shaderBin.reInsertTextureBin(tb);
 		    tb.tbFlag &= ~TextureBin.RESORT;
 		}
 	    }
@@ -2050,7 +2060,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 
 	RenderAtom ra = null;
 	TextureBin tb;
-        AttributeBin ab;
+        ShaderBin sb;
 	boolean reInsertNeeded = false;
 
 	if (nc.mirror.changedFrequent == 0) {
@@ -2101,9 +2111,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		tb.soleUserCompDirty |= TextureBin.SOLE_USER_DIRTY_TA;
 
 	    } else {
-	        ab= ra.renderMolecule.textureBin.attributeBin;
+	        sb= ra.renderMolecule.textureBin.shaderBin;
 	        ra.renderMolecule.removeRenderAtom(ra);
-	        reInsertTextureBin(ab, ra);
+	        reInsertTextureBin(sb, ra);
 	    }
 	}
     }
@@ -2113,7 +2123,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 
 	RenderAtom ra = null;
 	TextureBin tb;
-        AttributeBin ab;
+        ShaderBin sb;
 	boolean reInsertNeeded = false;
 
 	if (nc.mirror.changedFrequent == 0) {
@@ -2164,9 +2174,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		tb.soleUserCompDirty |= TextureBin.SOLE_USER_DIRTY_TC;
 
 	    } else {
-	        ab= ra.renderMolecule.textureBin.attributeBin;
+	        sb= ra.renderMolecule.textureBin.shaderBin;
 	        ra.renderMolecule.removeRenderAtom(ra);
-	        reInsertTextureBin(ab, ra);
+	        reInsertTextureBin(sb, ra);
 	    }
 	}
     }
@@ -2178,7 +2188,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 
 	RenderAtom ra = null;
 	TextureBin tb;
-        AttributeBin ab;
+        ShaderBin sb;
 	boolean reInsertNeeded = false;
         int command = ((Integer)args[1]).intValue();
 
@@ -2275,7 +2285,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 					GeometryAtom[] gaArr) {
 	RenderAtom ra = null;
 	TextureBin tb;
-        AttributeBin ab;
+        ShaderBin sb;
 	boolean mirrorSet = false;
 	boolean firstTextureBin = true;
 
@@ -2313,9 +2323,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
                 tb.soleUserCompDirty |= TextureBin.SOLE_USER_DIRTY_TUS;
 
 	    } else {
-	        ab= ra.renderMolecule.textureBin.attributeBin;
+	        sb = ra.renderMolecule.textureBin.shaderBin;
 	        ra.renderMolecule.removeRenderAtom(ra);
-	        reInsertTextureBin(ab, ra);
+	        reInsertTextureBin(sb, ra);
 	    }
 	}
     }
@@ -2359,7 +2369,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    if (ra== null || !ra.inRenderBin())
 			continue;
 		    if (restructure && !ra.renderMolecule.textureBin.attributeBin.soleUser) {
-			EnvironmentSet e= ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			EnvironmentSet e= ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 			/*
@@ -2510,9 +2520,9 @@ System.out.println("......tb.soleUser= " +
 		        ra = gaArr[i].getRenderAtom(view);
 		        if (ra== null || !ra.inRenderBin())
 		            continue;
-		        AttributeBin ab = ra.renderMolecule.textureBin.attributeBin;
+		        ShaderBin sb = ra.renderMolecule.textureBin.shaderBin;
 		        ra.renderMolecule.removeRenderAtom(ra);
-		        reInsertTextureBin(ab, ra);
+		        reInsertTextureBin(sb, ra);
 	            }
 	        }
 	    } else if ((component & AppearanceRetained.RENDERING) != 0) {
@@ -2551,7 +2561,7 @@ System.out.println("......tb.soleUser= " +
 			    ra = gaArr[i].getRenderAtom(view);
 			    if (ra== null || !ra.inRenderBin())
 				continue;
-			    EnvironmentSet e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			    EnvironmentSet e = ra.renderMolecule.textureBin.environmentSet;
 			    ra.renderMolecule.removeRenderAtom(ra);
 			    reInsertAttributeBin(e, ra);
 			}
@@ -2725,7 +2735,7 @@ System.out.println("......tb.soleUser= " +
 			    continue;
 			}
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2740,7 +2750,7 @@ System.out.println("......tb.soleUser= " +
 			if (ra.app == ra.geometryAtom.source.otherAppearance)
 			    continue;
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2793,7 +2803,7 @@ System.out.println("......tb.soleUser= " +
 		    app = saveApp;
 		}		
 		ra.app = app;
-		e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		e = ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }
@@ -2860,7 +2870,7 @@ System.out.println("......tb.soleUser= " +
 			    continue;
 			}
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2875,7 +2885,7 @@ System.out.println("......tb.soleUser= " +
 			if (ra.app == ra.geometryAtom.source.otherAppearance)
 			    continue;
 			ra.app = ra.geometryAtom.source.appearance;
-			e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+			e = ra.renderMolecule.textureBin.environmentSet;
 			ra.renderMolecule.removeRenderAtom(ra);
 			reInsertAttributeBin(e, ra);
 		    }
@@ -2926,7 +2936,7 @@ System.out.println("......tb.soleUser= " +
 		    app = saveApp;
 		}		
 		ra.app = app;
-		e = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		e = ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }
@@ -3243,7 +3253,7 @@ System.out.println("......tb.soleUser= " +
 	}
     }
 
-    void processText3DTransformChanged(Object[] list, 
+    private void processText3DTransformChanged(Object[] list, 
 				       Object[] transforms,
 				       long referenceTime) {
 	int i, j, numShapes;
@@ -3290,7 +3300,7 @@ System.out.println("......tb.soleUser= " +
     }
 
 
-    void processOrderedGroupRemoved(J3dMessage m) {
+    private void processOrderedGroupRemoved(J3dMessage m) {
 	int i, n;
 	Object[] ogList = (Object[])m.args[0];
 	Object[] ogChildIdList = (Object[])m.args[1];
@@ -3329,7 +3339,7 @@ System.out.println("......tb.soleUser= " +
     }
 
 
-    void processOrderedGroupInserted(J3dMessage m) {
+    private void processOrderedGroupInserted(J3dMessage m) {
 	Object[] ogList = (Object[])m.args[0];
 	Object[] ogChildIdList = (Object[])m.args[1];
 	Object[] ogOrderedIdList = (Object[])m.args[2];
@@ -3368,7 +3378,7 @@ System.out.println("......tb.soleUser= " +
 	}
     }
     
-    void processTransformChanged(long referenceTime) {
+    private void processTransformChanged(long referenceTime) {
 	int i, j, k, numRenderMolecules, n;
 	Shape3DRetained s;
 	RenderMolecule rm;
@@ -3614,7 +3624,7 @@ System.out.println("......tb.soleUser= " +
     /**
      * This processes a LIGHT change.
      */
-    void processLightChanged() {
+    private void processLightChanged() {
 	int i, j, k, l, n;
 	LightRetained lt;
 	EnvironmentSet e;
@@ -3785,7 +3795,7 @@ System.out.println("......tb.soleUser= " +
 
 
     
-    void processBgGeometryAtoms(GeometryAtom[] nodes, long referenceTime) {
+    private void processBgGeometryAtoms(GeometryAtom[] nodes, long referenceTime) {
         int i;
 	GeometryAtom ga;
 	RenderAtom renderAtom;
@@ -3826,7 +3836,7 @@ System.out.println("......tb.soleUser= " +
      * This method looks through the list of RenderAtoms to see if
      * compaction is needed.
      */
-    void checkForCompaction() {
+    private void checkForCompaction() {
 	int i, numRas;
 	int numDead = 0;
 	int numAlive = 0;
@@ -3879,7 +3889,7 @@ System.out.println("......tb.soleUser= " +
 
     }
 
-    void reEvaluateAlternateAppearance() {
+    private void reEvaluateAlternateAppearance() {
 	AppearanceRetained app;
 	EnvironmentSet e;
 	Object[] retVal;
@@ -3924,7 +3934,7 @@ System.out.println("......tb.soleUser= " +
 	
     }
 
-    void reEvaluateAllRenderAtoms(boolean altAppDirty) {
+    private void reEvaluateAllRenderAtoms(boolean altAppDirty) {
 	
 	int sz = renderAtoms.size();
 
@@ -3996,7 +4006,7 @@ System.out.println("......tb.soleUser= " +
 
 
 
-    void getNewEnvironment(RenderAtom ra, LightRetained[] lights,
+    private void getNewEnvironment(RenderAtom ra, LightRetained[] lights,
 			   FogRetained fog, ModelClipRetained modelClip,
 			   AppearanceRetained app) {
 
@@ -4176,28 +4186,35 @@ System.out.println("......tb.soleUser= " +
 	reInsertAttributeBin(eNew, ra);
 
     }
-    void reInsertAttributeBin(EnvironmentSet e, RenderAtom ra) {
+
+    private void reInsertAttributeBin(EnvironmentSet e, RenderAtom ra) {
 	AttributeBin ab;
 	// Just go up to the environment and re-insert
 	ab = findAttributeBin(e, ra);
-	reInsertTextureBin(ab, ra);
+	reInsertShaderBin(ab, ra);
     }
 
+    private void reInsertShaderBin(AttributeBin ab, RenderAtom ra) {
+	ShaderBin sb;
 
-    void reInsertTextureBin(AttributeBin ab, RenderAtom ra) {
+	sb = findShaderBin(ab, ra);
+	reInsertTextureBin(sb, ra);
+    }
+
+    private void reInsertTextureBin(ShaderBin sb, RenderAtom ra) {
 	TextureBin tb;
 
-	tb = findTextureBin(ab, ra);
+	tb = findTextureBin(sb, ra);
 	reInsertRenderAtom(tb, ra);
     }
 
-    void reInsertRenderAtom(TextureBin tb, RenderAtom ra) {
+    private void reInsertRenderAtom(TextureBin tb, RenderAtom ra) {
 	RenderMolecule newRm;
 	// Just go up to the texture bin and re-insert
 	newRm = findRenderMolecule(tb, ra);
     }
 
-    void computeViewFrustumBBox(BoundingBox viewFrustumBBox) {
+    private void computeViewFrustumBBox(BoundingBox viewFrustumBBox) {
 	//Initial view frustumBBox BBox
 	viewFrustumBBox.lower.x = Float.POSITIVE_INFINITY;
 	viewFrustumBBox.lower.y = Float.POSITIVE_INFINITY;
@@ -4241,10 +4258,11 @@ System.out.println("......tb.soleUser= " +
     /**
      * This inserts a RenderAtom into the appropriate bin.
      */
-    RenderMolecule insertRenderAtom(RenderAtom ra) {
+    private RenderMolecule insertRenderAtom(RenderAtom ra) {
 	LightBin lightBin;
 	EnvironmentSet environmentSet;
 	AttributeBin attributeBin;
+	ShaderBin shaderBin;
 	TextureBin textureBin;
 	RenderMolecule renderMolecule;
 	OrderedCollection oc;
@@ -4301,7 +4319,11 @@ System.out.println("......tb.soleUser= " +
 	// determined
 	environmentSet = findEnvironmentSet(ra);
 	attributeBin = findAttributeBin(environmentSet, ra);
-	textureBin = findTextureBin(attributeBin, ra);
+
+	// System.out.println("RenderBin : findShaderBin()");
+	shaderBin = findShaderBin(attributeBin, ra);
+
+	textureBin = findTextureBin(shaderBin, ra);
 	renderMolecule = findRenderMolecule(textureBin, ra);
         ra.setRenderBin(true);
 	renderAtoms.add(ra);
@@ -4347,7 +4369,7 @@ System.out.println("......tb.soleUser= " +
 	return (renderMolecule);
     }
     
-    OrderedCollection findOrderedCollection(GeometryAtom ga, 
+    private OrderedCollection findOrderedCollection(GeometryAtom ga, 
 					    boolean doBackground) {
         int i, n;
         int oi; // an id which identifies a children of the orderedGroup
@@ -4509,7 +4531,7 @@ System.out.println("......tb.soleUser= " +
         return (oc);
     }
 
-    void removeOrderedHeadLightBin(LightBin lightBin) {
+    private void removeOrderedHeadLightBin(LightBin lightBin) {
         int i, k;
         int oi; // an id which identifies a children of the orderedGroup
         int ci; // child index of the ordered group
@@ -4541,7 +4563,7 @@ System.out.println("......tb.soleUser= " +
      * This gets a new EnviornmentSet.  It creates one if there are none
      * on the freelist.
      */
-    EnvironmentSet getEnvironmentSet(RenderAtom ra, LightRetained[] lights, 
+    private EnvironmentSet getEnvironmentSet(RenderAtom ra, LightRetained[] lights, 
 				     FogRetained fog, ModelClipRetained modelClip) {
 	EnvironmentSet envSet;
 
@@ -4554,10 +4576,11 @@ System.out.println("......tb.soleUser= " +
 	}
 	return (envSet);
     }
+
     /**
      * This finds or creates an AttributeBin for a given RenderAtom.
      */
-    AttributeBin findAttributeBin(EnvironmentSet envSet, RenderAtom ra) {
+    private AttributeBin findAttributeBin(EnvironmentSet envSet, RenderAtom ra) {
 	int i;
 	AttributeBin currentBin;
 	RenderingAttributesRetained renderingAttributes;
@@ -4566,7 +4589,6 @@ System.out.println("......tb.soleUser= " +
 	} else {
 	    renderingAttributes = ra.app.renderingAttributes;
 	}
-
 	
 	currentBin = envSet.attributeBinList;
 	while (currentBin != null) {
@@ -4575,7 +4597,6 @@ System.out.println("......tb.soleUser= " +
 	    }
 	    currentBin = currentBin.next;
 	}
-
 	// Check the "to-be-added" list of attributeBins for a match
 	for (i = 0; i < envSet.addAttributeBins.size(); i++) {
 	    currentBin = (AttributeBin)envSet.addAttributeBins.get(i);
@@ -4583,26 +4604,54 @@ System.out.println("......tb.soleUser= " +
 		return(currentBin);
 	    }
 	}
-
 	currentBin = getAttributeBin(ra.app, renderingAttributes);
 	envSet.addAttributeBin(currentBin, this);
 	return(currentBin);
     }
 
     /**
+     * This finds or creates an ShaderBin for a given RenderAtom.
+     */
+    private ShaderBin findShaderBin(AttributeBin attributeBin, RenderAtom ra) {	
+	int i, size;
+	ShaderBin currentBin;
+	ShaderAppearanceRetained sApp;
+
+	if((ra != null) && (ra.app instanceof ShaderAppearanceRetained))
+	    sApp = (ShaderAppearanceRetained)ra.app;
+	else 
+	    sApp = null;
+
+	currentBin = attributeBin.shaderBinList;
+	while (currentBin != null) {
+	    if (currentBin.equals(sApp)) {
+		return currentBin;
+	    }
+	    currentBin = currentBin.next;
+	}
+
+	// Check the "to-be-added" list of shaderBins for a match
+	size = attributeBin.addShaderBins.size();
+	for (i = 0; i < size; i++) {
+	    currentBin = (ShaderBin)attributeBin.addShaderBins.get(i);
+	    if (currentBin.equals(sApp)) {
+		return currentBin;
+	    }
+	}
+	
+	currentBin = getShaderBin(sApp);
+	attributeBin.addShaderBin(currentBin, this, sApp);
+	return currentBin;
+    }
+
+    /**
      * This finds or creates a TextureBin for a given RenderAtom.
      */
-    TextureBin findTextureBin(AttributeBin attributeBin, RenderAtom ra) {
-
-
-	int i;
+    private TextureBin findTextureBin(ShaderBin shaderBin, RenderAtom ra) {
+	int i, size;
 	TextureBin currentBin;
 	TextureRetained texture;
 	TextureUnitStateRetained texUnitState[];
-
-	RenderingAttributesRetained rAttrs =
-	    (ra.geometryAtom.source.appearance == null)? null:
-	    ra.geometryAtom.source.appearance.renderingAttributes;
 
 	if (ra.app == null) {
 	    texUnitState = null;
@@ -4610,32 +4659,33 @@ System.out.println("......tb.soleUser= " +
 	    texUnitState = ra.app.texUnitState;
 	}
 
-	currentBin = attributeBin.textureBinList;
+	currentBin = shaderBin.textureBinList;
 	while (currentBin != null) {
 	    if (currentBin.equals(texUnitState, ra)) {
-				//System.out.println("1: Equal");
+		//System.out.println("1: Equal");
 		return(currentBin);
 	    }
 	    currentBin = currentBin.next;
 	}
 	// Check the "to-be-added" list of TextureBins for a match
-	for (i = 0; i < attributeBin.addTBs.size(); i++) {
-	    currentBin = (TextureBin)attributeBin.addTBs.get(i);
+	size = shaderBin.addTextureBins.size();
+	for (i = 0; i < size; i++) {
+	    currentBin = (TextureBin)shaderBin.addTextureBins.get(i);
 	    if (currentBin.equals(texUnitState, ra)) {
-				//System.out.println("2: Equal");
+		//System.out.println("2: Equal");
 		return(currentBin);
 	    }
 	}
 	// get a new texture bin for this texture unit state
 	currentBin = getTextureBin(texUnitState, ra.app);
-	attributeBin.addTextureBin(currentBin, this, ra);
+	shaderBin.addTextureBin(currentBin, this, ra);
 	return(currentBin);
     }
 
     /**
      * This finds or creates a RenderMolecule for a given RenderAtom.
      */
-    RenderMolecule findRenderMolecule(TextureBin textureBin, 
+    private RenderMolecule findRenderMolecule(TextureBin textureBin, 
 				      RenderAtom ra) {
 
 	RenderMolecule currentBin;
@@ -4691,7 +4741,7 @@ System.out.println("......tb.soleUser= " +
 				  ra.geometryAtom.source.localToVworld[0])) {
 
 		currentBin.addRenderAtom(ra, this);
-		ra.envSet = ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		ra.envSet = ra.renderMolecule.textureBin.environmentSet;
 		// If the locale has changed for an existing renderMolecule
 		// handle the RmlocaleToVworld
 		return(currentBin);
@@ -4731,12 +4781,26 @@ System.out.println("......tb.soleUser= " +
 	return(currentBin);
     }
 
+    /**
+     * This gets a new ShaderBin.  It creates one if there are none
+     * on the freelist.
+     */
+    private ShaderBin getShaderBin(ShaderAppearanceRetained sApp) {
+	ShaderBin shaderBin;
+	if (shaderBinFreelist.size() > 0) {
+	    shaderBin = (ShaderBin)shaderBinFreelist.remove(shaderBinFreelist.size()-1);
+	    shaderBin.reset(sApp, this);
+	} else {
+	    shaderBin = new ShaderBin( sApp, this);
+	}
+	return (shaderBin);
+    }
 
     /**
      * This gets a new AttributeBin.  It creates one if there are none
      * on the freelist.
      */
-    AttributeBin getAttributeBin(AppearanceRetained app, RenderingAttributesRetained ra) {
+    private AttributeBin getAttributeBin(AppearanceRetained app, RenderingAttributesRetained ra) {
 	AttributeBin attrBin;
 	if (attrBinFreelist.size() > 0) {
 	    attrBin = (AttributeBin)attrBinFreelist.remove(
@@ -4754,7 +4818,7 @@ System.out.println("......tb.soleUser= " +
      * This gets a new LightBin.  It creates one if there are none
      * on the freelist.
      */
-    LightBin getLightBin(int maxLights, BackgroundRetained bg, boolean inOpaque) {
+    private LightBin getLightBin(int maxLights, BackgroundRetained bg, boolean inOpaque) {
 	LightBin lightBin;
 
 	if (lightBinFreelist.size() > 0) {
@@ -4772,7 +4836,7 @@ System.out.println("......tb.soleUser= " +
      * This gets a new TextureBin.  It creates one if there are none
      * on the freelist.
      */
-    TextureBin getTextureBin(TextureUnitStateRetained texUnitState[],
+    private TextureBin getTextureBin(TextureUnitStateRetained texUnitState[],
 				AppearanceRetained app) {
 	TextureBin textureBin;
 
@@ -4791,7 +4855,7 @@ System.out.println("......tb.soleUser= " +
      * This gets a new RenderMolecule.  It creates one if there are none
      * on the freelist.
      */
-    RenderMolecule getRenderMolecule(GeometryAtom ga,
+   private  RenderMolecule getRenderMolecule(GeometryAtom ga,
 				     PolygonAttributesRetained polya,
 				     LineAttributesRetained linea,
 				     PointAttributesRetained pointa,
@@ -4823,7 +4887,7 @@ System.out.println("......tb.soleUser= " +
      * This finds or creates an EnviornmentSet for a given RenderAtom.
      * This also deals with empty LightBin lists.  
      */
-    EnvironmentSet findEnvironmentSet(RenderAtom ra) {
+    private EnvironmentSet findEnvironmentSet(RenderAtom ra) {
 	LightBin currentBin, lightBin ;
 	EnvironmentSet currentEnvSet, newBin;
 	int i;
@@ -5801,6 +5865,7 @@ System.out.println("......tb.soleUser= " +
 	lightBinFreelist.clear();
 	envSetFreelist.clear();
 	attrBinFreelist.clear();
+	shaderBinFreelist.clear();
 	textureBinFreelist.clear();
 	renderMoleculeFreelist.clear();
 	
@@ -5848,22 +5913,26 @@ System.out.println("......tb.soleUser= " +
 		AttributeBin abin = envSet.attributeBinList;
 		while (abin != null) {
 		    System.out.println("      ABin = "+abin);
-		    TextureBin tbin = abin.textureBinList;
-		    while (tbin != null) {
-			System.out.println("         Tbin = "+tbin);
-			RenderMolecule rm = tbin.opaqueRMList;
-			System.out.println("===> Begin Dumping OpaqueBin");
-			dumpRM(rm);
-			System.out.println("===> End Dumping OpaqueBin");
-			rm = tbin.transparentRMList;
-			System.out.println("===> Begin Dumping transparentBin");
-			dumpRM(rm);
-			System.out.println("===> End Dumping transparentBin");
-			tbin = tbin.next;
+		    ShaderBin sbin = abin.shaderBinList;
+		    while (sbin != null) {
+			System.out.println("         SBin = "+sbin);
+			TextureBin tbin = sbin.textureBinList;
+			while (tbin != null) {
+			    System.out.println("             Tbin = "+tbin);
+			    RenderMolecule rm = tbin.opaqueRMList;
+			    System.out.println("===> Begin Dumping OpaqueBin");
+			    dumpRM(rm);
+			    System.out.println("===> End Dumping OpaqueBin");
+			    rm = tbin.transparentRMList;
+			    System.out.println("===> Begin Dumping transparentBin");
+			    dumpRM(rm);
+			    System.out.println("===> End Dumping transparentBin");
+			    tbin = tbin.next;
+			}
+			sbin = sbin.next;
 		    }
 		    abin = abin.next;
 		}
-		
 		envSet = envSet.next;
 	    }
 	    obin = obin.next;
@@ -5914,7 +5983,7 @@ System.out.println("......tb.soleUser= " +
 	// System.out.println("&&&&&&&&&&&&removeTransparentObject r = "+obj);
 	if (obj instanceof TextureBin) {
 	    TextureBin tb = (TextureBin) obj;
-	    if (tb.attributeBin.environmentSet.lightBin.geometryBackground != null) {
+	    if (tb.environmentSet.lightBin.geometryBackground != null) {
 		TransparentRenderingInfo t = tb.parentTInfo;
 
 		// Remove the element from the transparentInfo struct
@@ -6018,7 +6087,7 @@ System.out.println("......tb.soleUser= " +
 	if (obj instanceof TextureBin) {
 	    TextureBin tb = (TextureBin) obj;
 	    // Background geometry
-	    if (tb.attributeBin.environmentSet.lightBin.geometryBackground != null) {
+	    if (tb.environmentSet.lightBin.geometryBackground != null) {
 		bgTransparentInfo = computeDirtyAcrossTransparentBins(tb, bgTransparentInfo);		
 	    }
 	    else {
@@ -6063,8 +6132,8 @@ System.out.println("......tb.soleUser= " +
     TransparentRenderingInfo computeDirtyAcrossTransparentBins(TextureBin tb, TransparentRenderingInfo startinfo) {
 	TransparentRenderingInfo tinfo = getTransparentInfo();
 	/*
-	  tinfo.lightBin = tb.attributeBin.environmentSet.lightBin;
-	  tinfo.envSet = tb.attributeBin.environmentSet;
+	  tinfo.lightBin = tb.environmentSet.lightBin;
+	  tinfo.envSet = tb.environmentSet;
 	  tinfo.aBin = tb.attributeBin;
 	*/
 	tinfo.rm = tb.transparentRMList;
@@ -6936,7 +7005,7 @@ System.out.println("......tb.soleUser= " +
 		if (ra== null || !ra.inRenderBin())
 		    continue;
 	    
-		EnvironmentSet e= ra.renderMolecule.textureBin.attributeBin.environmentSet;
+		EnvironmentSet e= ra.renderMolecule.textureBin.environmentSet;
 		ra.renderMolecule.removeRenderAtom(ra);
 		reInsertAttributeBin(e, ra);
 	    }

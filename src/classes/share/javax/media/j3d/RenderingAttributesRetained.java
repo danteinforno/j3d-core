@@ -37,6 +37,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 
     static final int RASTER_OP_VALUE		= 0x80;
 
+    static final int DEPTH_TEST_FUNC      	= 0x100;
+
 
     // depth buffer Enable for hidden surface removal
     boolean depthBufferEnable = true;
@@ -47,6 +49,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
     
     int alphaTestFunction = RenderingAttributes.ALWAYS;
 
+    int depthTestFunction = RenderingAttributes.LESS_OR_EQUAL;
+
     boolean visible  = true;
 
     boolean ignoreVertexColors = false;
@@ -56,6 +60,7 @@ class RenderingAttributesRetained extends NodeComponentRetained {
     int rasterOp = RenderingAttributes.ROP_COPY;
     
     // depth buffer comparison function. Used by multi-texturing only
+    //[PEPE] NOTE: they are both unused. Candidates for removal.
     static final int LESS = 0;
     static final int LEQUAL = 1;
 
@@ -113,16 +118,33 @@ class RenderingAttributesRetained extends NodeComponentRetained {
    	return visible;
     }
 
-    final void initIgnoreVertexColors(boolean state) {
+ 
+    /**
+     * Enables or disables vertex colors for this RenderAttributes
+     * component object.
+     * @param state true or false to enable or disable vertex colors
+     */
+   final void initIgnoreVertexColors(boolean state) {
 	ignoreVertexColors = state;
     }
 
+    /**
+     * Enables or disables vertex colors for this RenderAttributes
+     * component object and sends a 
+     * message notifying the interested structures of the change.
+     * @param state true or false to enable or disable depth vertex colors
+     */
     final void setIgnoreVertexColors(boolean state) {
 	initIgnoreVertexColors(state);
 	sendMessage(IGNORE_VCOLOR,
 		    (state ? Boolean.TRUE: Boolean.FALSE));
     }
 
+    /**
+     * Retrieves the state of vertex color Enable flag
+     * @return true if vertex colors are enabled, false
+     * if vertex colors are disabled
+     */
     final boolean getIgnoreVertexColors() {
 	return ignoreVertexColors;
     }
@@ -260,6 +282,47 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	return alphaTestFunction;
     }
 
+    /**
+     * Set depth test function.  This function is used to compare the
+     * depth test value with each per-pixel alpha value.  If the test
+     * passes, then the pixel is written otherwise the pixel is not
+     * written.
+     * @param function the new depth test function.  One of:
+     * ALWAYS, NEVER, EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER,
+     * GREATER_OR_EQUAL.
+     * Default value is LESS_OR_EQUAL
+     * @since Java 3D 1.4
+     */
+    final void initDepthTestFunction(int function){
+	depthTestFunction = function;
+    }
+
+    /**
+     * Set depth test function.  This function is used to compare the
+     * depth test value with each per-pixel depth value.  If the test
+     * passes, the pixel is written otherwise the pixel is not
+     * written.
+     * @param function the new depth test function.  One of
+     * ALWAYS, NEVER, EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER,
+     * GREATER_OR_EQUAL
+     * Default value is LESS_OR_EQUAL
+     * @since Java 3D 1.4
+     */
+    final void setDepthTestFunction(int function){
+	initDepthTestFunction(function);
+	sendMessage(DEPTH_TEST_FUNC, new Integer(function));
+    }
+
+    /**
+     * Retrieves current depth test function.
+     * @return the current depth test function
+     * @exception CapabilityNotSetException if appropriate capability is 
+     * not set and this object is part of live or compiled scene graph
+     * @since Java 3D 1.4
+     */
+    final int getDepthTestFunction(){
+        return depthTestFunction;
+    }
 
     /**
      * Initialize the raster op enable flag
@@ -315,9 +378,10 @@ class RenderingAttributesRetained extends NodeComponentRetained {
                              boolean depthBufferEnableOverride,
 			     boolean depthBufferEnable, 
 			     boolean depthBufferWriteEnable,
+                             int depthTestFunction,
 			     float alphaTestValue, int alphaTestFunction,
 			     boolean ignoreVertexColors,
-			     boolean rasterOpEnable, int rasterOp);
+			     boolean rasterOpEnable, int rasterOp );
 
     /**
      * Updates the native context.
@@ -327,8 +391,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
                       boolean depthBufferEnableOverride) {
 	updateNative(ctx, 
 		     depthBufferWriteEnableOverride, depthBufferEnableOverride,
-		     depthBufferEnable, depthBufferWriteEnable, alphaTestValue, 
-		     alphaTestFunction, ignoreVertexColors,
+		     depthBufferEnable, depthBufferWriteEnable,  depthTestFunction,
+                     alphaTestValue, alphaTestFunction, ignoreVertexColors,
 		     rasterOpEnable, rasterOp);
     }
 
@@ -376,6 +440,9 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	else if ((component & DEPTH_WRITE_ENABLE) != 0) {
 	    mirrorRa.depthBufferWriteEnable = ((Boolean)value).booleanValue();
 	}
+	else if ((component & DEPTH_TEST_FUNC) != 0) {
+	    mirrorRa.depthTestFunction = ((Integer)value).intValue();
+	}
 	else if ((component & ALPHA_TEST_VALUE) != 0) {
 	    mirrorRa.alphaTestValue = ((Float)value).floatValue();
 	}
@@ -406,7 +473,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 		(rr.visible == visible) &&
 		(rr.ignoreVertexColors == ignoreVertexColors) &&
 		(rr.rasterOpEnable == rasterOpEnable) &&
-		(rr.rasterOp == rasterOp));
+		(rr.rasterOp == rasterOp) &&
+		(rr.depthTestFunction == depthTestFunction));
     }
 
     protected void set(RenderingAttributesRetained ra) {
@@ -415,6 +483,7 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	depthBufferWriteEnable = ra.depthBufferWriteEnable;
 	alphaTestValue = ra.alphaTestValue;
 	alphaTestFunction = ra.alphaTestFunction;
+	depthTestFunction = ra.depthTestFunction;
 	visible = ra.visible;
 	ignoreVertexColors = ra.ignoreVertexColors;
 	rasterOpEnable = ra.rasterOpEnable;
@@ -478,6 +547,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	    mask = RASTER_OP_ENABLE;
 	if(bit == RenderingAttributes.ALLOW_DEPTH_ENABLE_WRITE)
 	    mask = DEPTH_WRITE_ENABLE;
+	if( bit == RenderingAttributes.ALLOW_DEPTH_TEST_FUNCTION_WRITE)
+	    mask = DEPTH_TEST_FUNC;
 	if (mask != 0)
 	    setFrequencyChangeMask(bit, mask);
 	//	System.out.println("changedFreqent2 = "+changedFrequent);
