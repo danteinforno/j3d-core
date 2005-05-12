@@ -18,7 +18,7 @@
 #include "D3dVertexBuffer.hpp"
 #include "D3dDisplayList.hpp"
 
-#define TEXTURETABLESIZE     8   
+#define TEXTURETABLESIZE     8
 #define TEXSTAGESUPPORT      8
 #define DISPLAYLIST_INITSIZE 8
 #define NOCHANGE             0
@@ -47,8 +47,11 @@ typedef struct _D3DTLVERTEX {
     float tu, tv;
 } D3DTLVERTEX;
 
-typedef vector<LPDIRECT3DRESOURCE9> LPDIRECT3DRESOURCE8Vector;
-typedef vector<LPDIRECT3DVERTEXBUFFER9> LPDIRECT3DVERTEXBUFFER8Vector;
+typedef vector<LPDIRECT3DRESOURCE9> LPDIRECT3DRESOURCE9Vector;
+typedef vector<LPDIRECT3DVERTEXBUFFER9> LPDIRECT3DVERTEXBUFFER9Vector;
+//issue 135 iterator for vectors
+typedef vector<LPDIRECT3DRESOURCE9>::iterator ITER_LPDIRECT3DRESOURCE9;
+typedef vector<LPDIRECT3DVERTEXBUFFER9>::iterator ITER_LPDIRECT3DVERTEXBUFFER9;
 
 class D3dCtx {
 public:
@@ -56,11 +59,11 @@ public:
     HWND   hwnd;                  // window handle
     HWND   topHwnd;               // Top window handle
     D3dDriverInfo  *driverInfo;   // Driver use
-    D3dDeviceInfo  *deviceInfo;   // Device use 
-    
+    D3dDeviceInfo  *deviceInfo;   // Device use
+
     LPDIRECT3D9       pD3D;       // Direct3D interface
     LPDIRECT3DDEVICE9 pDevice;    // Instance of D3D Device
-    
+
     LPDIRECT3DSURFACE9 depthStencilSurface;
 
     // This is used for readRaster and offscreen rendering
@@ -70,33 +73,33 @@ public:
     LPDIRECT3DSURFACE9 backSurface;
 
     // Parameters use for CreateDevice()
-    D3DPRESENT_PARAMETERS d3dPresent; 
+    D3DPRESENT_PARAMETERS d3dPresent;
     DWORD          dwBehavior;
-         
+
     BOOL           offScreen; // true if it is offScreen rendering
                               // in this case only backSurface is used
     DWORD          offScreenWidth;
     DWORD          offScreenHeight;
-    
+
     BOOL           bFullScreen;  // true if in full screen mode
     BOOL           bFullScreenRequired; // true if must run in full
                                         // screen mode or die
-    BOOL           inToggle;     // in toggle fullscreen/window mode 
+    BOOL           inToggle;     // in toggle fullscreen/window mode
     RECT           screenRect;   // coordinate of window relative to
                                  // the whole desktop in multiple monitor
     RECT           windowRect; // coordinate of window relative to
-                               // the current monitor desktop only 
+                               // the current monitor desktop only
     INT            minZDepth;  // min Z depth set in NativeConfigTemplate
 
     DEVMODE        devmode;     // current display mode
     DWORD          antialiasing; // PREFERRED, REQUIRED or UNNECESSARY
 
-    
+
     // Store current color as in OGL glColor()
     float currentColor_r;
-    float currentColor_g;    
-    float currentColor_b;    
-    float currentColor_a;    
+    float currentColor_g;
+    float currentColor_b;
+    float currentColor_a;
 
     // Two side light is used. Note that D3D don't support two side
     // lighting.
@@ -122,7 +125,7 @@ public:
 
     // temporary variables used for building VertexBuffer
     LPD3DVERTEXBUFFER pVB;     // point to the current VB being update
-    DWORD  texSetUsed;  
+    DWORD  texSetUsed;
     DWORD  texStride[TEXSTAGESUPPORT];
 
     // true when in toggle mode
@@ -144,13 +147,13 @@ public:
     // Texture Cube Mapping related variables
     LPDIRECT3DCUBETEXTURE9 *cubeMapTable;
     DWORD cubeMapTableLen;
-    
+
     // true if hardware support MultiTexture
     BOOL multiTextureSupport;
 
     // handle to monitor that this ctx belongs to. This is equal to
     // NULL if this window is a primary display screen or it covers
-    // more than one screen. 
+    // more than one screen.
     HMONITOR monitor;
 
     // D3D don't have concept of current texture unit stage,
@@ -160,7 +163,7 @@ public:
 
     // true if linear filtering is to be used
     BOOL texLinearMode;
-    
+
 
     // This is used temporary to store the blend function
     // when two pass texture is used to simulate BLEND mode
@@ -169,7 +172,7 @@ public:
     DWORD blendEnable;
 
 
-    // This is used for to transform vertex 
+    // This is used for to transform vertex
     // from world to screen coordinate
     LPDIRECT3DVERTEXBUFFER9 srcVertexBuffer;
     LPDIRECT3DVERTEXBUFFER9 dstVertexBuffer;
@@ -188,7 +191,7 @@ public:
     BOOL texTransformSet[TEXSTAGESUPPORT];
 
     // Remember the last Texture Transform pass down, since
-    // TexCoordGen may destroy it in some mode so we have to 
+    // TexCoordGen may destroy it in some mode so we have to
     // restore it later manually.
     D3DXMATRIX texTransform[TEXSTAGESUPPORT];
 
@@ -237,8 +240,8 @@ public:
 
     // Use to free resource surface in swap()
     BOOL useFreeList0;
-    LPDIRECT3DRESOURCE8Vector freeResourceList0;
-    LPDIRECT3DRESOURCE8Vector freeResourceList1;
+    LPDIRECT3DRESOURCE9Vector freeResourceList0;
+    LPDIRECT3DRESOURCE9Vector freeResourceList1;
     D3dVertexBufferVector freeVBList0;
     D3dVertexBufferVector freeVBList1;
 
@@ -282,12 +285,12 @@ public:
     VOID restoreDefaultLightMaterial();
     VOID freeResource(LPDIRECT3DRESOURCE9 surf);
     VOID freeVB(LPD3DVERTEXBUFFER vb);
-    
+
     VOID freeList();
-    VOID freeResourceList(LPDIRECT3DRESOURCE8Vector *v);
-    VOID freeVBList(D3dVertexBufferVector *v); 
+    VOID freeResourceList(LPDIRECT3DRESOURCE9Vector *v);
+    VOID freeVBList(D3dVertexBufferVector *v);
     BOOL createFrontBuffer();
- 
+
     static D3dDeviceInfo* selectDevice(int deviceID,
 				       D3dDriverInfo *driverInfo,
 				       BOOL *bFullScreen,
@@ -298,12 +301,12 @@ public:
     static VOID setDeviceFromProperty(JNIEnv *env);
     static VOID setDebugProperty(JNIEnv *env);
     static VOID setVBLimitProperty(JNIEnv *env);
-    static VOID setImplicitMultisamplingProperty(JNIEnv *env);    
+    static VOID setImplicitMultisamplingProperty(JNIEnv *env);
 
 private:
 
     RECT savedTopRect;        // for toggle between fullscreen mode
-    RECT savedClientRect;  
+    RECT savedClientRect;
     DWORD winStyle;
 
     VOID createVertexBuffer();
@@ -315,7 +318,7 @@ private:
     static VOID printWarningMessage(D3dDeviceInfo *deviceInfo);
     static VOID showError(HWND hwnd, char *s, BOOL bFullScreen);
     VOID setDefaultAttributes();
-    VOID printInfo(D3DPRESENT_PARAMETERS *d3dPresent); 
+    VOID printInfo(D3DPRESENT_PARAMETERS *d3dPresent);
     VOID setWindowMode();
 };
 
