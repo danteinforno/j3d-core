@@ -23,6 +23,12 @@
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
   </target>
 
+  <target name="nativeSetup-debug-solaris-x86" if="isSolarisOnX86">
+	<property name="bldFlag" value="g"/>
+	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
+  </target>
+
   <target name="nativeSetup-debug-linux" if="isLinuxOnX86">
 	<property name="bldFlag" value="g"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
@@ -49,7 +55,7 @@
   </target>
 
 
-  <target name="nativeSetup-debug" depends="nativeSetup-debug-solaris, nativeSetup-debug-linux, nativeSetup-debug-linux-amd64, nativeSetup-debug-linux-ia64, nativeSetup-debug-win32">
+  <target name="nativeSetup-debug" depends="nativeSetup-debug-solaris, nativeSetup-debug-solaris-x86, nativeSetup-debug-linux, nativeSetup-debug-linux-amd64, nativeSetup-debug-linux-ia64, nativeSetup-debug-win32">
 	<property name="bldType" value="debug"/>
 	<property name="javahCoreSrc"     
 	 location="${src}/classes/share/javax/media/j3d"/>
@@ -65,6 +71,12 @@
 	<property name="bldFlag" value="O"/>
 	<property name="coreLibDependency" value="lib/sparc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
+  </target>
+
+  <target name="nativeSetup-opt-solaris-x86" if="isSolarisOnX86">
+	<property name="bldFlag" value="O"/>
+	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux" if="isLinuxOnX86">
@@ -92,7 +104,7 @@
 	<property name="coreUtilsLibDependency" value="bin/j3dutils.dll"/>
   </target>
 
-  <target name="nativeSetup-opt" depends="nativeSetup-opt-solaris, nativeSetup-opt-linux, nativeSetup-opt-linux-amd64, nativeSetup-opt-linux-ia64, nativeSetup-opt-win32">
+  <target name="nativeSetup-opt" depends="nativeSetup-opt-solaris, nativeSetup-opt-solaris-x86, nativeSetup-opt-linux, nativeSetup-opt-linux-amd64, nativeSetup-opt-linux-ia64, nativeSetup-opt-win32">
 	<property name="bldType" value="opt"/>
 	<property name="javahCoreSrc"     
 	 location="${src}/classes/share/javax/media/j3d"/>

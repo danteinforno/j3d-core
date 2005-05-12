@@ -2452,14 +2452,23 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	return super.getEffectiveBounds();
     }
     
-    // returns true if children cannot be read/written
+    // returns true if children cannot be read/written and none of the
+    // children can read their parent (i.e., "this") group node
     boolean isStaticChildren() {
 	if (source.getCapability(Group.ALLOW_CHILDREN_READ) ||
 	    source.getCapability(Group.ALLOW_CHILDREN_WRITE)) {
 	    return false;
 	}
+
+	for (int i = children.size() - 1; i >= 0; i--) {
+	    SceneGraphObjectRetained nodeR =
+		(SceneGraphObjectRetained) children.get(i);
+	    if (nodeR != null && nodeR.source.getCapability(Node.ALLOW_PARENT_READ)) {
+		return false;
+	    }
+	}
+
 	return true;
-	
     }
 
 

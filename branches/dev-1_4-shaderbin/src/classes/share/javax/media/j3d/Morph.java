@@ -173,6 +173,7 @@ public class Morph extends Leaf {
      * a null or zero-length array of GeometryArray objects is
      * permitted, and specifies that no geometry is drawn.  In this case,
      * the array of weights is initialized to a zero-length array.
+     *
      * @exception IllegalArgumentException if any of the specified
      * geometry array objects differ from each other in any of the
      * following ways:
@@ -189,6 +190,10 @@ public class Morph extends Leaf {
      * (coord, color, normal, texcoord),
      * for indexed geometry by-reference</li>
      * </ul>
+     *
+     * @exception UnsupportedOperationException if the specified
+     * geometry arrays contain vertex attributes (that is, if their
+     * vertexFormat includes the <code>VERTEX_ATTRIBUTES</code> flag).
      */
     public Morph(GeometryArray geometryArrays[]) {
 	((MorphRetained)retained).setGeometryArrays(geometryArrays);
@@ -197,11 +202,13 @@ public class Morph extends Leaf {
     /**
      * Constructs and initializes a Morph node with the specified array
      * of GeometryArray objects and the specified appearance object.
+     *
      * @param geometryArrays the geometry components of the Morph node
      * a null or zero-length array of GeometryArray objects is
      * permitted, and specifies that no geometry is drawn.  In this case,
      * the array of weights is initialized to a zero-length array.
      * @param appearance the appearance component of the Morph node
+     *
      * @exception IllegalArgumentException if any of the specified
      * geometry array objects differ from each other in any of the
      * following ways:
@@ -218,6 +225,10 @@ public class Morph extends Leaf {
      * (coord, color, normal, texcoord),
      * for indexed geometry by-reference</li>
      * </ul>
+     *
+     * @exception UnsupportedOperationException if the specified
+     * geometry arrays contain vertex attributes (that is, if their
+     * vertexFormat includes the <code>VERTEX_ATTRIBUTES</code> flag).
      */
     public Morph(GeometryArray geometryArrays[], Appearance appearance) {
 	((MorphRetained)retained).setGeometryArrays(geometryArrays);
@@ -305,6 +316,10 @@ public class Morph extends Leaf {
      * (coord, color, normal, texcoord),
      * for indexed geometry by-reference</li>
      * </ul>
+     *
+     * @exception UnsupportedOperationException if the specified
+     * geometry arrays contain vertex attributes (that is, if their
+     * vertexFormat includes the <code>VERTEX_ATTRIBUTES</code> flag).
      */
     public void setGeometryArrays(GeometryArray geometryArrays[]) {
 
