@@ -4788,7 +4788,7 @@ System.out.println("......tb.soleUser= " +
     private ShaderBin getShaderBin(ShaderAppearanceRetained sApp) {
 	ShaderBin shaderBin;
 	if (shaderBinFreelist.size() > 0) {
-	    shaderBin = (ShaderBin)attrBinFreelist.remove(shaderBinFreelist.size()-1);
+	    shaderBin = (ShaderBin)shaderBinFreelist.remove(shaderBinFreelist.size()-1);
 	    shaderBin.reset(sApp, this);
 	} else {
 	    shaderBin = new ShaderBin( sApp, this);
