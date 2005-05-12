@@ -33,15 +33,9 @@ class SourceCodeShaderRetained extends ShaderRetained {
     
     final void set(int shadingLanguage, int shaderType, String shaderSource) {
 
-	((ShaderRetained)this).set(shadingLanguage, shaderType);
-	this.shaderSource = shaderSource;	
-
-	if (source.isLive()) {
-	    // TODO : - Chien
-	    // send a SHADER_CREATED message in order to 
-	    // notify all the users of the creation.
-            // sendMessage(SHADER_CREATED, null);
-	}
+	this.shadingLanguage = shadingLanguage;
+	this.shaderType = shaderType;
+	this.shaderSource = shaderSource;
     }
 
     /**
@@ -57,16 +51,45 @@ class SourceCodeShaderRetained extends ShaderRetained {
 	this.shaderSource = shaderSource;
     }
 
+    
     void setLive(boolean inBackgroundGroup, int refCount) {
+	// System.out.println("SourceCodeShaderRetained.setLive()");
 	super.setLive(inBackgroundGroup, refCount);
+	//TODO : Do some thing here.  - Chien.
+
     }
 
     void clearLive(int refCount) {
+	// System.out.println("SourceCodeShaderRetained.clearLive()");
+
 	super.clearLive(refCount);
 	if (this.refCount <= 0) {
 	    // Should this be done here ? In user thread ? --- Chien
 	    // freeShader();
 	}
+    }
+
+
+    synchronized void createMirrorObject() {
+	// System.out.println("SourceCodeShaderRetained : createMirrorObject");
+
+	if (mirror == null) {
+	    // Check the capability bits and let the mirror object
+	    // point to itself if is not editable
+	    if (isStatic()) {
+		mirror = this;
+	    } else {
+		SourceCodeShaderRetained  mirrorSCS  
+		    = new SourceCodeShaderRetained();
+		mirrorSCS.source = source;
+		mirrorSCS.set(shadingLanguage, shaderType, shaderSource);
+		mirror = mirrorSCS;
+	    }
+	} else {
+	    ((SourceCodeShaderRetained) mirror).set(shadingLanguage,
+						    shaderType, shaderSource);
+	}
+
     }
 
     synchronized void updateMirrorObject(int component, Object value) {

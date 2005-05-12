@@ -113,9 +113,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
 	    /* create the fragment shader */
 	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
     }
-    else {
-	/* Problem ! */
-    }
     
     shaderIdPtr[0] = (jlong) shaderHandle;
     (*env)->ReleaseLongArrayElements(env, shaderIdArray, shaderIdPtr, 0); 
@@ -136,6 +133,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
     jlong ctxInfo,
     jlong shaderId)
 {
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    ctxProperties->pfnglglDeleteObjectARB(shaderId);
     
     return NULL; /* Will handle error reporting later. Return null for now */
 }
@@ -228,6 +228,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
     jlong ctxInfo,
     jlong shaderProgramId)
 {
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    ctxProperties->pfnglglDeleteObjectARB(shaderProgramId);
 
     return NULL; /* Will handle error reporting later. Return null for now */
 }

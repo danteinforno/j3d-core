@@ -83,9 +83,6 @@ class AppearanceRetained extends NodeComponentRetained {
     static final int POINT              = 0x0200;
     static final int TEXTURE_UNIT_STATE = 0x0400;
 
-    static final int ALL_COMPONENTS = (MATERIAL|TEXTURE|TEXCOORD_GEN|TEXTURE_ATTR|COLOR|TRANSPARENCY|
-				       RENDERING|POLYGON|LINE|POINT|TEXTURE_UNIT_STATE);
-
     static final int ALL_SOLE_USERS = 0;
 
     // A pointer to the scene graph appearance object
@@ -877,6 +874,7 @@ class AppearanceRetained extends NodeComponentRetained {
     }
 
     void setLive(boolean backgroundGroup, int refCount) {
+	// System.out.println("AppearceRetained.setLive()");
 	doSetLive(backgroundGroup, refCount);
 	markAsLive();
     }
@@ -886,6 +884,7 @@ class AppearanceRetained extends NodeComponentRetained {
      * objects.
      */
     void doSetLive(boolean backgroundGroup, int refCount) {
+	// System.out.println("AppearceRetained.doSetLive()");
 	
 	if (material != null) {	    
 	

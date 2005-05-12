@@ -32,17 +32,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     // loaded the shader program. 0 means otherwise.
     int resourceCreationMask = 0x0;
 
-    // Each bit corresponds to a unique renderer if shared context
-    // or a unique canvas otherwise
-    // This mask specifies if shader program are up-to-date.
-    // 0 at a particular bit means shader program are not up-to-date.
-    // 1 means otherwise. If it specifies 0, then it needs to go
-    // through the [*** imageUpdateInfo ***] to update the shader
-    // program accordingly.
-    // 
-    int resourceUpdatedMask = 0x0; 
-
-
     // shaderProgramId use by native code. One per Canvas.
     protected long[] shaderProgramIds;   
 
@@ -128,6 +117,5 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Method to link the native shader program.
      */
     abstract ShaderError linkShaderProgram(long ctx, int cvRdrIndex, ShaderRetained[] shaders);
-
 
 }

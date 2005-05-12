@@ -130,6 +130,8 @@ void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextProperties
 	    (PFNGLCREATEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateProgramObjectARB");
 	ctxInfo->pfnglCreateShaderObjectARB =
 	    (PFNGLCREATESHADEROBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateShaderObjectARB");
+	ctxInfo->pfnglglDeleteObjectARB =
+	    (PFNGLDELETEOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glDeleteObjectARB");
 	ctxInfo->pfnglGetInfoLogARB =
 	    (PFNGLGETINFOLOGARBPROC)dlsym(RTLD_DEFAULT, "glGetInfoLogARB");
 	ctxInfo->pfnglGetObjectParameterivARB =
@@ -168,6 +170,8 @@ void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextProperties
 	    (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
 	ctxInfo->pfnglCreateShaderObjectARB =
 	    (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
+	ctxInfo->pfnglglDeleteObjectARB =
+	    (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
 	ctxInfo->pfnglGetInfoLogARB =
 	    (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
 	ctxInfo->pfnglGetObjectParameterivARB =
@@ -3159,6 +3163,7 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->pfnglCompileShaderARB = NULL;
     ctxInfo->pfnglCreateProgramObjectARB = NULL;
     ctxInfo->pfnglCreateShaderObjectARB = NULL;
+    ctxInfo->pfnglglDeleteObjectARB = NULL;
     ctxInfo->pfnglGetInfoLogARB = NULL;
     ctxInfo->pfnglGetObjectParameterivARB = NULL;
     ctxInfo->pfnglLinkProgramARB = NULL;

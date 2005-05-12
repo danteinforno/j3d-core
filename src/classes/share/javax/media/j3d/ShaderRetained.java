@@ -22,17 +22,12 @@ import java.util.*;
  * future.
  */
 abstract class ShaderRetained extends NodeComponentRetained {
-    private int shadingLanguage;
-    private int shaderType;
+    protected int shadingLanguage;
+    protected int shaderType;
 
-    // lists of Node Components that are referencing this Shader
-    // object. This list is used to notify the referencing node 
-    // components of any changes of this Shader.
-
-    private ArrayList userList = new ArrayList();
 
     // shaderId use by native code. One per Canvas.
-    private long[] shaderIdPerCanvas;   
+    protected long[] shaderIdPerCanvas;   
     
     // Each bit corresponds to a unique renderer if shared context
     // or a unique canvas otherwise.
@@ -63,19 +58,6 @@ abstract class ShaderRetained extends NodeComponentRetained {
 	return shaderType;
     }
 
-     // Add a user to the userList
-     synchronized void addUser(NodeComponentRetained node) {
-        userList.add(node);
-     }
-
-     // Add a user to the  userList
-     synchronized void removeUser(NodeComponentRetained node) {
-	int i = userList.indexOf(node);
-	if (i >= 0) {
-	    userList.remove(i);
-	}
-     }
-
      /**
       * Shader object doesn't really have mirror object.
       * But it's using the updateMirrorObject interface to propagate
@@ -92,7 +74,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
         J3dMessage createMessage = VirtualUniverse.mc.getMessage();
         createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES |
 				J3dThread.UPDATE_RENDER;
-        createMessage.type = J3dMessage.IMAGE_COMPONENT_CHANGED;
+        createMessage.type = J3dMessage.SHADER_CHANGED;
         createMessage.universe = null;
         createMessage.args[0] = this;
         createMessage.args[1]= new Integer(attrMask);
