@@ -27,51 +27,14 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     // State variables: these should all be initialized to approproate
     // Java 3D defaults.
     //
-
-    /* KCR: BEGIN CG SHADER HACK */
-    // TODO: Change this to ShaderProgramRetained shaderProgram ...
-    // Shader program  object
  
-    ShaderProgramRetained shaderProgram = null;
+    protected ShaderProgramRetained shaderProgram = null;
+  
+
     // ShaderAttributeSetRetained shaderAttributeSet = null;
-
-    ShaderAttributeSet shaderAttributeSet = null;
-
-    /* KCR: END CG SHADER HACK */
-
-
-    /*
-// TODO: IMPLEMENT THIS
-    // Cache used during compilation.  If map == compState, then
-    // mapAppearance can be used for this appearance
-    CompileState map = null;
-    AppearanceRetained mapAppearance = null;
-
-// TODO: FIGURE OUT HOW TO CLEANLY ADD IN SHADER_PROGRAM to components mask
-
-    static final int MATERIAL           = 0x0001;
-    static final int TEXTURE            = 0x0002;
-    static final int TEXCOORD_GEN       = 0x0004;
-    static final int TEXTURE_ATTR       = 0x0008;
-    static final int COLOR              = 0x0010;
-    static final int TRANSPARENCY       = 0x0020;
-    static final int RENDERING          = 0x0040;
-    static final int POLYGON            = 0x0080;
-    static final int LINE               = 0x0100;
-    static final int POINT              = 0x0200;
-    static final int TEXTURE_UNIT_STATE = 0x0400;
-
-    static final int ALL_COMPONENTS = (MATERIAL|TEXTURE|TEXCOORD_GEN|TEXTURE_ATTR|COLOR|TRANSPARENCY|
-				       RENDERING|POLYGON|LINE|POINT|TEXTURE_UNIT_STATE);
-
-    static final int ALL_SOLE_USERS = 0;
-    */
-
+    protected ShaderAttributeSet shaderAttributeSet = null;    
+    
     static final int SHADER_PROGRAM = 0x0800;
-
-    // A pointer to the scene graph appearance object
-    ShaderAppearanceRetained sgApp = null;
-
 
     /**
      * Set the shader program object to the specified object.
@@ -79,10 +42,6 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * and shader program attributes.
      */
     void setShaderProgram(ShaderProgram sp) {
-	/* KCR: BEGIN CG SHADER HACK */
-	// TODO: implement this for real once we have a ShaderProgramRetained object
-	this.shaderProgram = shaderProgram;
-	/* KCR: END CG SHADER HACK */
 
 	synchronized(liveStateLock) {
 	    if (source.isLive()) {
@@ -97,12 +56,14 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 								 refCount);
 		    ((ShaderProgramRetained)sp.retained).copyMirrorUsers(this);
 	    	}
-		sendMessage(TEXTURE,  
+		
+		// TODO : Need to implement RenderBin side of code.
+		System.out.print("**** ShaderAppearceRetained.setShaderProgram()  more work needed!");
+		sendMessage(SHADER_PROGRAM,  
 			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null), 
 			    true);
-
-	    } 
-
+	       
+	    }
 
 	    if (sp == null) {
 		this.shaderProgram = null;
@@ -110,7 +71,6 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 		this.shaderProgram = (ShaderProgramRetained)sp.retained;
 	    }
 	}
-
     }
 
 
@@ -137,7 +97,33 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     }
 
 
+    /**
+     * Retrieves the current ShaderAttributeSet object.
+     * @return current ShaderAttributeSet object
+     */
+    ShaderAttributeSet getShaderAttributeSet() {
+	return (shaderAttributeSet == null ? null : shaderAttributeSet);	
+	// return (shaderAttributeSet == null ? null : (ShaderAttributeSet)shaderAttributeSet.source);	
+
+    }
+
+    /* TODO : Need to expand from AppearanceRetained 
+
+    public boolean equals(Object obj) {
+	return ((obj instanceof AppearanceRetained) &&
+		equals((AppearanceRetained) obj));
+    }
+
+    boolean equals(AppearanceRetained app) {
+        boolean flag;
+
+    }
+
+    */
+
     synchronized void createMirrorObject() {
+	// System.out.println("ShaderAppearanceRetained : createMirrorObject()");
+
 	if (mirror == null) {
 	    // we can't check isStatic() since it sub-NodeComponent
 	    // create a new one, we should create a
@@ -154,15 +140,20 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * is not null.
      */
     synchronized void initMirrorObject() {
+	// System.out.println("ShaderAppearanceRetained : initMirrorObject()");
 
 	super.initMirrorObject();
 
 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
 
-	/* KCR: BEGIN CG SHADER HACK */
-	mirrorApp.shaderProgram = shaderProgram;
+	mirrorApp.shaderProgram = (ShaderProgramRetained)shaderProgram.mirror;
+
+	/* TODO : Handle ShaderAttributeSet ...
+	   mirrorApp.shaderAttributeSet = 
+	   (ShaderAttributeSetRetained)shaderAttributeSet.mirror;
+	*/
 	mirrorApp.shaderAttributeSet = shaderAttributeSet;
-	/* KCR: END CG SHADER HACK */
+
     }
 
   /**
@@ -170,25 +161,24 @@ class ShaderAppearanceRetained extends AppearanceRetained {
    *  given "value"
    */
     synchronized void updateMirrorObject(int component, Object value) {
-	super.updateMirrorObject(component, value);
 
+	// System.out.println("ShaderAppearanceRetained : updateMirrorObject()");
+	super.updateMirrorObject(component, value);
+ 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
+	if ((component & SHADER_PROGRAM) != 0) {
+	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
+	}
 
 	/*
 // TODO: IMPLEMENT THIS
-	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
+ 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
 	if ((component & SHADER_PROGRAM) != 0) {
 	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
 	}
 	else if ((component & SHADER_PARAMETERS) != 0) {
-	    mirrorApp.shaderProgram = (ShaderParametersRetained)value;
+	    mirrorApp.shaderParameters = (ShaderParametersRetained)value;
 	}
 	*/
-    }
-
-
-    void setLive(boolean backgroundGroup, int refCount) {
-	doSetLive(backgroundGroup, refCount);
-	markAsLive();
     }
 
     /**
@@ -196,18 +186,21 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * objects.
      */
     void doSetLive(boolean backgroundGroup, int refCount) {
+	// System.out.println("ShaderAppearceRetained.doSetLive()");
+
+
+	if (shaderProgram != null) {
+	    shaderProgram.setLive(backgroundGroup, refCount);
+	}
+
 
 	/*
-// TODO: IMPLEMENT THIS
+	// TODO: IMPLEMENT THIS
 
 	if (shaderParameters != null) {
 	    shaderParameters.setLive(backgroundGroup, refCount);
 	}
 	*/
-
-	if (shaderProgram != null) {
-	    shaderProgram.setLive(backgroundGroup, refCount);
-	}
 
 	// Increment the reference count and initialize the appearance
 	// mirror object

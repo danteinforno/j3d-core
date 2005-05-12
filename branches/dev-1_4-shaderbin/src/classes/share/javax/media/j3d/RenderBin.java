@@ -4320,7 +4320,7 @@ System.out.println("......tb.soleUser= " +
 	environmentSet = findEnvironmentSet(ra);
 	attributeBin = findAttributeBin(environmentSet, ra);
 
-	System.out.println("RenderBin : findShaderBin()");
+	// System.out.println("RenderBin : findShaderBin()");
 	shaderBin = findShaderBin(attributeBin, ra);
 
 	textureBin = findTextureBin(shaderBin, ra);

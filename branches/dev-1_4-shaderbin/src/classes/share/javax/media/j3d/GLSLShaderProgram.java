@@ -103,7 +103,7 @@ public class GLSLShaderProgram extends ShaderProgram {
     void createRetained() {
 	this.retained = new GLSLShaderProgramRetained();
 	this.retained.setSource(this);
-	System.out.println("GLSLShaderProgram.createRetained()");
+	// System.out.println("GLSLShaderProgram.createRetained()");
     }
 
 

@@ -50,8 +50,6 @@ public class SourceCodeShader extends Shader {
  	((SourceCodeShaderRetained)this.retained).set(shadingLanguage, 
 						      shaderType,
 						      shaderSource);
-	System.out.println("Create SourceCodeShader");
-
     }
 
     /**
@@ -71,7 +69,7 @@ public class SourceCodeShader extends Shader {
     void createRetained() {
 	this.retained = new SourceCodeShaderRetained();
 	this.retained.setSource(this);
-	System.out.println("SourceCodeShader.createRetained()");
+	// System.out.println("SourceCodeShader.createRetained()");
     }
     
     /**

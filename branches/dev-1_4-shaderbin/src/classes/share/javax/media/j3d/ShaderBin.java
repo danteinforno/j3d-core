@@ -59,7 +59,6 @@ class ShaderBin implements ObjectUpdate {
 
     ShaderProgramRetained shaderProgram = null;
     // ShaderAttributeSetRetained shaderAttributeSet = null;
-    // ShaderProgram shaderProgram = null;
     ShaderAttributeSet shaderAttributeSet = null;
     
     // ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
@@ -79,6 +78,8 @@ class ShaderBin implements ObjectUpdate {
 	if(sApp != null) {
 	    shaderProgram = sApp.shaderProgram;
 	    shaderAttributeSet = sApp.shaderAttributeSet; 
+	    /* System.out.println("ShaderBin : shaderProgram's spId " + 
+	       ((GLSLShaderProgramRetained)shaderProgram).spId); */
 	}
 	else {
 	    shaderProgram = null;

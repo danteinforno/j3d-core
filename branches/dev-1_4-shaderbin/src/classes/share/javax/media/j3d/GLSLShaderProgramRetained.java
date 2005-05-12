@@ -23,11 +23,20 @@ package javax.media.j3d;
 
 class GLSLShaderProgramRetained extends ShaderProgramRetained {
 
+    // A list of pre-defined bits to indicate which component
+    // in this GLSLShaderProgram object changed.
+    static final int SHADER_PROGRAM_CREATE              = 0x001;
+    static final int SHADER_UPDATE                      = 0x002;
+    static final int VERTEX_ATTRIBUTE_NAME_UPDATE       = 0x004;
+    static final int SHADER_ATTRIBUTE_UPDATE            = 0x008;
+    static final int SHADER_PROGRAM_DESTROY             = 0x010;
+
     // TODO : Use the members in ShaderProgramRetained -- Chien.
-    private SourceCodeShader vertexShader = null; // TODO: make this an array
-    private SourceCodeShader fragmentShader = null; // TODO: make this an array
     private int shaderProgramId = 0;
 
+    // For debugging only
+    static int GLSLCounter = 0;
+    int spId;
 
     /**
      * Constructs a GLSL shader program node component.
@@ -36,6 +45,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * TODO: ADD MORE DOCUMENTATION HERE.
      */
     GLSLShaderProgramRetained() {
+	// For debugging only
+	spId = GLSLCounter++;
+	// System.out.println("GLSLShaderProgramRetained : creation " + spId);
     }
 
 
@@ -53,11 +65,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      *
      */
     void setShaders(Shader[] shaders) {
-	
-	// TODO: create an array of shaders rather than one of each
 
 	if (shaders == null) {
-	    vertexShader = fragmentShader = null;
+	    this.shaders = null;
 	    return;
 	}
 	
@@ -72,28 +82,107 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	    SourceCodeShader shad = (SourceCodeShader)shaders[i];
 	}
 
-	vertexShader = fragmentShader = null;
+	this.shaders = new ShaderRetained[shaders.length];
+
 	// Copy vertex and fragment shader
-	// TODO: handle array of shaders
 	for (int i = 0; i < shaders.length; i++) {
-	    if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
-		vertexShader = (SourceCodeShader)shaders[i];
-	    }
-	    else { // Shader.SHADER_TYPE_FRAGMENT
-		fragmentShader = (SourceCodeShader)shaders[i];
-	    }
+	    this.shaders[i] = (ShaderRetained)shaders[i].retained;
 	}
-
-
 
     }
 
     // Implement abstract getShaders method (inherit javadoc from parent class)
     Shader[] getShaders() {
 
-	throw new RuntimeException("not implemented");
+	if (shaders == null) {
+	    return null;
+	} else {
+	    Shader shads[] = 
+		new Shader[shaders.length];
+	    for (int i = 0; i < shaders.length; i++) {
+		if (shaders[i] != null) {
+		    shads[i] = (Shader) shaders[i].source;
+		} else {
+		    shads[i] = null;
+		}
+	    }
+	    return shads;
+	}
     }
 
+    void setLive(boolean backgroundGroup, int refCount) {
+
+	// System.out.println("GLSLShaderProgramRetained.setLive()");
+
+        super.doSetLive(backgroundGroup, refCount);
+
+	if (shaders != null) {
+	    for (int i = 0; i < shaders.length; i++){
+		shaders[i].setLive(backgroundGroup, refCount);
+	    }
+	}
+	
+        // Send a message to Rendering Attr stucture to update the resourceMask
+	// via updateMirrorObject().
+	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
+	createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
+	createMessage.type = J3dMessage.SHADER_PROGRAM_CHANGED;
+	createMessage.args[0] = this;
+	createMessage.args[1]= new Integer(SHADER_PROGRAM_CREATE);
+ 	createMessage.args[2] = null;
+ 	createMessage.args[3] = new Integer(changedFrequent);
+	VirtualUniverse.mc.processMessage(createMessage);
+	
+	super.markAsLive();
+    }
+
+    void clearLive(int refCount) {
+
+	// System.out.println("GLSLShaderProgramRetained.clearLive()");
+
+	super.clearLive(refCount);
+
+	if (shaders != null) {
+	    for (int i = 0; i < shaders.length; i++) {
+		shaders[i].clearLive(refCount);
+	    }
+	}
+    }
+
+
+    synchronized void createMirrorObject() {
+	// System.out.println("GLSLShaderProgramRetained : createMirrorObject");
+	    
+	if (mirror == null) {
+	    
+	    GLSLShaderProgramRetained  mirrorGLSLSP = new GLSLShaderProgramRetained();
+	    mirrorGLSLSP.shaders = this.shaders;
+	    
+	    mirrorGLSLSP.source = source;
+	    mirror = mirrorGLSLSP;
+	
+	} else {
+	    ((GLSLShaderProgramRetained) mirror).shaders = this.shaders;
+	}
+    }
+
+
+    /**
+     * Update the "component" field of the mirror object with the 
+     *  given "value"
+     */
+    synchronized void updateMirrorObject(int component, Object value) {
+
+	// System.out.println("GLSLShaderProgramRetained : updateMirrorObject");
+
+	GLSLShaderProgramRetained mirrorGLSLSp = (GLSLShaderProgramRetained)mirror;
+
+	if ((component & SHADER_PROGRAM_CREATE) != 0) {
+	    // Note: update from the mirror object only
+	    mirrorGLSLSp.resourceCreationMask = 0x0;
+	    mirrorGLSLSp.shaderProgramIds = null;
+	}
+    }
 
     private native int updateNative(long ctx,
 				    int shaderProgram,
@@ -220,11 +309,12 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	String vertexShaderStr = null;
 	String fragmentShaderStr = null;
 
-	if (vertexShader != null) {
-	    vertexShaderStr = vertexShader.getShaderSource();
+	// Temp. hard coded.
+	if (shaders[0] != null) {
+	    vertexShaderStr = ((SourceCodeShaderRetained)shaders[0]).getShaderSource();
 	}
-	if (fragmentShader != null) {
-	    fragmentShaderStr = fragmentShader.getShaderSource();
+	if (shaders[1] != null) {
+	    fragmentShaderStr = ((SourceCodeShaderRetained)shaders[1]).getShaderSource();
 	}
 
 	shaderProgramId = updateNative(ctx,
