@@ -3078,7 +3078,18 @@ public class Canvas3D extends Canvas {
      * @since Java 3D 1.4
      */
     public boolean isShadingLanguageSupported(int shadingLanguage) {
-	throw new RuntimeException("not implemented");
+        // Call queryProperties to ensure that the shading language flags are valid
+        queryProperties();
+        
+        // Return flag for specified shading language
+        switch (shadingLanguage) {
+        case Shader.SHADING_LANGUAGE_GLSL:
+            return shadingLanguageGLSL;
+        case Shader.SHADING_LANGUAGE_CG:
+            return shadingLanguageCg;
+        }
+
+        return false;
     }
 
 
