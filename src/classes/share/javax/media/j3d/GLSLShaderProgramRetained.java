@@ -37,7 +37,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
     // For debugging only
     static int GLSLCounter = 0;
     int spId;
-
+    
     /**
      * Constructs a GLSL shader program node component.
      *
@@ -45,9 +45,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * TODO: ADD MORE DOCUMENTATION HERE.
      */
     GLSLShaderProgramRetained() {
-	// For debugging only
-	spId = GLSLCounter++;
-	// System.out.println("GLSLShaderProgramRetained : creation " + spId);
+       	// For debugging only
+	// spId = GLSLCounter++;
+        // System.out.println("GLSLShaderProgramRetained : creation " + spId);
     }
 
 
@@ -111,10 +111,8 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
     }
 
     void setLive(boolean backgroundGroup, int refCount) {
-
+	
 	// System.out.println("GLSLShaderProgramRetained.setLive()");
-
-        super.doSetLive(backgroundGroup, refCount);
 
 	if (shaders != null) {
 	    for (int i = 0; i < shaders.length; i++){
@@ -122,6 +120,8 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	    }
 	}
 	
+	super.doSetLive(backgroundGroup, refCount);
+
         // Send a message to Rendering Attr stucture to update the resourceMask
 	// via updateMirrorObject().
 	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
@@ -138,7 +138,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 
     void clearLive(int refCount) {
 
-	// System.out.println("GLSLShaderProgramRetained.clearLive()");
+        // System.out.println("GLSLShaderProgramRetained.clearLive()");
 
 	super.clearLive(refCount);
 
@@ -151,21 +151,29 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 
 
     synchronized void createMirrorObject() {
-	// System.out.println("GLSLShaderProgramRetained : createMirrorObject");
-	    
+        // System.out.println("GLSLShaderProgramRetained : createMirrorObject");
 	if (mirror == null) {
-	    
-	    GLSLShaderProgramRetained  mirrorGLSLSP = new GLSLShaderProgramRetained();
-	    mirrorGLSLSP.shaders = this.shaders;
-	    
-	    mirrorGLSLSP.source = source;
+	    GLSLShaderProgramRetained  mirrorGLSLSP = new GLSLShaderProgramRetained();	    
 	    mirror = mirrorGLSLSP;
-	
-	} else {
-	    ((GLSLShaderProgramRetained) mirror).shaders = this.shaders;
 	}
+	initMirrorObject();
     }
 
+
+    /**
+     * Initializes a mirror object.
+     */
+    synchronized void initMirrorObject() {
+	mirror.source = source;
+
+	((GLSLShaderProgramRetained)mirror).shaders = new ShaderRetained[this.shaders.length];
+	// Copy vertex and fragment shader
+	for (int i = 0; i < this.shaders.length; i++) {
+	    ((GLSLShaderProgramRetained)mirror).shaders[i] = (ShaderRetained)this.shaders[i].mirror;
+	}
+	((GLSLShaderProgramRetained)mirror).shaderProgramIds = null;
+	((GLSLShaderProgramRetained)mirror).resourceCreationMask = 0x0;
+    }
 
     /**
      * Update the "component" field of the mirror object with the 
@@ -183,11 +191,6 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	    mirrorGLSLSp.shaderProgramIds = null;
 	}
     }
-
-    private native int updateNative(long ctx,
-				    int shaderProgram,
-				    String vtxShader,
-				    String fragShader);
 
     private native void setUniform1i(long ctx,
 				     int shaderProgram,
@@ -239,6 +242,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
     private native ShaderError destroyShaderProgram(long ctx, long shaderProgramId);
     private native ShaderError linkShaderProgram(long ctx, long shaderProgramId,
 						 long[] shaderId);
+    private native ShaderError useShaderProgram(long ctx, long shaderProgramId);
 
     /*
     private native ShaderError createUniformLocation(long ctx,
@@ -261,7 +265,26 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to create the native shader.
      */
     ShaderError createShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-	System.out.println("GLSLShaderProgram : createShader not implemented yet!");
+	
+	// Create shaderProgram resources if it has not been done.
+	synchronized(shader.resourceLock) {
+	    if(shader.shaderIds == null){
+		shader.shaderIds = new long[cvRdrIndex+1];
+	    }
+	    else if( shader.shaderIds.length <= cvRdrIndex) {
+		long[] tempSIds = new long[cvRdrIndex+1];
+		System.arraycopy(shader.shaderIds, 0, 
+				 tempSIds, 0, 
+				 shader.shaderIds.length);
+		shader.shaderIds = tempSIds;
+	    }
+	    long[] shaderIdArr = new long[1];
+	    // Need to handle the returned ShaderError.
+	    createShader(ctx, shader.shaderType, shaderIdArr);
+	    shader.shaderIds[cvRdrIndex] = shaderIdArr[0];
+	}
+
+	// Need to handle the returned ShaderError.
 	return null;
     }
 
@@ -277,7 +300,12 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to compile the native shader.
      */
     ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-	System.out.println("GLSLShaderProgram : compileShader not implemented yet!");
+
+	synchronized(shader.resourceLock) {
+	    compileShader(ctx, shader.shaderIds[cvRdrIndex], 
+                    ((SourceCodeShaderRetained)shader).getShaderSource());
+	}
+	// Need to handle the returned ShaderError.
 	return null;
     }
 
@@ -285,7 +313,26 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to create the native shader program.
      */
     ShaderError createShaderProgram(long ctx, int cvRdrIndex) {
-	System.out.println("GLSLShaderProgram : createShaderProgram not implemented yet!");
+
+	// Create shaderProgram resources if it has not been done.
+	synchronized(resourceLock) {
+	    if(shaderProgramIds == null){
+		shaderProgramIds = new long[cvRdrIndex+1];
+	    }
+	    else if( shaderProgramIds.length <= cvRdrIndex) {
+		long[] tempSpIds = new long[cvRdrIndex+1];
+		System.arraycopy(shaderProgramIds, 0, 
+				 tempSpIds, 0, 
+				 shaderProgramIds.length);
+		shaderProgramIds = tempSpIds;
+	    }
+	    long[] spIdArr = new long[1];
+	    // Need to handle the returned ShaderError.
+	    createShaderProgram(ctx, spIdArr);  
+	    shaderProgramIds[cvRdrIndex] = spIdArr[0];
+	    resourceCreationMask |= (1 << cvRdrIndex);
+	}
+	// Need to handle the returned ShaderError.
 	return null;
     }
 
@@ -301,30 +348,46 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to link the native shader program.
      */
     ShaderError linkShaderProgram(long ctx, int cvRdrIndex, ShaderRetained[] shaders) {
-	System.out.println("GLSLShaderProgram : linkShaderProgram not implemented yet!");
+
+	long[] shaderIds = new long[shaders.length];
+
+	synchronized(resourceLock) {
+	    for(int i=0; i<shaders.length; i++) {
+                synchronized(shaders[i]) {
+                    shaderIds[i] = shaders[i].shaderIds[cvRdrIndex];
+                }
+	    }
+	    linkShaderProgram(ctx, shaderProgramIds[cvRdrIndex], shaderIds);
+	}
+
+	// Need to handle the returned ShaderError.
 	return null;
     }
+ 
 
-    void updateNative(long ctx) {
-	String vertexShaderStr = null;
-	String fragmentShaderStr = null;
+    /**
+     * Method to link the native shader program.
+     */
+    ShaderError useShaderProgram(long ctx, int cvRdrIndex) {
 
-	// Temp. hard coded.
-	if (shaders[0] != null) {
-	    vertexShaderStr = ((SourceCodeShaderRetained)shaders[0]).getShaderSource();
+	synchronized(resourceLock) {
+	    if(cvRdrIndex < 0) {
+		// disable shading by binding to program 0
+		useShaderProgram(ctx, 0);
+	    }
+	    else {
+		useShaderProgram(ctx, shaderProgramIds[cvRdrIndex]);
+	    }
 	}
-	if (shaders[1] != null) {
-	    fragmentShaderStr = ((SourceCodeShaderRetained)shaders[1]).getShaderSource();
-	}
 
-	shaderProgramId = updateNative(ctx,
-				       shaderProgramId,
-				       vertexShaderStr,
-				       fragmentShaderStr);
+	// Need to handle the returned ShaderError.
+	return null;
     }
+	
 
-    void disableNative(long ctx) {
-	updateNative(ctx, 0, null, null);
+    void disableNative(Canvas3D cv) {
+	// System.out.println("GLSLShaderProgramRetained.disableNative ...");
+	useShaderProgram(cv.ctx, -1);
     }
 
 

@@ -38,6 +38,9 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     // an array of shaders used by this shader program
     protected ShaderRetained[] shaders;
 
+    // need to synchronize access from multiple rendering threads 
+    protected Object resourceLock = new Object();
+
     /**
      * Copies the specified array of shaders into this shader
      * program. This method makes a shallow copy of the array. The
@@ -73,12 +76,12 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     /**
      * Method to update the native shader program.
      */
-    abstract void updateNative(long ctx);
+    // abstract void updateNative(Canvas3D cv); 
 
     /**
      * Method to disable the native shader program.
      */
-    abstract void disableNative(long ctx);
+    abstract void disableNative(Canvas3D cv);
 
     /**
      * Method to update the native shader attributes
@@ -117,5 +120,79 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Method to link the native shader program.
      */
     abstract ShaderError linkShaderProgram(long ctx, int cvRdrIndex, ShaderRetained[] shaders);
+
+
+    /**
+     * Method to use the native shader program.
+     */
+    abstract ShaderError useShaderProgram(long ctx, int cvRdrIndex);
+
+    /**
+     * updateNative is called while traversing the RenderBin to 
+     * update the shader program state
+     */
+    void updateNative(Canvas3D cv) {
+	boolean loadShaderProgram = false; // true - reload all shaderProgram states
+
+        // System.out.println("GLSLShaderProgramRetained.updateNative : ");
+
+        if (cv.useSharedCtx && cv.screen.renderer.sharedCtx != 0) {
+	    // TODO : Need to test useSharedCtx case. ** Untested case **
+            if ((resourceCreationMask & cv.screen.renderer.rendererBit) == 0) {
+		loadShaderProgram = true;
+		cv.makeCtxCurrent(cv.screen.renderer.sharedCtx);
+	    }
+	} else {
+	    // Or (shaderProgramIds[cv.canvasId] == null)
+            if ((resourceCreationMask & cv.canvasBit) == 0) {
+		loadShaderProgram = true;
+	    }
+	}
+
+	// System.out.println(".... loadShaderProgram = " + loadShaderProgram);
+	// System.out.println(".... resourceCreationMask= " + resourceCreationMask);
+ 
+	if (loadShaderProgram) {
+	    
+	    if(shaders == null) {
+		// System.out.println("GLSLShaderProgramRetained : shaders is ** null **.");
+		return;
+	    }
+
+	    // Create shaders resources if it has not been done.
+	    for(int i=0; i < shaders.length; i++) {
+
+		// Need to handle the returned ShaderError.
+		createShader(cv.ctx, cv.canvasId, shaders[i]);
+
+		// Need to handle the returned ShaderError.
+		compileShader(cv.ctx, cv.canvasId, shaders[i]);
+	    }
+
+	    if (cv.useSharedCtx) {
+		System.out.println("GLSLShaderProgramRetained.updateNative");
+		System.out.println("    sharedCtx is not implemented yet.");
+		// cv.makeCtxCurrent(cv.ctx);
+
+	    }
+	    else {
+
+		// Need to handle the returned ShaderError.
+		createShaderProgram(cv.ctx, cv.canvasId);
+		
+		// Need to handle the returned ShaderError.
+		linkShaderProgram(cv.ctx, cv.canvasId, shaders);
+		
+		
+	    }
+
+	}
+ 
+	useShaderProgram(cv.ctx, cv.canvasId);
+	
+    }
+
+
+
 
 }

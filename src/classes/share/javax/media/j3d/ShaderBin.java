@@ -295,17 +295,23 @@ class ShaderBin implements ObjectUpdate {
 
     void updateAttributes(Canvas3D cv) {
 
-	//System.out.println("ShaderBin.updateAttributes() not implemented yet.");
-	 
+	// System.out.println("ShaderBin.updateAttributes() shaderProgram is " + shaderProgram);
 	if (shaderProgram != null) {
-	    shaderProgram.updateNative(cv.ctx);
+	    shaderProgram.updateNative(cv);
 
 	    if (shaderAttributeSet != null) {
 		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
 	    }
+
+	}
+	else {
+	    if (cv.shaderProgram != null) {
+		cv.shaderProgram.disableNative(cv);
+	    }
 	}
 
-
+	cv.shaderProgram = shaderProgram;
+	
 	/*
 
 
@@ -358,12 +364,6 @@ class ShaderBin implements ObjectUpdate {
 	cv.canvasDirty &= ~Canvas3D.SHARDERBIN_DIRTY;
 
 	*/
-
-
-
-
-
-
 
     }
 

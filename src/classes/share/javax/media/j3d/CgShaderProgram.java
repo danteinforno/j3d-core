@@ -153,14 +153,15 @@ public class CgShaderProgram extends ShaderProgram {
 				     String vtxShader,
 				     String fragShader);
 
-    void disableNative(long ctx) {
-	updateNative(ctx, null, null);
+    void disableNative(Canvas3D cv) {
+	updateNative(cv.ctx, null, null);
     }
 
-    void updateNative(long ctx) {
+    void updateNative(Canvas3D cv) {
 	/*
 	System.err.println("CgShaderProgram.updateNative(ctx)");
 	*/
+	long ctx = cv.ctx;
 
 	String vertexShaderStr = null;
 	String fragmentShaderStr = null;

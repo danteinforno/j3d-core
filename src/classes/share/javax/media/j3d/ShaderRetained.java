@@ -25,29 +25,15 @@ abstract class ShaderRetained extends NodeComponentRetained {
     protected int shadingLanguage;
     protected int shaderType;
 
-
     // shaderId use by native code. One per Canvas.
-    protected long[] shaderIdPerCanvas;   
-    
-    // Each bit corresponds to a unique renderer if shared context
-    // or a unique canvas otherwise.
-    // This mask specifies which renderer/canvas has loaded the
-    // shader. 0 means no renderer/canvas has loaded the shader.
-    // 1 at the particular bit means that renderer/canvas has loaded the
-    // shader. 0 means otherwise.
-    int resourceCreationMask = 0x0;
+    protected long[] shaderIds;
 
-    /*  Most like don't need this method.
-    void createShader(int  shadingLanguage, int shaderType) {
-	this.shadingLanguage = shadingLanguage;
-	this.shaderType = shaderType;
-    }
-    */
+    // need to synchronize access from multiple rendering threads 
+    protected Object resourceLock = new Object();
 
     void set(int shadingLanguage, int shaderType) {
 	this.shadingLanguage = shadingLanguage;
 	this.shaderType = shaderType;
-
     }
 
     int getShadingLanguage() {
@@ -57,7 +43,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
     int getShaderType() {
 	return shaderType;
     }
-
+ 
      /**
       * Shader object doesn't really have mirror object.
       * But it's using the updateMirrorObject interface to propagate
@@ -67,6 +53,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
 	System.out.println("Shader.updateMirrorObject not implemented yet!");
      }
 
+    /*
      final void sendMessage(int attrMask, Object attr) {
 	System.out.println("Shader.sendMessage not implemented yet!");
 	 
@@ -82,6 +69,8 @@ abstract class ShaderRetained extends NodeComponentRetained {
 	createMessage.args[3] = new Integer(changedFrequent);
         VirtualUniverse.mc.processMessage(createMessage);
      }
+
+    */
 
     void handleFrequencyChange(int bit) {
 	System.out.println("Shader.handleFrequencyChange not implemented yet!");

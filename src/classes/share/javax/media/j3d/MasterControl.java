@@ -305,9 +305,11 @@ class MasterControl {
 
     // This is a time stamp used when context is created
     private long contextTimeStamp = 0;
-
-    // This is a counter for canvas bit
-    private int canvasBitCount = 0;
+    
+    // This is an array of  canvasIds in used
+    private boolean[] canvasIds = null;
+    private int canvasFreeIndex = 0;
+    private Object canvasIdLock = new Object();
 
     // This is a counter for rendererBit
     private int rendererCount = 0;
@@ -694,6 +696,16 @@ class MasterControl {
 
 	// create the freelists
 	FreeListManager.createFreeLists();
+
+	// create an array canvas use registers
+	// The 32 limit can be lifted once the
+	// resourceXXXMasks in other classes 
+	// are change not to use integer.
+	canvasIds = new boolean[32];
+	for(int i=0; i<canvasIds.length; i++) {
+	    canvasIds[i] = false;
+	}
+	canvasFreeIndex = 0;
     }
 
     private static String getProperty(final String prop) {
@@ -899,6 +911,14 @@ class MasterControl {
         return (1 << rendererCount++);
     }
 
+
+    /**
+     * This returns the a unused renderer bit
+     */
+    int getRendererId() {
+        return rendererCount++;
+    }
+
     /**
      * This returns a context creation time stamp
      * Note: this has to be called under the contextCreationLock
@@ -962,28 +982,40 @@ class MasterControl {
 	FreeListManager.freeObject(FreeListManager.TEXTURE3D, new Integer(id));
     }
 
-    int getCanvasBit() {
-	// Master control need to keep count itself
-	MemoryFreeList cbId =
-	    FreeListManager.getFreeList(FreeListManager.CANVASBIT);
-	if (cbId.size() > 0) {
-	    return ((Integer)FreeListManager.
-		    getObject(FreeListManager.CANVASBIT)).intValue();
-	}
-	else {
-	    if (canvasBitCount > 31) {
+    int getCanvasId() {
+        int i;
+
+	synchronized(canvasIdLock) {
+	    // Master control need to keep count itself        
+	    for(i=canvasFreeIndex; i<canvasIds.length; i++) {
+		if(canvasIds[i] == false)
+		    break;
+	    }
+
+	    if ( canvasFreeIndex >= canvasIds.length) {
 		throw new RuntimeException("Cannot render to more than 32 Canvas3Ds");
 	    }
-	    return (1 << canvasBitCount++);
+
+	    canvasIds[i] = true;
+	    canvasFreeIndex = i + 1;
+	}
+
+        return i;
+        
+    }
+
+    void freeCanvasId(int canvasId) {
+        // Valid range is [0, 31]
+        assert(canvasId>=canvasIds.length);
+	synchronized(canvasIdLock) {
+
+	    canvasIds[canvasId] = false;
+	    if(canvasFreeIndex > canvasId) {
+		canvasFreeIndex = canvasId;
+	    }
 	}
     }
-
-
-    void freeCanvasBit(int canvasBit) {
-	FreeListManager.freeObject(FreeListManager.CANVASBIT,
-				   new Integer(canvasBit));
-    }
-
+    
     Transform3D getTransform3D(Transform3D val) {
 	Transform3D t;
 	t = (Transform3D)
@@ -2174,8 +2206,11 @@ class MasterControl {
 	    // list here because other structure may release them
 	    // later 
 
-	    FreeListManager.clearList(FreeListManager.CANVASBIT);
-	    canvasBitCount = 0;
+	    for(int i=0; i<canvasIds.length; i++) {
+		canvasIds[i] = false;
+	    }
+	    canvasFreeIndex = 0;
+	    
 	    renderOnceList.clear();
 	    timestampUpdateList.clear();
 

@@ -96,6 +96,8 @@ class Renderer extends J3dThread {
 
     // an unique bit to identify this renderer
     int rendererBit = 0;
+    // an unique number to identify this renderer : ( rendererBit = 1 << rendererId)
+    int rendererId = 0;
 
     // List of renderMolecules that are dirty due to additions
     // or removal of renderAtoms from their display list set
@@ -178,7 +180,8 @@ class Renderer extends J3dThread {
 	setName("J3D-Renderer-" + getInstanceNum());
 
 	type = J3dThread.RENDER_THREAD;
-        rendererBit = VirtualUniverse.mc.getRendererBit();
+	rendererId = VirtualUniverse.mc.getRendererId();
+        rendererBit = (1 << rendererId);
         renderMessage = new J3dMessage[1];
     }
 
