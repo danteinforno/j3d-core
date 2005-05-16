@@ -826,10 +826,14 @@ public class Canvas3D extends Canvas {
     // This is the native method for creating the underlying graphics context.
     native long createNewContext(long display, int window, int vid, long fbConfig,
 				 long shareCtx, boolean isSharedCtx,
-				 boolean offScreen);
+				 boolean offScreen,
+                                 boolean glslLibraryAvailable,
+                                 boolean cgLibraryAvailable);
 
     native void createQueryContext(long display, int window, int vid, long fbConfig, 
-				   boolean offScreen, int width, int height);
+				   boolean offScreen, int width, int height,
+                                   boolean glslLibraryAvailable,
+                                   boolean cgLibraryAvailable);
 
     native static void destroyContext(long display, int window, long context);
 
@@ -2349,6 +2353,20 @@ public class Canvas3D extends Canvas {
     }
 
     /**
+     * Wrapper for native createNewContext method.
+     */
+    long createNewContext(long shareCtx, boolean isSharedCtx) {
+        return createNewContext(this.screen.display,
+                this.window,
+                this.vid,
+                this.fbConfig,
+                shareCtx, isSharedCtx,
+                this.offScreen,
+                VirtualUniverse.mc.glslLibraryAvailable,
+                VirtualUniverse.mc.cgLibraryAvailable);
+    }
+    
+    /**
      * Make the context associated with the specified canvas current.
      */
     final void makeCtxCurrent() {
@@ -3495,7 +3513,9 @@ public class Canvas3D extends Canvas {
 	// inside the native code after setting the various 
 	// fields in this object
 	createQueryContext(screen.display, window, vid,
-			   fbConfig, offScreen, 1, 1);
+			   fbConfig, offScreen, 1, 1,
+                           VirtualUniverse.mc.glslLibraryAvailable,
+                           VirtualUniverse.mc.cgLibraryAvailable);
     }
 
     /**

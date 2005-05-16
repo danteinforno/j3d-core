@@ -100,7 +100,7 @@ Java_javax_media_j3d_NativeScreenInfo_queryGLX13(
 	fprintf(stderr, "    GLX version 1.3 or higher is required\n");
 	return JNI_FALSE;
     }
-    fprintf(stderr, "Checking GLX version : %d.%d\n", major, minor);
+    /*fprintf(stderr, "Checking GLX version : %d.%d\n", major, minor);*/
 
     tmpfp = (MYPFNGLXCHOOSEFBCONFIG)dlsym(RTLD_DEFAULT, "glXChooseFBConfig");
 

@@ -348,7 +348,14 @@ class MasterControl {
     // The global shading language being used. Using a ShaderProgram
     // with a shading language other than the one specified by
     // globalShadingLanguage will cause a ShaderError to be generated,
-    int globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+    static int globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+
+    // Flags indicating whether the Cg or GLSL libraries are available; we still need
+    // to check for the actual extension support when the Canvas3D with its associated context
+    // is created. Note that these are qualifed by the above globalShadingLanguage, so at
+    // most one of these two flags will be true;
+    static boolean cgLibraryAvailable = false;
+    static boolean glslLibraryAvailable = false;
 
     
     // REQUESTCLEANUP messages argument
@@ -525,26 +532,6 @@ class MasterControl {
 	if (getProperty("j3d.disableSeparateSpecular") != null) {
 	    disableSeparateSpecularColor = true;
 	    System.err.println("Java 3D: separate specular color disabled if possible");
-	}
-
-	String slStr = getProperty("j3d.shadingLanguage");
-	if (slStr != null) {
-	    boolean found = false;
-	    if (slStr.equals("GLSL")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
-		found = true;
-	    }
-	    else if (slStr.equals("Cg")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
-		found = true;
-	    }
-
-	    if (found) {
-		System.err.println("Setting global shading language to " + slStr);
-	    }
-	    else {
-		System.err.println("Unrecognized shading language: " + slStr);
-	    }
 	}
 
 	// Get the maximum number of texture units
@@ -770,37 +757,87 @@ class MasterControl {
 	});
 
 	// Load the native J3D library
-       	java.security.AccessController.doPrivileged(new 
+        final String oglLibraryName = "j3dcore-ogl";
+        final String d3dLibraryName = "j3dcore-d3d";
+        final String libraryName = (String)
+        java.security.AccessController.doPrivileged(new
 	    java.security.PrivilegedAction() {
 		public Object run() {
-		    
-		    String osName = System.getProperty("os.name");
-		    // System.err.println(" os.name is " + osName );
-		    // If it is a Windows OS, we want to support
-		    // dynamic native library selection (ogl, d3d)
-		    if((osName.length() > 8) && 
-		       ((osName.substring(0,7)).equals("Windows"))){
-			
-			// TODO : Will support a more flexible dynamic 
-			// selection scheme via the use of Preferences API.
-			String str = System.getProperty("j3d.rend");
-			if ((str == null) || (!str.equals("d3d"))) {
-			    // System.err.println("(1) ogl case : j3d.rend is " + str );
-			    System.loadLibrary("j3dcore-ogl");
+		    String libName = oglLibraryName;
 
-			}
-			else {
-			    // System.err.println("(2) d3d case : j3d.rend is " + str);
-			    System.loadLibrary("j3dcore-d3d");
+		    // If it is a Windows OS, we want to support dynamic native library selection (ogl, d3d)
+		    String osName = System.getProperty("os.name");
+		    if (osName != null && osName.startsWith("Windows")) {
+			// TODO : Should eventually support a more flexible dynamic 
+			// selection scheme via an API call.
+			String str = System.getProperty("j3d.rend");
+			if (str != null && str.equals("d3d")) {
+			    libName = d3dLibraryName;
 			}
 		    }
-		    else {
-			// System.err.println("(3) ogl case");
-			System.loadLibrary("j3dcore-ogl");
-		    }
-		    return null;
+
+                    System.loadLibrary(libName);
+		    return libName;
 		}
 	    });
+
+        // Get the global j3d.shadingLanguage property
+	final String slStr = getProperty("j3d.shadingLanguage");
+	if (slStr != null) {
+	    boolean found = false;
+	    if (slStr.equals("GLSL")) {
+		globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+		found = true;
+	    }
+	    else if (slStr.equals("Cg")) {
+		globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
+		found = true;
+	    }
+
+	    if (found) {
+		System.err.println("Java 3D: Setting global shading language to " + slStr);
+	    }
+	    else {
+		System.err.println("Java 3D: Unrecognized shading language: " + slStr);
+	    }
+	}
+
+        // Check whether the Cg library is available
+        if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
+            // Attempt to load the CG library
+            Boolean cgLoaded = (Boolean)
+            java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction() {
+                    public Object run() {
+                        final String cgLibName = libraryName + "-cg";
+//                        System.loadLibrary(cgLibName);
+                        System.err.println("Java 3D: unable to load: " + cgLibName);
+                        return Boolean.FALSE;
+                    }
+                });
+
+            if (cgLoaded.booleanValue()) {
+                // TODO: call method in library to verify that the native Cg runtime
+                // is installed
+//                System.err.println("Java 3D: Cg library is available");
+                cgLibraryAvailable = true;
+            }
+//            else {
+//                System.err.println("Java 3D: Cg library is *not* available");
+//            }
+        }
+        
+        // Check whether the GLSL library is available
+        if (globalShadingLanguage == Shader.SHADING_LANGUAGE_GLSL) {
+            if (libraryName == oglLibraryName) {
+                // No need to load a separate library, since GLSL is part of OpenGL
+//                System.err.println("Java 3D: GLSL library is available");
+                glslLibraryAvailable = true;
+            }
+//            else {
+//                System.err.println("Java 3D: GLSL library is *not* available");
+//            }
+        }
     }
 
 

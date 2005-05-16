@@ -256,6 +256,7 @@
 #define GA_TEXTURE_COORDINATE_3  javax_media_j3d_GeometryArray_TEXTURE_COORDINATE_3	
 #define GA_TEXTURE_COORDINATE_4  javax_media_j3d_GeometryArray_TEXTURE_COORDINATE_4	
 #define GA_TEXTURE_COORDINATE    javax_media_j3d_GeometryArray_TEXTURE_COORDINATE
+#define GA_VERTEX_ATTRIBUTES     javax_media_j3d_GeometryArray_VERTEX_ATTRIBUTES
 #define GA_BY_REFERENCE          javax_media_j3d_GeometryArray_BY_REFERENCE
 				
 				
@@ -605,6 +606,9 @@ typedef struct {
     PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB;
     PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB;
     PFNGLGETUNIFORMLOCATIONARBPROC pfnglGetUniformLocationARB;
+    PFNGLGETATTRIBLOCATIONARBPROC pfnglGetAttribLocationARB;
+    PFNGLBINDATTRIBLOCATIONARBPROC pfnglBindAttribLocationARB;
+    PFNGLVERTEXATTRIB3FVARBPROC pfnglVertexAttrib3fvARB;
     PFNGLUNIFORM1IARBPROC pfnglUniform1iARB;
     PFNGLUNIFORM1FARBPROC pfnglUniform1fARB;
     PFNGLUNIFORM2IARBPROC pfnglUniform2iARB;

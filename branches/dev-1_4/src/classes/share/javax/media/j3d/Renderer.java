@@ -667,13 +667,7 @@ class Renderer extends J3dThread {
 			    }
 
 			    synchronized (VirtualUniverse.mc.contextCreationLock) {
-				sharedCtx =
-				    canvas.createNewContext(canvas.screen.display,
-							 canvas.window,
-							 canvas.vid,
-							 canvas.fbConfig,
-							 0, true,
-							 canvas.offScreen);
+				sharedCtx = canvas.createNewContext(0, true);
 				if (sharedCtx == 0) {
 				    canvas.drawingSurfaceObject.unLock();
 				    if ((offBufRetained != null) &&
@@ -706,15 +700,9 @@ class Renderer extends J3dThread {
 			}
 
 			synchronized (VirtualUniverse.mc.contextCreationLock) {
-			    canvas.ctx =
-				canvas.createNewContext(canvas.screen.display, 
-						     canvas.window, canvas.vid,
-						     canvas.fbConfig, sharedCtx,
-						     false, canvas.offScreen);
+			    canvas.ctx = canvas.createNewContext(sharedCtx, false);
 
-
-
-			    if (canvas.ctx == 0) {
+                            if (canvas.ctx == 0) {
 				canvas.drawingSurfaceObject.unLock();			    
 				if ((offBufRetained != null) &&
 				    offBufRetained.isByReference()) {

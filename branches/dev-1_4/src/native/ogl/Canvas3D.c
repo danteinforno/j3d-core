@@ -116,10 +116,18 @@ int isExtensionSupported(const char *allExtensions, const char *extension)
 
 
 
-void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextPropertiesInfo* ctxInfo) {
+static void
+checkGLSLShaderExtensions(
+    JNIEnv *env,
+    jobject obj,
+    char *tmpExtensionStr,
+    GraphicsContextPropertiesInfo *ctxInfo,
+    jboolean glslLibraryAvailable)
+{
 
-    if(isExtensionSupported(tmpExtensionStr, "GL_ARB_shader_objects")
-       && isExtensionSupported(tmpExtensionStr, "GL_ARB_shading_language_100")) {
+    if (glslLibraryAvailable &&
+	isExtensionSupported(tmpExtensionStr, "GL_ARB_shader_objects") &&
+	isExtensionSupported(tmpExtensionStr, "GL_ARB_shading_language_100")) {
 
 #if defined(UNIX)
 	ctxInfo->pfnglAttachObjectARB =
@@ -144,6 +152,12 @@ void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextProperties
 	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
 	ctxInfo->pfnglGetUniformLocationARB =
 	    (PFNGLGETUNIFORMLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetUniformLocationARB");
+	ctxInfo->pfnglGetAttribLocationARB =
+	    (PFNGLGETATTRIBLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetAttribLocationARB");
+	ctxInfo->pfnglBindAttribLocationARB =
+	    (PFNGLBINDATTRIBLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glBindAttribLocationARB");
+	ctxInfo->pfnglVertexAttrib3fvARB =
+	    (PFNGLVERTEXATTRIB3FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib3fvARB");
 	ctxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)dlsym(RTLD_DEFAULT, "glUniform1iARB");
 	ctxInfo->pfnglUniform1fARB =
@@ -184,6 +198,12 @@ void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextProperties
 	    (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
 	ctxInfo->pfnglGetUniformLocationARB =
 	    (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
+	ctxInfo->pfnglGetAttribLocationARB =
+	    (PFNGLGETATTRIBLOCATIONARBPROC)wglGetProcAddress("glGetAttribLocationARB");
+	ctxInfo->pfnglBindAttribLocationARB =
+	    (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
+	ctxInfo->pfnglVertexAttrib3fvARB =
+	    (PFNGLVERTEXATTRIB3FVARBPROC)wglGetProcAddress("glVertexAttrib3fvARB");
 	ctxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
 	ctxInfo->pfnglUniform1fARB =
@@ -205,27 +225,42 @@ void checkGLSLShaderExtensions( char *tmpExtensionStr, GraphicsContextProperties
     }
 
     if (ctxInfo->pfnglCreateShaderObjectARB == NULL) {
-	fprintf(stderr, "Java 3D ERROR : GLSLShader extension not available\n");
+	/*fprintf(stderr, "Java 3D : GLSLShader extension not available\n");*/
 	ctxInfo->shadingLanguageGLSL = JNI_FALSE;	
 	
     }
     else {
-	fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");
-
+	/*fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");*/
 	ctxInfo->shadingLanguageGLSL = JNI_TRUE;	
     }
-    
+
 }
 
 
+static void
+checkCgShaderExtensions(
+    JNIEnv *env,
+    jobject obj,
+    char *tmpExtensionStr,
+    GraphicsContextPropertiesInfo *ctxInfo,
+    jboolean cgLibraryAvailable)
+{
 
-void checkTextureExtensions(
+    /* TODO: Check for Cg support */
+    /* if (cgLibraryAvailable) { ... } */
+    ctxInfo->shadingLanguageCg = JNI_FALSE;	
+
+}
+
+
+static void
+checkTextureExtensions(
     JNIEnv *env,
     jobject obj,
     char *tmpExtensionStr,
     int versionNumber,
-    GraphicsContextPropertiesInfo* ctxInfo) {
-
+    GraphicsContextPropertiesInfo* ctxInfo)
+{
     if(isExtensionSupported(tmpExtensionStr, "GL_ARB_multitexture")) {
 	ctxInfo->arb_multitexture = JNI_TRUE ;
 	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_MULTI_TEXTURE;
@@ -528,7 +563,9 @@ getPropertiesFromCurrentContext(
     int pixelFormat,
     int stencilSize,
     jlong fbConfigListPtr,
-    jboolean offScreen)
+    jboolean offScreen,
+    jboolean glslLibraryAvailable,
+    jboolean cgLibraryAvailable)
 {
     JNIEnv table = *env; 
 
@@ -740,18 +777,15 @@ getPropertiesFromCurrentContext(
     if (ctxInfo->arb_multisample && !ctxInfo->implicit_multisample) {
 	glDisable(GL_MULTISAMPLE_ARB);
     }
-    /*
-     * checking of the texture extensions is done in checkTextureExtensions(),
-     * so that the same function can be used for queryContext as well
-     */
+
+    /* Check texture extensions */
     checkTextureExtensions(env, obj, tmpExtensionStr, versionNumbers[1],
 			   ctxInfo);
-    /*
-     * checking of the shader extensions is done in checkTextureExtensions(),
-     * so that the same function can be used for queryContext as well
-     */
-    checkGLSLShaderExtensions(tmpExtensionStr, ctxInfo);
-    
+
+    /* Check shader extensions */
+    checkGLSLShaderExtensions(env, obj, tmpExtensionStr, ctxInfo, glslLibraryAvailable);
+    checkCgShaderExtensions(env, obj, tmpExtensionStr, ctxInfo, cgLibraryAvailable);
+
     /* ... */
     
     /* *********************************************************/
@@ -1139,7 +1173,9 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     jlong fbConfigListPtr,
     jlong sharedCtxInfo,
     jboolean isSharedCtx,
-    jboolean offScreen)
+    jboolean offScreen,
+    jboolean glslLibraryAvailable,
+    jboolean cgLibraryAvailable)
 {
     jlong gctx;
     jlong sharedCtx;
@@ -1164,10 +1200,12 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     fbConfigList = (GLXFBConfig *)fbConfigListPtr;
 
     /*
-      fprintf(stderr, "Canvas3D_createNewContext: \n");
-      fprintf(stderr, "fbConfigListPtr 0x%x\n", (int) fbConfigListPtr);
-      fprintf(stderr, "fbConfigList 0x%x, fbConfigList[0] 0x%x\n",
-      (int) fbConfigList, (int) fbConfigList[0]);
+    fprintf(stderr, "Canvas3D_createNewContext: \n");
+    fprintf(stderr, "    fbConfigListPtr 0x%x\n", (int) fbConfigListPtr);
+    fprintf(stderr, "    fbConfigList 0x%x, fbConfigList[0] 0x%x\n",
+	    (int) fbConfigList, (int) fbConfigList[0]);
+    fprintf(stderr, "    glslLibraryAvailable = %d\n", glslLibraryAvailable);
+    fprintf(stderr, "    cgLibraryAvailable = %d\n", cgLibraryAvailable);
     */
     
     if(sharedCtxInfo == 0)
@@ -1320,7 +1358,8 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     ctxInfo->context = gctx;
     
     if (!getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
-					 stencilSize, fbConfigListPtr, offScreen)) {
+					 stencilSize, fbConfigListPtr, offScreen,
+					 glslLibraryAvailable, cgLibraryAvailable)) {
 	return 0;
     }
 
@@ -3270,7 +3309,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     jlong fbConfigListPtr,
     jboolean offScreen,
     jint width,
-    jint height)
+    jint height,
+    jboolean glslLibraryAvailable,
+    jboolean cgLibraryAvailable)
 {
     JNIEnv table = *env;
     jlong gctx;
@@ -3459,7 +3500,8 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     
     /* get current context properties */
     if (getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
-					stencilSize, fbConfigListPtr, offScreen)) {
+					stencilSize, fbConfigListPtr, offScreen,
+					glslLibraryAvailable, cgLibraryAvailable)) {
 	/* put the properties to the Java side */
 	setupCanvasProperties(env, obj, ctxInfo);
     }
