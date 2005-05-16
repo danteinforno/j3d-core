@@ -2137,30 +2137,30 @@ abstract class TextureRetained extends NodeComponentRetained {
 	    mirrorTexture.addImageUpdateInfo(level, face, null);
 
 	} else if ((component & IMAGES_CHANGED) != 0) {
-
+	    
 	    Object [] arg = (Object []) value;
 	    ImageComponent [] images = (ImageComponent[])arg[0];
-            int face = ((Integer)arg[1]).intValue();
-
+	    int face = ((Integer)arg[1]).intValue();
+	    
 	    for (int i = 0; i < images.length; i++) {
-
+		
 		// first remove texture from the userList of the current
-                // referencing image
-	        if (mirrorTexture.images[face][i] != null) {
-	            mirrorTexture.images[face][i].removeUser(mirror);
-	        }
-
-	        // assign the new image and add texture to the userList
-	        if (images[i] == null) {
-	            mirrorTexture.images[face][i] = null;
-	        } else {
-	            mirrorTexture.images[face][i] = 
-				(ImageComponentRetained)images[i].retained;
-	            mirrorTexture.images[face][i].addUser(mirror);
-                }
+		// referencing image
+		if (mirrorTexture.images[face][i] != null) {
+		    mirrorTexture.images[face][i].removeUser(mirror);
+		}
+		
+		// assign the new image and add texture to the userList
+		if (images[i] == null) {
+		    mirrorTexture.images[face][i] = null;
+		} else {
+		    mirrorTexture.images[face][i] = 
+			(ImageComponentRetained)images[i].retained;
+		    mirrorTexture.images[face][i].addUser(mirror);
+		}
 	    }
 	    mirrorTexture.updateResourceCreationMask();
-
+	    
 	    // NOTE: the old images have to be removed from the
 	    // renderBins' NodeComponentList and new image have to be
 	    // added to the lists. This will be taken care of
@@ -2169,7 +2169,7 @@ abstract class TextureRetained extends NodeComponentRetained {
 
 	} else if ((component & BASE_LEVEL_CHANGED) != 0) {
 	    int level = ((Integer)value).intValue();
-
+	    
 	    if (level < mirrorTexture.baseLevel) {
 
 		// add texture to the userList of those new levels of 

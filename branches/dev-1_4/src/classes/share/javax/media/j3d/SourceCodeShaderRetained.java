@@ -55,8 +55,6 @@ class SourceCodeShaderRetained extends ShaderRetained {
     void setLive(boolean inBackgroundGroup, int refCount) {
 	// System.out.println("SourceCodeShaderRetained.setLive()");
 	super.setLive(inBackgroundGroup, refCount);
-	//TODO : Do some thing here.  - Chien.
-
     }
 
     void clearLive(int refCount) {
@@ -69,27 +67,25 @@ class SourceCodeShaderRetained extends ShaderRetained {
 	}
     }
 
-
     synchronized void createMirrorObject() {
 	// System.out.println("SourceCodeShaderRetained : createMirrorObject");
 
 	if (mirror == null) {
-	    // Check the capability bits and let the mirror object
-	    // point to itself if is not editable
-	    if (isStatic()) {
-		mirror = this;
-	    } else {
-		SourceCodeShaderRetained  mirrorSCS  
-		    = new SourceCodeShaderRetained();
-		mirrorSCS.source = source;
-		mirrorSCS.set(shadingLanguage, shaderType, shaderSource);
-		mirror = mirrorSCS;
-	    }
-	} else {
-	    ((SourceCodeShaderRetained) mirror).set(shadingLanguage,
-						    shaderType, shaderSource);
+	    SourceCodeShaderRetained  mirrorSCS = new SourceCodeShaderRetained();
+	    mirror = mirrorSCS;
 	}
 
+	initMirrorObject();
+    }
+    
+    /**
+     * Initializes a mirror object.
+     */
+    synchronized void initMirrorObject() {
+	mirror.source = source;
+
+	((SourceCodeShaderRetained) mirror).set(shadingLanguage, shaderType, shaderSource);
+	((SourceCodeShaderRetained) mirror).shaderIds = null;	
     }
 
     synchronized void updateMirrorObject(int component, Object value) {

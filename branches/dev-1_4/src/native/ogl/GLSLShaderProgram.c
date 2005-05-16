@@ -282,11 +282,30 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     return NULL; /* Will handle error reporting later. Return null for now */
 }
 
-/*
- * TODO: pass in an array of shaders (no need to distinguish
- * vertex from fragment in the native code)
- */
 
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    useShaderProgram
+ * Signature: (JI)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_useShaderProgram(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId)
+{
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    
+    ctxProperties->pfnglUseProgramObjectARB((GLhandleARB)shaderProgramId);
+
+    return NULL; /* Will handle error reporting later. Return null for now */
+
+}
+
+
+
+#if 0
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    updateNative
@@ -449,7 +468,7 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
     return glShaderProgram;
 #endif /* !COMPILE_GLSL_SHADERS */
 }
-
+#endif
 
 JNIEXPORT void JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(

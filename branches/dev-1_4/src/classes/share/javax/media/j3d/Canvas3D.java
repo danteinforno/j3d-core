@@ -645,7 +645,7 @@ public class Canvas3D extends Canvas {
     ColoringAttributesRetained coloringAttributes = null;
     Transform3D modelMatrix = null;
     TextureBin textureBin = null;
-
+    
 
     /**
      * cached RenderBin states for lazy native states update
@@ -673,6 +673,8 @@ public class Canvas3D extends Canvas {
     TexCoordGenerationRetained texCoordGeneration = null;
     RenderingAttributesRetained renderingAttrs = null;
     AppearanceRetained appearance = null;
+    
+    ShaderProgramRetained  shaderProgram = null;
 
     // only used in Mixed Mode rendering
     Object appHandle = null;
@@ -705,7 +707,9 @@ public class Canvas3D extends Canvas {
 
     // an unique bit to identify this canvas
     int canvasBit = 0;
-
+    // an unique number to identify this canvas : ( canvasBit = 1 << canvasId)
+    int canvasId = 0;
+    
     // Avoid using this as lock, it cause deadlock 
     Object cvLock = new Object();
     Object evaluateLock = new Object();
@@ -1352,8 +1356,10 @@ public class Canvas3D extends Canvas {
 	    cvDirtyMask |= Canvas3D.MOVED_OR_RESIZED_DIRTY;
 	}
 	
-        canvasBit = VirtualUniverse.mc.getCanvasBit();
-        validCanvas = true;
+        canvasId = VirtualUniverse.mc.getCanvasId();
+        canvasBit = 1 << canvasId;
+ 
+	validCanvas = true;
 	added = true;
 
 	// In case the same canvas is removed and add back,
@@ -1442,8 +1448,9 @@ public class Canvas3D extends Canvas {
 	screen.removeUser(this);
 	evaluateActive();	
 
-        VirtualUniverse.mc.freeCanvasBit(canvasBit);
+        VirtualUniverse.mc.freeCanvasId(canvasId);
 	canvasBit = 0;
+	canvasId = 0;
 
 	ra = null;
 	graphicsContext3D = null;
@@ -3844,6 +3851,7 @@ public class Canvas3D extends Canvas {
 	enableLighting = false;
 	transparency = null;
 	coloringAttributes = null;
+	shaderProgram = null;
 	texture = null;
 	texAttrs = null;
 	if (texUnitState != null) {
