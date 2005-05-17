@@ -115,12 +115,41 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     /**
      * Method to use the native shader program.
      */
-    abstract ShaderError enableShaderProgram(Canvas3D cv, int cvRdrIndex);
+    abstract ShaderError enableShaderProgram(long ctx, int cvRdrIndex);
     
     /**
      * Method to disable the native shader program.
      */
-    abstract void disableShaderProgram(Canvas3D cv);
+    abstract ShaderError disableShaderProgram(long ctx);
+
+    /**
+     * Method to enable the native shader program.
+     */
+    ShaderError disableShaderProgram(Canvas3D cv) {
+	return disableShaderProgram(cv.ctx);
+    }
+    
+    /**
+     * Method to enable the native shader program.
+     */
+    ShaderError enableShaderProgram(Canvas3D cv, int cvRdrIndex) {
+
+	synchronized(resourceLock) {
+	    if(cvRdrIndex < 0) {
+		// System.out.println("GLSLShaderProgramRetained.useShaderProgram[ 0 ]");
+	
+		// disable shading by binding to program 0
+		return disableShaderProgram(cv);
+	    }
+	    else {
+		//System.out.println("GLSLShaderProgramRetained.useShaderProgram[ " +
+		//		   shaderProgramIds[cvRdrIndex]+ " ]");
+		return enableShaderProgram(cv.ctx, cvRdrIndex);
+	    }
+	}
+
+    }
+
    
     /**
      * Method to link the native shader program.

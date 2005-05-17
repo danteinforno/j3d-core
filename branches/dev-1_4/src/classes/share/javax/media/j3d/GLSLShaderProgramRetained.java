@@ -312,34 +312,18 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
  
 
     /**
-     * Method to link the native shader program.
+     * Method to enable the native shader program.
      */
-    ShaderError enableShaderProgram(Canvas3D cv, int cvRdrIndex) {
-
-	synchronized(resourceLock) {
-	    if(cvRdrIndex < 0) {
-		// System.out.println("GLSLShaderProgramRetained.useShaderProgram[ 0 ]");
-	
-		// disable shading by binding to program 0
-		useShaderProgram(cv.ctx, 0);
-	    }
-	    else {
-		//System.out.println("GLSLShaderProgramRetained.useShaderProgram[ " +
-		//		   shaderProgramIds[cvRdrIndex]+ " ]");
-		useShaderProgram(cv.ctx, shaderProgramIds[cvRdrIndex]);
-	    }
-	}
-
-	// Need to handle the returned ShaderError.
-	return null;
+    ShaderError enableShaderProgram(long ctx, int cvRdrIndex) {
+	return useShaderProgram(ctx, shaderProgramIds[cvRdrIndex]);
     }
 	
-
-    void disableShaderProgram(Canvas3D cv) {
-	// System.out.println("GLSLShaderProgramRetained.disableShaderProgram ...");
-	useShaderProgram(cv.ctx, -1);
+    /**
+     * Method to disable the native shader program.
+     */
+    ShaderError disableShaderProgram(long ctx) {
+	return useShaderProgram(ctx, 0);
     }
-
 
     /**
      * Update native value for ShaderAttributeValue class
