@@ -10,17 +10,9 @@
  * $State$
  */
 
-/*
- * Comment out the following to disable GLSL shader compilation.
- */
-#define ENABLE_GLSL_SHADERS  /* Define to compile GLSL shaders */
-
-
-/* KCR: BEGIN SHADER HACK */
 #if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
-/* KCR: END SHADER HACK */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,18 +25,6 @@
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
 
-/* KCR: BEGIN GLSL SHADER HACK */
-#if defined(ENABLE_GLSL_SHADERS) && defined(GL_ARB_shading_language_100)
-#define COMPILE_GLSL_SHADERS 1
-#else
-#undef COMPILE_GLSL_SHADERS
-#endif
-
-#if defined(UNIX)
-#include <dlfcn.h>
-#endif
-/* KCR: END GLSL SHADER HACK */
-
 
 #ifdef DEBUG
 /* Uncomment the following for VERBOSE debug messages */
@@ -52,9 +32,13 @@ extern char *strJavaToC(JNIEnv *env, jstring str);
 #endif /* DEBUG */
 
 
-#ifdef COMPILE_GLSL_SHADERS
-/* KCR: BEGIN GLSL SHADER HACK */
-
+/*
+ * TODO KCR:
+ *
+ * Replace this function with code that return the info log as a
+ * string, which will then be used to create a detail message for a
+ * ShaderError.
+ */
 static void
 printInfoLog(GraphicsContextPropertiesInfo* ctxProperties, GLhandleARB obj) {
     int infoLogLength = 0;
@@ -78,7 +62,7 @@ printInfoLog(GraphicsContextPropertiesInfo* ctxProperties, GLhandleARB obj) {
 	fprintf(stderr, "%s\n", infoLog);
     }
 }
-#endif /* !COMPILE_GLSL_SHADERS */
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
@@ -319,16 +303,6 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
     jstring vertexShader,
     jstring fragmentShader)
 {
-#ifndef COMPILE_GLSL_SHADERS
-    static GLboolean firstTime = GL_TRUE;
-    if (firstTime) {
-	fprintf(stderr, "Java 3D ERROR : GLSLShader code not compiled\n");
-	firstTime = GL_FALSE;
-    }
-    return 0;
-#endif /* !COMPILE_GLSL_SHADERS */
-
-#ifdef COMPILE_GLSL_SHADERS
     GLint status;
 
     GLhandleARB glVertexShader = 0;
@@ -466,10 +440,11 @@ JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNati
 
     ctxProperties->pfnglUseProgramObjectARB(glShaderProgram);
     return glShaderProgram;
-#endif /* !COMPILE_GLSL_SHADERS */
 }
 #endif
 
+
+/* KCR: BEGIN GLSL SHADER HACK */
 JNIEXPORT void JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     JNIEnv *env,
@@ -479,7 +454,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     jstring attrName,
     jint value)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
     
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -509,7 +483,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
 
     /* Load attribute */
     ctxProperties->pfnglUniform1iARB(loc, value);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -522,7 +495,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     jstring attrName,
     jfloat value)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -552,7 +524,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
 
     /* Load attribute */
     ctxProperties->pfnglUniform1fARB(loc, value);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -565,7 +536,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     jstring attrName,
     jintArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -606,7 +576,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -619,7 +588,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     jstring attrName,
     jfloatArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -660,7 +628,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -673,7 +640,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     jstring attrName,
     jintArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -714,7 +680,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -727,7 +692,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     jstring attrName,
     jfloatArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -768,7 +732,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -781,7 +744,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     jstring attrName,
     jintArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -822,7 +784,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 
 
@@ -835,7 +796,6 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     jstring attrName,
     jfloatArray varray)
 {
-#ifdef COMPILE_GLSL_SHADERS
     JNIEnv table = *env;
 
     GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
@@ -876,6 +836,5 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
 					 varray,
 					 values,
 					 JNI_ABORT);
-#endif /* COMPILE_GLSL_SHADERS */
 }
 /* KCR: END GLSL SHADER HACK */
