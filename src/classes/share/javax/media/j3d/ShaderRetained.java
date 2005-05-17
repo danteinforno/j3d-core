@@ -27,6 +27,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
 
     // shaderId use by native code. One per Canvas.
     protected long[] shaderIds;
+    protected boolean[] compiled;
 
     // need to synchronize access from multiple rendering threads 
     protected Object resourceLock = new Object();
