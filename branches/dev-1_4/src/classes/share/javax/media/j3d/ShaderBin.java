@@ -306,7 +306,7 @@ class ShaderBin implements ObjectUpdate {
 	}
 	else {
 	    if (cv.shaderProgram != null) {
-		cv.shaderProgram.disableNative(cv);
+		cv.shaderProgram.disableShaderProgram(cv);
 	    }
 	}
 
