@@ -51,6 +51,21 @@ abstract class ShaderRetained extends NodeComponentRetained {
 	return shaderType;
     }
  
+    void setLive(boolean inBackgroundGroup, int refCount) {
+	// System.out.println("SourceCodeShaderRetained.setLive()");
+	super.setLive(inBackgroundGroup, refCount);
+    }
+
+    void clearLive(int refCount) {
+	// System.out.println("SourceCodeShaderRetained.clearLive()");
+
+	super.clearLive(refCount);
+	if (this.refCount <= 0) {
+	    // Should this be done here ? In user thread ? --- Chien
+	    // freeShader();
+	}
+    }
+
      /**
       * Shader object doesn't really have mirror object.
       * But it's using the updateMirrorObject interface to propagate

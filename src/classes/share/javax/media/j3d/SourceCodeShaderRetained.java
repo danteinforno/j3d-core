@@ -49,25 +49,7 @@ class SourceCodeShaderRetained extends ShaderRetained {
 
     final void setShaderSource(String sc) {
 	this.shaderSource = shaderSource;
-    }
-
-    
-    // TODO KCR: This should probably be moved to the super-class
-    void setLive(boolean inBackgroundGroup, int refCount) {
-	// System.out.println("SourceCodeShaderRetained.setLive()");
-	super.setLive(inBackgroundGroup, refCount);
-    }
-
-    // TODO KCR: This should probably be moved to the super-class
-    void clearLive(int refCount) {
-	// System.out.println("SourceCodeShaderRetained.clearLive()");
-
-	super.clearLive(refCount);
-	if (this.refCount <= 0) {
-	    // Should this be done here ? In user thread ? --- Chien
-	    // freeShader();
-	}
-    }
+    }    
 
     synchronized void createMirrorObject() {
 	// System.out.println("SourceCodeShaderRetained : createMirrorObject");
