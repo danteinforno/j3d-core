@@ -297,7 +297,8 @@ class ShaderBin implements ObjectUpdate {
 
 	// System.out.println("ShaderBin.updateAttributes() shaderProgram is " + shaderProgram);
 	if (shaderProgram != null) {
-	    shaderProgram.updateNative(cv);
+            // Compile, link, and enable shader program
+	    shaderProgram.updateNative(cv, true);
 
 	    if (shaderAttributeSet != null) {
 		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
@@ -306,7 +307,8 @@ class ShaderBin implements ObjectUpdate {
 	}
 	else {
 	    if (cv.shaderProgram != null) {
-		cv.shaderProgram.disableShaderProgram(cv);
+                // Disable shader program
+		cv.shaderProgram.updateNative(cv, false);
 	    }
 	}
 

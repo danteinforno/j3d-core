@@ -133,6 +133,7 @@
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
 #include "javax_media_j3d_GLSLShaderProgramRetained.h"
 #include "javax_media_j3d_Shader.h"
+#include "javax_media_j3d_ShaderError.h"
 
 /*
  * Define these constants here as a workaround for conflicting

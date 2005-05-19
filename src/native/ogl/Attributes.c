@@ -3583,31 +3583,87 @@ strJavaToC(JNIEnv *env, jstring str)
     JNIEnv table = *env;
     jclass oom;
 
-    jsize strUTFLen;		/* Number of UTF-8 bytes in String */
-    jbyte *strUTFBytes;		/* Array of UTF-8 bytes */
+    const jbyte *strUTFBytes;	/* Array of UTF-8 bytes */
     char *cString = NULL;	/* Null-terminated "C" string */
-
-    strUTFLen = table->GetStringUTFLength(env, str);
-    cString = (char *)malloc(strUTFLen + 1);
-    if (cString == NULL) {
-	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
-	    table->ThrowNew(env, oom, "malloc");
-	}
-	return NULL;
-    }
 
     strUTFBytes = table->GetStringUTFChars(env, str, NULL);
     if (strUTFBytes == NULL) {
-	free(cString);
+	/* Just return, since GetStringUTFChars will throw OOM if it returns NULL */
+	return NULL;
+    }
+
+    cString = strdup(strUTFBytes);
+    table->ReleaseStringUTFChars(env, str, strUTFBytes);
+    if (cString == NULL) {
 	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
-	    table->ThrowNew(env, oom, "GetStringUTFChars");
+	    table->ThrowNew(env, oom, "strdup");
 	}
 	return NULL;
     }
 
-    memcpy(cString, strUTFBytes, strUTFLen);
-    cString[strUTFLen] = '\0';
-    table->ReleaseStringUTFChars(env, str, strUTFBytes);
-
     return cString;
+}
+
+
+/*
+ * createShaderError
+ *
+ * Constructs a new ShaderError object from the given error code,
+ * error message, and detail message.
+ */
+jobject
+createShaderError(
+    JNIEnv *env,
+    int errorCode,
+    const char *errorMsg,
+    const char *detailMsg)
+{
+    JNIEnv table = *env;
+    jclass shaderErrorClass;
+    jobject shaderError;
+    jmethodID methodID;
+    jstring errorMsgString = NULL;
+    jstring detailMsgString = NULL;
+
+    if (errorMsg != NULL) {
+	if ((errorMsgString = table->NewStringUTF(env, errorMsg)) == NULL) {
+	    return NULL;
+	}
+    }
+
+    if (detailMsg != NULL) {
+	if ((detailMsgString = table->NewStringUTF(env, detailMsg)) == NULL) {
+	    return NULL;
+	}
+    }
+
+    shaderErrorClass = (*(table->FindClass))(env, "javax/media/j3d/ShaderError");
+    if (shaderErrorClass == NULL) {
+	return NULL;
+    }
+
+    methodID = table->GetMethodID(env, shaderErrorClass,
+				  "<init>",
+				  "(ILjava/lang/String;)V");
+    if (methodID == NULL) {
+	return NULL;
+    }
+
+    shaderError = table->NewObject(env, shaderErrorClass, methodID,
+				   errorCode, errorMsgString);
+    if (shaderError == NULL) {
+	return NULL;
+    }
+
+    methodID = table->GetMethodID(env, shaderErrorClass,
+				  "setDetailMessage",
+				  "(Ljava/lang/String;)V");
+    if (methodID == NULL) {
+	return NULL;
+    }
+
+    table->CallVoidMethod(env, shaderError, methodID,
+			  detailMsgString);
+
+    return shaderError;
 }

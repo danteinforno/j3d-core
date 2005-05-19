@@ -22,15 +22,21 @@ import java.util.*;
  * future.
  */
 abstract class ShaderRetained extends NodeComponentRetained {
-    protected int shadingLanguage;
-    protected int shaderType;
+    int shadingLanguage;
+    int shaderType;
 
     // shaderId use by native code. One per Canvas.
-    protected long[] shaderIds;
-    protected boolean[] compiled;
+    long[] shaderIds;
+    boolean[] compiled;
+
+    // Flag indicating whether a COMPILE_ERROR has occurred for this shader
+    // object.  It is set in updateNative to indicate that the compileShader
+    // operation failed. It is cleared in setLive or clearLive.
+    // TODO KCR: Add code to clear this in setLive or clearLive
+    boolean compileErrorOccurred = false;
 
     // need to synchronize access from multiple rendering threads 
-    protected Object resourceLock = new Object();
+    Object resourceLock = new Object();
 
     void set(int shadingLanguage, int shaderType) {
 	this.shadingLanguage = shadingLanguage;
