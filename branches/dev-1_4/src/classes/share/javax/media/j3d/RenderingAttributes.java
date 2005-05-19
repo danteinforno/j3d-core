@@ -299,9 +299,29 @@ public class RenderingAttributes extends NodeComponent {
     public static final int GREATER_OR_EQUAL = 7;
 
 
-//    public static final int ROP_CLEAR = 0x0;
-//    public static final int ROP_AND = 0x1;
-//    public static final int ROP_AND_REVERSE = 0x2;
+    /**
+     * Raster operation: <code>DST = 0</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_CLEAR = 0x0;
+
+    /**
+     * Raster operation: <code>DST = SRC & DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND = 0x1;
+
+    /**
+     * Raster operation: <code>DST = SRC & ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND_REVERSE = 0x2;
 
     /**
      * Raster operation: <code>DST = SRC</code>.
@@ -311,8 +331,21 @@ public class RenderingAttributes extends NodeComponent {
      */
     public static final int ROP_COPY = 0x3;
 
-//    public static final int ROP_AND_INVERTED = 0x4;
-//    public static final int ROP_NOOP = 0x5;
+    /**
+     * Raster operation: <code>DST = ~SRC & DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND_INVERTED = 0x4;
+		
+    /**
+     * Raster operation: <code>DST = DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NOOP = 0x5;
 
     /**
      * Raster operation: <code>DST = SRC ^ DST</code>.
@@ -322,15 +355,77 @@ public class RenderingAttributes extends NodeComponent {
      */
     public static final int ROP_XOR = 0x6;
 
-//    public static final int ROP_OR = 0x7;
-//    public static final int ROP_NOR = 0x8;
-//    public static final int ROP_EQUIV = 0x9;
-//    public static final int ROP_INVERT = 0xA;
-//    public static final int ROP_OR_REVERSE = 0xB;
-//    public static final int ROP_COPY_INVERTED = 0xC;
-//    public static final int ROP_OR_INVERTED = 0xD;
-//    public static final int ROP_NAND = 0xE;
-//    public static final int ROP_SET = 0xF;
+    /**
+     * Raster operation: <code>DST = DST | SRC</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR = 0x7;
+
+    /**
+     * Raster operation: <code>DST = ~( DST | SRC )</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NOR = 0x8;
+
+    /**
+     * Raster operation: <code>DST = ~( DST ^ SRC )</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_EQUIV = 0x9;
+		
+    /**
+     * Raster operation: <code>DST = ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_INVERT = 0xA;
+		
+    /**
+     * Raster operation: <code>DST = src | ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR_REVERSE = 0xB;
+
+    /**
+     * Raster operation: <code>DST = ~SRC</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_COPY_INVERTED = 0xC;
+
+    /**
+     * Raster operation: <code>DST = ~SRC | DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR_INVERTED = 0xD;
+
+    /**
+     * Raster operation: <code>DST = ~(SRC & DST)</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NAND = 0xE;
+
+    /**
+     * Raster operation: <code>DST = 1</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_SET = 0xF;
 
 
     /**
