@@ -110,6 +110,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	}
     }
 
+    // TODO KCR: This should be moved to the super-class
     void setLive(boolean backgroundGroup, int refCount) {
 	
 	// System.out.println("GLSLShaderProgramRetained.setLive()");
@@ -136,6 +137,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	super.markAsLive();
     }
 
+    // TODO KCR: This should be moved to the super-class
     void clearLive(int refCount) {
 
         // System.out.println("GLSLShaderProgramRetained.clearLive()");
@@ -262,6 +264,14 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
     */
 
     /**
+     * Method to return a flag indicating whether this
+     * ShaderProgram is supported on the specified Canvas.
+     */
+    boolean isSupported(Canvas3D cv) {
+        return cv.shadingLanguageGLSL;
+    }
+
+    /**
      * Method to create the native shader.
      */
     ShaderError createShader(long ctx, ShaderRetained shader, long[] shaderIdArr) {	
@@ -272,15 +282,13 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to destroy the native shader.
      */
     ShaderError destroyShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-	System.out.println("GLSLShaderProgram : destroyShader not implemented yet!");
-	return null;
+	return destroyShader(ctx, shader.shaderIds[cvRdrIndex]);
     }
     
     /**
      * Method to compile the native shader.
      */
     ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-
         return compileShader(ctx, shader.shaderIds[cvRdrIndex],
                 ((SourceCodeShaderRetained)shader).getShaderSource());
 
@@ -299,15 +307,14 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to destroy the native shader program.
      */
     ShaderError destroyShaderProgram(long ctx, int cvRdrIndex) {
-	System.out.println("GLSLShaderProgram : destroyShaderProgram not implemented yet!");
-	return null;
+        return destroyShaderProgram(ctx, shaderProgramIds[cvRdrIndex]);
     }
 
     /**
      * Method to link the native shader program.
      */
     ShaderError linkShaderProgram(long ctx, int cvRdrIndex, long[] shaderIds) {
-	   return linkShaderProgram(ctx, shaderProgramIds[cvRdrIndex], shaderIds);
+        return linkShaderProgram(ctx, shaderProgramIds[cvRdrIndex], shaderIds);
     }
  
 

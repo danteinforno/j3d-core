@@ -24,26 +24,27 @@
 
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
-
-
-#ifdef DEBUG
-/* Uncomment the following for VERBOSE debug messages */
-/* #define VERBOSE */
-#endif /* DEBUG */
+extern jobject createShaderError(JNIEnv *env,
+				 int errorCode,
+				 const char *errorMsg,
+				 const char *detailMsg);
 
 
 /*
- * TODO KCR:
- *
- * Replace this function with code that return the info log as a
- * string, which will then be used to create a detail message for a
- * ShaderError.
+ * Return the info log as a string. This is used as the detail message
+ * for a ShaderError.
  */
-static void
-printInfoLog(GraphicsContextPropertiesInfo* ctxProperties, GLhandleARB obj) {
+static const char *
+getInfoLog(
+    GraphicsContextPropertiesInfo* ctxProperties,
+    GLhandleARB obj)
+{
     int infoLogLength = 0;
     int len = 0;
-    GLcharARB *infoLog;
+    GLcharARB *infoLog = NULL;
+
+    static const char *allocMsg =
+	"Java 3D ERROR: could not allocate infoLog buffer\n";
 
     ctxProperties->pfnglGetObjectParameterivARB(obj,
 						GL_OBJECT_INFO_LOG_LENGTH_ARB,
@@ -51,16 +52,13 @@ printInfoLog(GraphicsContextPropertiesInfo* ctxProperties, GLhandleARB obj) {
     if (infoLogLength > 0) {
 	infoLog = (GLcharARB *)malloc(infoLogLength);
 	if (infoLog == NULL) {
-	    fprintf(stderr,
-		    "ERROR: could not allocate infoLog buffer\n");
-	    return;
+	    return allocMsg;
 	}
 
 	ctxProperties->pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
-	fprintf(stderr, "InfoLog: infoLogLength = %d, len = %d\n",
-		infoLogLength, len);
-	fprintf(stderr, "%s\n", infoLog);
     }
+
+    return infoLog;
 }
 
 
@@ -79,11 +77,12 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
 {
 
     jlong *shaderIdPtr;
-    GLhandleARB shaderHandle;
+    GLhandleARB shaderHandle = 0;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-    shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
+    jobject shaderError = NULL;
 
+    shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
 
     /* Process  shader */
     /*
@@ -98,12 +97,19 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
 	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
     }
     
+    if (shaderHandle == 0) {
+	shaderError = createShaderError(env,
+					javax_media_j3d_ShaderError_COMPILE_ERROR,
+					"Unable to create native shader object",
+					NULL);
+    }
+
     shaderIdPtr[0] = (jlong) shaderHandle;
     (*env)->ReleaseLongArrayElements(env, shaderIdArray, shaderIdPtr, 0); 
 
-    
-    return NULL; /* Will handle error reporting later. Return null for now */
+    return shaderError;
 }
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
@@ -121,7 +127,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
 
     ctxProperties->pfnglglDeleteObjectARB( (GLhandleARB) shaderId);
     
-    return NULL; /* Will handle error reporting later. Return null for now */
+    return NULL;
 }
 
 /*
@@ -140,13 +146,14 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     GLint status;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-    
+    jobject shaderError = NULL;
+
     /* Null-terminated "C" strings */
     GLcharARB *shaderString = NULL;
 
     shaderString = (GLcharARB *)strJavaToC(env, program);
     if (shaderString == NULL) {	
-	fprintf(stderr, "Error in compileShader (1)\n");
+	/* Just return, since strJavaToC will throw OOM if it returns NULL */
 	return NULL;
     }
 
@@ -155,21 +162,19 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
     ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderId,
 						GL_OBJECT_COMPILE_STATUS_ARB,
 						&status);
-    fprintf(stderr,
-	    "GLSLShaderProgram COMPILE : shaderId = %d -- ", shaderId);
-    if (status) {
-	fprintf(stderr, "SUCCESSFUL\n");
+    if (!status) {
+	const char *detailMsg = getInfoLog(ctxProperties, (GLhandleARB)shaderId);
+
+	shaderError = createShaderError(env,
+					javax_media_j3d_ShaderError_COMPILE_ERROR,
+					"GLSL shader compile error",
+					detailMsg);
     }
-    else {
-	fprintf(stderr, "FAILED\n");
-	/* TODO - Replace witht detail message in the return ShaderError. */
-	printInfoLog(ctxProperties, (GLhandleARB)shaderId);
-    }
-    
+
     free(shaderString);    
-    return NULL; /* Will handle error reporting later. Return null for now */
-    
+    return shaderError;
 }
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
@@ -186,16 +191,24 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShaderProgram(
 
     jlong *shaderProgramIdPtr;
     GLhandleARB shaderProgramHandle;
+    jobject shaderError = NULL;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     shaderProgramIdPtr = (*env)->GetLongArrayElements(env, shaderProgramIdArray, NULL);
 
     shaderProgramHandle = ctxProperties->pfnglCreateProgramObjectARB();
 
+    if (shaderProgramHandle == 0) {
+	shaderError = createShaderError(env,
+					javax_media_j3d_ShaderError_LINK_ERROR,
+					"Unable to create native shader program object",
+					NULL);
+    }
+
     shaderProgramIdPtr[0] = (jlong) shaderProgramHandle;
     (*env)->ReleaseLongArrayElements(env, shaderProgramIdArray, shaderProgramIdPtr, 0);
     
-    return NULL; /* Will handle error reporting later. Return null for now */
+    return shaderError;
 }
 
 /*
@@ -214,7 +227,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
 
     ctxProperties->pfnglglDeleteObjectARB((GLhandleARB)shaderProgramId);
 
-    return NULL; /* Will handle error reporting later. Return null for now */
+    return NULL;
 }
 
 /*
@@ -236,9 +249,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     jlong *shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
     jsize shaderIdArrayLength = (*env)->GetArrayLength(env,  shaderIdArray);
+    jobject shaderError = NULL;
 
-    
-    fprintf(stderr, "shaderIdArrayLength %d\n", shaderIdArrayLength);
+    /*
+    fprintf(stderr, "linkShaderProgram: shaderIdArrayLength %d\n", shaderIdArrayLength);
+    */
     
     for(i=0; i<shaderIdArrayLength; i++) {
 	ctxProperties->pfnglAttachObjectARB((GLhandleARB)shaderProgramId,
@@ -249,21 +264,19 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
     ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderProgramId,
 						GL_OBJECT_LINK_STATUS_ARB,
 						&status);
-    fprintf(stderr, "GLSLShaderProgram LINK : shaderProgramId = %d -- ", shaderProgramId);
-    if (status) {
-	fprintf(stderr, "SUCCESSFUL\n");
-    }
-    else {
-	fprintf(stderr, "FAILED\n");
-	/* TODO - Replace witht detail message in the return ShaderError. */
-	printInfoLog(ctxProperties, (GLhandleARB)shaderProgramId);
-	
-	ctxProperties->pfnglUseProgramObjectARB(0);
+
+    if (!status) {
+	const char *detailMsg = getInfoLog(ctxProperties, (GLhandleARB)shaderProgramId);
+
+	shaderError = createShaderError(env,
+					javax_media_j3d_ShaderError_LINK_ERROR,
+					"GLSL shader program link error",
+					detailMsg);
     }
 
     (*env)->ReleaseLongArrayElements(env, shaderIdArray, shaderIdPtr, JNI_ABORT); 
 
-    return NULL; /* Will handle error reporting later. Return null for now */
+    return shaderError;
 }
 
 
@@ -280,168 +293,11 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_useShaderProgram(
     jlong shaderProgramId)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-    
+
     ctxProperties->pfnglUseProgramObjectARB((GLhandleARB)shaderProgramId);
 
-    return NULL; /* Will handle error reporting later. Return null for now */
-
+    return NULL;
 }
-
-
-
-#if 0
-/*
- * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    updateNative
- * Signature: (JLjava/lang/String;Ljava/lang/String;)V
- */
-JNIEXPORT jint JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_updateNative(
-    JNIEnv *env,
-    jobject obj,
-    jlong ctxInfo,
-    jint shaderProgramId,
-    jstring vertexShader,
-    jstring fragmentShader)
-{
-    GLint status;
-
-    GLhandleARB glVertexShader = 0;
-    GLhandleARB glFragmentShader = 0;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgramId;
-
-    /* Null-terminated "C" strings */
-    GLcharARB *vertexShaderString = NULL;
-    GLcharARB *fragmentShaderString = NULL;
-
-    static GLboolean firstTime = GL_TRUE;
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-
-    if (ctxProperties->pfnglCreateShaderObjectARB == NULL) {
-	return 0;
-    }
-
-    /*
-     * If the vertexProgram and fragment program are both NULL, then
-     * disable shading by binding to program 0
-     */
-    if (vertexShader == 0 && fragmentShader == 0) {
-	/*
-	fprintf(stderr, "    vertexShader and fragmentShader are NULL\n");
-	*/
-	ctxProperties->pfnglUseProgramObjectARB(0);
-	return 0;
-    }
-
-    /* If already created, just bind the shader program */
-    if (glShaderProgram != 0) {
-	/*
-	fprintf(stderr, "    glUseProgramObject(%d)\n", glShaderProgram);
-	*/
-	ctxProperties->pfnglUseProgramObjectARB(glShaderProgram);
-	return glShaderProgram;
-    }
-
-    /* Process vertex shader */
-    /*
-    fprintf(stderr, "    vertexShader == 0x%x\n", vertexShader);
-    */
-    if (vertexShader != 0) {
-	vertexShaderString = (GLcharARB *)strJavaToC(env, vertexShader);
-	if (vertexShaderString == NULL) {
-	    return 0;
-	}
-
-	/*
-	 * TODO: need to check whether the shader has changed and free up the
-	 * old shader before allocating a new one (like we do for texture)
-	 */
-	if (glVertexShader == 0) {
-	    /* create the vertex shader */
-	    glVertexShader = ctxProperties->pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	    ctxProperties->pfnglShaderSourceARB(glVertexShader, 1, &vertexShaderString, NULL);
-	    ctxProperties->pfnglCompileShaderARB(glVertexShader);
-	    ctxProperties->pfnglGetObjectParameterivARB(glVertexShader,
-				      GL_OBJECT_COMPILE_STATUS_ARB,
-				      &status);
-	    fprintf(stderr,
-		    "GLSLShaderProgram COMPILE : glVertexShader = %d -- ",
-		    glVertexShader);
-	    if (status) {
-		fprintf(stderr, "SUCCESSFUL\n");
-	    }
-	    else {
-		fprintf(stderr, "FAILED\n");
-		printInfoLog(ctxProperties, glVertexShader);
-	    }
-	}
-	free(vertexShaderString);
-    }
-
-    /* Process fragment shader */
-    /*
-    fprintf(stderr, "    fragmentShader == 0x%x\n", fragmentShader);
-    */
-    if (fragmentShader != 0) {
-	fragmentShaderString = (GLcharARB *)strJavaToC(env, fragmentShader);
-	if (fragmentShaderString == NULL) {
-	    return 0;
-	}
-
-	/*
-	 * TODO: need to check whether the shader has changed and free up the
-	 * old shader before allocating a new one (like we do for texture)
-	 */
-	if (glFragmentShader == 0) {
-	    /* create the fragment shader */
-	    glFragmentShader = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-	    ctxProperties->pfnglShaderSourceARB(glFragmentShader, 1, &fragmentShaderString, NULL);
-	    ctxProperties->pfnglCompileShaderARB(glFragmentShader);
-	    ctxProperties->pfnglGetObjectParameterivARB(glFragmentShader,
-				      GL_OBJECT_COMPILE_STATUS_ARB,
-				      &status);
-	    fprintf(stderr,
-		    "GLSLShaderProgram COMPILE : glFragmentShader = %d -- ",
-		    glFragmentShader);
-	    if (status) {
-		fprintf(stderr, "SUCCESSFUL\n");
-	    }
-	    else {
-		fprintf(stderr, "FAILED\n");
-		printInfoLog(ctxProperties, glFragmentShader);
-	    }
-	}
-	free(fragmentShaderString);
-    }
-
-    /* Link the shader (if first time) */
-    glShaderProgram = ctxProperties->pfnglCreateProgramObjectARB();
-    if (vertexShader != 0) {
-	ctxProperties->pfnglAttachObjectARB(glShaderProgram, glVertexShader);
-    }
-    if (fragmentShader != 0) {
-	ctxProperties->pfnglAttachObjectARB(glShaderProgram, glFragmentShader);
-    }
-    ctxProperties->pfnglLinkProgramARB(glShaderProgram);
-    
-    ctxProperties->pfnglGetObjectParameterivARB(glShaderProgram,
-				 GL_OBJECT_LINK_STATUS_ARB,
-				 &status);
-    fprintf(stderr, "GLSLShaderProgram LINK : glShaderProgram = %d -- ", glShaderProgram);
-    if (status) {
-	fprintf(stderr, "SUCCESSFUL\n");
-    }
-    else {
-	fprintf(stderr, "FAILED\n");
-	printInfoLog(ctxProperties, glShaderProgram);
-	ctxProperties->pfnglUseProgramObjectARB(0);
-	return 0;
-    }
-
-    ctxProperties->pfnglUseProgramObjectARB(glShaderProgram);
-    return glShaderProgram;
-}
-#endif
 
 
 /* KCR: BEGIN GLSL SHADER HACK */

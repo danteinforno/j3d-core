@@ -52,11 +52,13 @@ class SourceCodeShaderRetained extends ShaderRetained {
     }
 
     
+    // TODO KCR: This should probably be moved to the super-class
     void setLive(boolean inBackgroundGroup, int refCount) {
 	// System.out.println("SourceCodeShaderRetained.setLive()");
 	super.setLive(inBackgroundGroup, refCount);
     }
 
+    // TODO KCR: This should probably be moved to the super-class
     void clearLive(int refCount) {
 	// System.out.println("SourceCodeShaderRetained.clearLive()");
 

@@ -60,6 +60,12 @@ public class ShaderError extends Object {
      */
     public static final int VERTEX_ATTRIBUTE_ERROR = 4;
 
+    /**
+     * Indicates that the specified shading language is not supported
+     * on the screen display device.
+     */
+    public static final int UNSUPPORTED_LANGUAGE_ERROR = 5;
+
 
     /**
      * Constructs a new ShaderError object indicating no error. The
@@ -102,15 +108,32 @@ public class ShaderError extends Object {
      */
     public void printVerbose(PrintStream printStream) {
 	printStream.println(this);
-	printStream.println("canvas = " + canvas);
-	printStream.println("shape = " + shape);
-	printStream.println("geometry = " + geometry);
-	printStream.println("shaderApp = " + shaderApp);
-	printStream.println("shaderProgram = " + shaderProgram);
-	printStream.println("shader = " + shader);
-	printStream.println("shaderAttributeSet = " + shaderAttributeSet);
-	printStream.println("shaderAttribute = " + shaderAttribute);
-	if (detailMessage != null) {
+        if (canvas != null) {
+            printStream.println("canvas = " + canvas);
+        }
+        if (shape != null) {
+            printStream.println("shape = " + shape);
+        }
+	if (geometry != null) {
+	    printStream.println("geometry = " + geometry);
+	}
+	if (shaderApp != null) {
+	    printStream.println("shaderApp = " + shaderApp);
+	}
+	if (shaderProgram != null) {
+	    printStream.println("shaderProgram = " + shaderProgram);
+	}
+	if (shader != null) {
+	    printStream.println("shader = " + shader);
+	}
+	if (shaderAttributeSet != null) {
+	    printStream.println("shaderAttributeSet = " + shaderAttributeSet);
+	}
+	if (shaderAttribute != null) {
+	    printStream.println("shaderAttribute = " + shaderAttribute);
+	}
+
+        if (detailMessage != null) {
 	    printStream.println();
 	    printStream.println("Detail Message");
 	    printStream.println("--------------");
@@ -350,6 +373,9 @@ public class ShaderError extends Object {
 	    break;
 	case VERTEX_ATTRIBUTE_ERROR:
 	    errorCodeStr = "VERTEX_ATTRIBUTE_ERROR";
+	    break;
+	case UNSUPPORTED_LANGUAGE_ERROR:
+	    errorCodeStr = "UNSUPPORTED_LANGUAGE_ERROR";
 	    break;
 	default:
 	    errorCodeStr = "UNKNOWN ERROR CODE (" + errorCode + ")";
