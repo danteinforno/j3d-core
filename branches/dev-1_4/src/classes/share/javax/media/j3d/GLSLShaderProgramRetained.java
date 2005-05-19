@@ -23,14 +23,6 @@ package javax.media.j3d;
 
 class GLSLShaderProgramRetained extends ShaderProgramRetained {
 
-    // A list of pre-defined bits to indicate which component
-    // in this GLSLShaderProgram object changed.
-    static final int SHADER_PROGRAM_CREATE              = 0x001;
-    static final int SHADER_UPDATE                      = 0x002;
-    static final int VERTEX_ATTRIBUTE_NAME_UPDATE       = 0x004;
-    static final int SHADER_ATTRIBUTE_UPDATE            = 0x008;
-    static final int SHADER_PROGRAM_DESTROY             = 0x010;
-
     // TODO : Use the members in ShaderProgramRetained -- Chien.
     private int shaderProgramId = 0;
 
@@ -110,50 +102,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	}
     }
 
-    // TODO KCR: This should be moved to the super-class
-    void setLive(boolean backgroundGroup, int refCount) {
-	
-	// System.out.println("GLSLShaderProgramRetained.setLive()");
-
-	if (shaders != null) {
-	    for (int i = 0; i < shaders.length; i++){
-		shaders[i].setLive(backgroundGroup, refCount);
-	    }
-	}
-	
-	super.doSetLive(backgroundGroup, refCount);
-
-        // Send a message to Rendering Attr stucture to update the resourceMask
-	// via updateMirrorObject().
-	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
-	createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
-	createMessage.type = J3dMessage.SHADER_PROGRAM_CHANGED;
-	createMessage.args[0] = this;
-	createMessage.args[1]= new Integer(SHADER_PROGRAM_CREATE);
- 	createMessage.args[2] = null;
- 	createMessage.args[3] = new Integer(changedFrequent);
-	VirtualUniverse.mc.processMessage(createMessage);
-	
-	super.markAsLive();
-    }
-
-    // TODO KCR: This should be moved to the super-class
-    void clearLive(int refCount) {
-
-        // System.out.println("GLSLShaderProgramRetained.clearLive()");
-
-	super.clearLive(refCount);
-
-	if (shaders != null) {
-	    for (int i = 0; i < shaders.length; i++) {
-		shaders[i].clearLive(refCount);
-	    }
-	}
-    }
-
-
     synchronized void createMirrorObject() {
 	// System.out.println("GLSLShaderProgramRetained : createMirrorObject");
+        // This method should only call by setLive().
 	if (mirror == null) {
 	    GLSLShaderProgramRetained  mirrorGLSLSP = new GLSLShaderProgramRetained();	    
 	    mirror = mirrorGLSLSP;
@@ -173,8 +124,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	for (int i = 0; i < this.shaders.length; i++) {
 	    ((GLSLShaderProgramRetained)mirror).shaders[i] = (ShaderRetained)this.shaders[i].mirror;
 	}
-	((GLSLShaderProgramRetained)mirror).shaderProgramIds = null;
 	((GLSLShaderProgramRetained)mirror).resourceCreationMask = 0x0;
+	((GLSLShaderProgramRetained)mirror).shaderProgramIds = null;
+
     }
 
     /**
@@ -190,7 +142,6 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	if ((component & SHADER_PROGRAM_CREATE) != 0) {
 	    // Note: update from the mirror object only
 	    mirrorGLSLSp.resourceCreationMask = 0x0;
-	    mirrorGLSLSp.shaderProgramIds = null;
 	}
     }
 
