@@ -557,7 +557,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_COLOR_LOGIC_OP);
-    /* fprintf(stderr, "resetting depth func");*/
 
 }
 
@@ -669,11 +668,53 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     if (rasterOpEnable == JNI_TRUE) {
 	glEnable(GL_COLOR_LOGIC_OP);
 	switch (rasterOp) {
+	case javax_media_j3d_RenderingAttributes_ROP_CLEAR:
+	    glLogicOp(GL_CLEAR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND:
+	    glLogicOp(GL_AND);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND_REVERSE:
+	    glLogicOp(GL_AND_REVERSE);
+	    break;
 	case javax_media_j3d_RenderingAttributes_ROP_COPY:
 	    glLogicOp(GL_COPY);
 	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND_INVERTED:
+	    glLogicOp(GL_AND_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NOOP:
+	    glLogicOp(GL_NOOP);
+	    break;
 	case javax_media_j3d_RenderingAttributes_ROP_XOR:
 	    glLogicOp(GL_XOR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR:
+	    glLogicOp(GL_OR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NOR:
+	    glLogicOp(GL_NOR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_EQUIV:
+	    glLogicOp(GL_EQUIV);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_INVERT:
+	    glLogicOp(GL_INVERT);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR_REVERSE:
+	    glLogicOp(GL_OR_REVERSE);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_COPY_INVERTED:
+	    glLogicOp(GL_COPY_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR_INVERTED:
+	    glLogicOp(GL_OR_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NAND:
+	    glLogicOp(GL_NAND);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_SET:
+	    glLogicOp(GL_SET);
 	    break;
 	}
     } else

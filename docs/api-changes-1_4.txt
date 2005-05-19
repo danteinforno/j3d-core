@@ -177,6 +177,20 @@ I. New/deprecated fields, constructors, methods
     New fields:
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
+        public static final int ROP_CLEAR
+        public static final int ROP_AND
+        public static final int ROP_AND_REVERSE
+        public static final int ROP_AND_INVERTED
+        public static final int ROP_NOOP
+        public static final int ROP_OR
+        public static final int ROP_NOR
+        public static final int ROP_EQUIV
+        public static final int ROP_INVERT
+        public static final int ROP_OR_REVERSE
+        public static final int ROP_COPY_INVERTED
+        public static final int ROP_OR_INVERTED
+        public static final int ROP_NAND
+        public static final int ROP_SET
 
     New constructors:
 	public RenderingAttributes(boolean depthBufferEnable,
