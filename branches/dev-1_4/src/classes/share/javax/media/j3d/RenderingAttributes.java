@@ -93,8 +93,22 @@ package javax.media.j3d;
  * is enabled or disabled with the <code>setRasterOpEnable</code>
  * method. The raster operation is one of the following:</li><p>
  * <ul>
+ * <li>ROP_CLEAR - DST = 0.</li>
+ * <li>ROP_AND DST = SRC & DST.</li>
+ * <li>ROP_AND_REVERSE DST = SRC & ~DST.</li>
  * <li>ROP_COPY - DST = SRC. This is the default operation.</li>
- * <li>ROP_XOR - DST = SRC ^ DST.</li><p>
+ * <li>ROP_AND_INVERTED - DST = ~SRC & DST.</li>
+ * <li>ROP_NOOP - DST = DST.</li>
+ * <li>ROP_XOR - DST = SRC ^ DST.</li>
+ * <li>ROP_OR - DST = DST | SRC.</li>
+ * <li>ROP_NOR - DST = ~( DST | SRC .)</li>
+ * <li>ROP_EQUIV - DST = ~( DST ^ SRC .)</li>
+ * <li>ROP_INVERT - DST = ~DST.</li>
+ * <li>ROP_OR_REVERSE - DST = src | ~DST.</li>
+ * <li>ROP_COPY_INVERTED - DST = ~SRC.</li>
+ * <li>ROP_OR_INVERTED - DST = ~SRC | DST.</li>
+ * <li>ROP_NAND - DST = ~(SRC & DST.)</li>
+ * <li>ROP_SET - DST = 1.</li>
  * </ul>
  * <li>Vertex colors - vertex colors can be ignored for this
  * RenderingAttributes object. This capability is set with the
@@ -477,8 +491,10 @@ public class RenderingAttributes extends NodeComponent {
      * @param rasterOpEnable a flag that specifies whether logical
      * raster operations are enabled for this RenderingAttributes object.
      * This disables all alpha blending operations.
-     * @param rasterOp the logical raster operation, one of ROP_COPY or
-     * ROP_XOR.
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET
      *
      * @since Java 3D 1.2
      */
@@ -517,8 +533,10 @@ public class RenderingAttributes extends NodeComponent {
      * @param rasterOpEnable a flag that specifies whether logical
      * raster operations are enabled for this RenderingAttributes object.
      * This disables all alpha blending operations.
-     * @param rasterOp the logical raster operation, one of ROP_COPY or
-     * ROP_XOR.
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET.
      *
      * @since Java 3D 1.4
      */
@@ -827,8 +845,10 @@ public class RenderingAttributes extends NodeComponent {
      * Sets the raster operation function for this RenderingAttributes
      * component object.
      *
-     * @param rasterOp the logical raster operation, one of ROP_COPY or
-     * ROP_XOR
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET.
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
      *
@@ -848,7 +868,10 @@ public class RenderingAttributes extends NodeComponent {
     /**
      * Retrieves the current raster operation for this RenderingAttributes
      * object.
-     * @return one of ROP_COPY or ROP_XOR.
+     * @return one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
      *
