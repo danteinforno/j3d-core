@@ -343,10 +343,15 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     }
     
     /**
+     * Send a message to the notification thread, which will call the
+     * shader error listeners.
      */
     void notifyErrorListeners(Canvas3D cv, ShaderError err) {
-        // TODO KCR: send a messge to NotificationThread
-        cv.view.universe.notifyShaderErrorListeners(err);
+        J3dNotification notification = new J3dNotification();
+        notification.type = J3dNotification.SHADER_ERROR;
+        notification.universe = cv.view.universe;
+        notification.args[0] = err;
+        VirtualUniverse.mc.sendNotification(notification);
     }
     
     
