@@ -1100,6 +1100,14 @@ public class VirtualUniverse extends Object {
      * that will be notified when a programmable shader error is
      * detected on a live scene graph. If the specifed listener is
      * null no action is taken and no exception is thrown.
+     * If a shader error occurs, the listeners will be called
+     * asynchronously from a separate notification thread. The Java 3D
+     * renderer and behavior scheduler will continue to run as if the
+     * error had not occurred, except that shading will be disabled
+     * for the objects in error. If applications desire to detach or
+     * modify the scene graph as a result of the error, they should
+     * use a behavior post if they want that change to be
+     * synchronous with the renderer.
      *
      * @param listener the listener to add to the set.
      *
