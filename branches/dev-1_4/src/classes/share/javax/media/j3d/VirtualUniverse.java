@@ -1054,10 +1054,18 @@ public class VirtualUniverse extends Object {
         synchronized(structureChangeListenerSet) {
             Iterator it = structureChangeListenerSet.iterator();
             while(it.hasNext()) {
-                if (add)
-                    ((GraphStructureChangeListener)it.next()).branchGroupAdded(parent, child);
-                else
-                    ((GraphStructureChangeListener)it.next()).branchGroupRemoved(parent, child);
+                GraphStructureChangeListener listener = (GraphStructureChangeListener)it.next();
+                try {
+                    if (add) {
+                        listener.branchGroupAdded(parent, child);
+                    } else {
+                        listener.branchGroupRemoved(parent, child);
+                    }
+                }
+                catch (RuntimeException e) {
+                    System.err.println("Exception occurred in GraphStructureChangeListener:");
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1074,7 +1082,14 @@ public class VirtualUniverse extends Object {
         synchronized(structureChangeListenerSet) {
             Iterator it = structureChangeListenerSet.iterator();
             while(it.hasNext()) {
-                ((GraphStructureChangeListener)it.next()).branchGroupMoved(oldParent, newParent, child);
+                GraphStructureChangeListener listener = (GraphStructureChangeListener)it.next();
+                try {
+                    listener.branchGroupMoved(oldParent, newParent, child);
+                }
+                catch (RuntimeException e) {
+                    System.err.println("Exception occurred in GraphStructureChangeListener:");
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1133,13 +1148,20 @@ public class VirtualUniverse extends Object {
 
 	// Notify all error listeners in the set
         if (shaderErrorListenerSet != null) {
-	    synchronized(shaderErrorListenerSet) {
-		Iterator it = shaderErrorListenerSet.iterator();
-		while(it.hasNext()) {
-		    ((ShaderErrorListener)it.next()).errorOccurred(error);
-		    errorReported = true;
-		}
-	    }
+            synchronized(shaderErrorListenerSet) {
+                Iterator it = shaderErrorListenerSet.iterator();
+                while(it.hasNext()) {
+                    ShaderErrorListener listener = (ShaderErrorListener)it.next();
+                    try {
+                        listener.errorOccurred(error);
+                    }
+                    catch (RuntimeException e) {
+                        System.err.println("Exception occurred in ShaderErrorListener:");
+                        e.printStackTrace();
+                    }
+                    errorReported = true;
+                }
+            }
         }
 
 	// Notify the default error listener if the set is null or empty

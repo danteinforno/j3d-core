@@ -197,6 +197,9 @@ class MasterControl {
     // Only one Timer thread in the system.
     TimerThread timerThread;
 
+    // Only one Notification thread in the system.
+    private NotificationThread notificationThread;
+
     /**
      * This flag indicates that MC is running
      */
@@ -1006,7 +1009,6 @@ class MasterControl {
 
     void freeCanvasId(int canvasId) {
         // Valid range is [0, 31]
-        assert(canvasId>=canvasIds.length);
 	synchronized(canvasIdLock) {
 
 	    canvasIds[canvasId] = false;
@@ -1190,6 +1192,10 @@ class MasterControl {
 			timerThread.finish();
 			timerThread = null;		
 		    }    
+		    if (notificationThread != null) {
+			notificationThread.finish();
+			notificationThread = null;
+		    }
 		    requestObjList.clear();
 		    requestTypeList.clear();
 		    return true;
@@ -1304,7 +1310,14 @@ class MasterControl {
 	}
 	setWork();
     }
-		
+
+    /**
+     * This takes the specified notification message and sends it to the
+     * notification thread for processing.
+     */
+    void sendNotification(J3dNotification notification) {
+        notificationThread.addNotification(notification);
+    }
 
     /**
      * Create and start the MasterControl Thread.
@@ -2144,6 +2157,19 @@ class MasterControl {
 	      }
 	});
 	timerThread.start();
+
+        // Create notification thread
+	java.security.AccessController.doPrivileged(
+			    new java.security.PrivilegedAction() {
+              public Object run() {
+		  synchronized (rootThreadGroup) {
+		      notificationThread = new NotificationThread(rootThreadGroup);
+		      notificationThread.setPriority(threadPriority);
+		  }
+		  return null;
+	      }
+	});
+	notificationThread.start();
     }
 
     /**
@@ -2193,6 +2219,10 @@ class MasterControl {
 		timerThread.finish();
 		timerThread = null;
 	    }
+            if (notificationThread != null) {
+                notificationThread.finish();
+                notificationThread = null;
+            }
 
 	    // shouldn't all of these be synchronized ???
 	    synchronized (VirtualUniverse.mc.deviceScreenMap) {
