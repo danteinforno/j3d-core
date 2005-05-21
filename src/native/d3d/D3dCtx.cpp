@@ -416,17 +416,20 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 	CopyMemory(&screenRect, &savedClientRect, sizeof (RECT));
     }
 
+	//issue 135 debugging
     dwBehavior = findBehavior();
+    //dwBehavior = D3DCREATE_HARDWARE_VERTEXPROCESSING;
 
     if (debug) {
 	printf("Use %s, ", driverInfo->adapterIdentifier.Description);
 
 	if (deviceInfo->isHardwareTnL &&
-	    (dwBehavior == D3DCREATE_SOFTWARE_VERTEXPROCESSING)) {
+	    (dwBehavior == D3DCREATE_SOFTWARE_VERTEXPROCESSING))
+	{
 	    // user select non-TnL device
 	    printf("Hardware Rasterizer\n");
 	} else {
-	    printf("%s \n",   deviceInfo->deviceName);
+	    printf("%s (TnL) \n",   deviceInfo->deviceName);
 	}
     }
 
@@ -448,14 +451,59 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 	return false;
     }
 
-    hr = pD3D->CreateDevice(driverInfo->iAdapter,
+#if NVIDIA_DEBUG
+   // using NVIDIA NvPerfHUD
+   // Set default settings
+   printf("\n NVIDIA NvPerfHUD debug mode.");
+   UINT adapterToUse=driverInfo->iAdapter;
+   D3DDEVTYPE deviceType=deviceInfo->deviceType;
+   DWORD behaviorFlags = dwBehavior;
+   bool isHUDavail = false;
+
+   // Look for 'NVIDIA NVPerfHUD' adapter
+   // If it is present, override default settings
+   for (UINT adapter=0;adapter<pD3D->GetAdapterCount(); adapter++){
+    D3DADAPTER_IDENTIFIER9 identifier;
+    HRESULT Res=pD3D->GetAdapterIdentifier(adapter,0,&identifier);
+    printf("\n Adapter identifier : %s",identifier.Description);
+    if (strcmp(identifier.Description,"NVIDIA NVPerfHUD")==0){
+	     adapterToUse=adapter;
+		 deviceType=D3DDEVTYPE_REF;
+		 behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING;
+         isHUDavail = true;
+         printf("\nfound NVIDIA NvPerfHUD adapter");
+		 break;
+	}
+   }
+   hr = pD3D->CreateDevice( adapterToUse,
+		                      deviceType,
+							  topHwnd,
+                              behaviorFlags,
+                              &d3dPresent,
+							  &pDevice);
+   if(!FAILED(hr)&& isHUDavail)
+   {
+     printf("\n Using NVIDIA NvPerfHUD ! \n");
+   }
+   else
+   {
+	    printf("\n No suitable device found for NVIDIA NvPerfHUD ! \n");
+   }
+
+#else
+   // NORMAL Mode
+     hr = pD3D->CreateDevice(driverInfo->iAdapter,
 			    deviceInfo->deviceType,
 			    topHwnd,
 			    dwBehavior,
 			    &d3dPresent,
 			    &pDevice);
+#endif
 
-    if (FAILED(hr) && (requiredDeviceID < 0)) {
+
+    if (FAILED(hr) && (requiredDeviceID < 0))
+	{
+      printf("\n Using D3DDEVTYPE_REF mode.\n");
 	if (deviceInfo->deviceType != D3DDEVTYPE_REF) {
 	// switch to reference mode
 	    warning(CREATEDEVICEFAIL, hr);
@@ -1314,7 +1362,7 @@ VOID D3dCtx::setCanvasProperty(JNIEnv *env, jobject obj)
 	id = env->GetFieldID(canvasCls, "texture3DDepthMax", "I");
 	env->SetIntField(obj, id, deviceInfo->maxTextureDepth);
 
-	// issue 135 
+	// issue 135
 	// private String nativeGraphicsVendor = "<UNKNOWN>";
     // private String nativeGraphicsRenderer = "<UNKNOWN>";
 	id = env->GetFieldID(canvasCls, "nativeGraphicsVendor", "Ljava/lang/String;");
@@ -1326,7 +1374,7 @@ VOID D3dCtx::setCanvasProperty(JNIEnv *env, jobject obj)
 	id = env->GetFieldID(canvasCls, "nativeGraphicsRenderer", "Ljava/lang/String;");
 	//	    char *nGRenderer = driverInfo->adapterIdentifier.Description;
         char *nGRenderer = deviceInfo->deviceRenderer;
-	    env->SetObjectField(obj, id, env->NewStringUTF(nGRenderer));		
+	    env->SetObjectField(obj, id, env->NewStringUTF(nGRenderer));
 
 
     }
@@ -1347,28 +1395,42 @@ VOID D3dCtx::createVertexBuffer()
     if (dstVertexBuffer != NULL) {
 	dstVertexBuffer->Release();
     }
+    DWORD usage_D3DVERTEX = D3DUSAGE_DONOTCLIP|
+				            D3DUSAGE_WRITEONLY|
+				            D3DUSAGE_SOFTWAREPROCESSING;
+
+	DWORD usage_D3DTLVERTEX= D3DUSAGE_DONOTCLIP|
+		                     D3DUSAGE_SOFTWAREPROCESSING;
+
+#if NVIDIA_DEBUG
+	// remove SoftwareProcessing
+    usage_D3DVERTEX = D3DUSAGE_DONOTCLIP|
+				      D3DUSAGE_WRITEONLY;
+
+	usage_D3DTLVERTEX = D3DUSAGE_DONOTCLIP;
+#endif
 
     HRESULT hr =
 	pDevice->CreateVertexBuffer(sizeof(D3DVERTEX),
-				    D3DUSAGE_DONOTCLIP|
-				    D3DUSAGE_WRITEONLY|
-				    D3DUSAGE_SOFTWAREPROCESSING,
+				    usage_D3DVERTEX,
 				    D3DFVF_XYZ,
 				    D3DPOOL_MANAGED,
 				    &srcVertexBuffer,
 					NULL);
 
     if (FAILED(hr)) {
+    printf("\nFailed to create VertexBuffer (D3DVERTEX)\n");
 	error(CREATEVERTEXBUFFER, hr);
+
     }
 
     hr = pDevice->CreateVertexBuffer(sizeof(D3DTLVERTEX),
-				     D3DUSAGE_DONOTCLIP|
-				     D3DUSAGE_SOFTWAREPROCESSING,
+				     usage_D3DTLVERTEX,
 				     D3DFVF_XYZRHW|D3DFVF_TEX1,
 				     D3DPOOL_MANAGED,
 				     &dstVertexBuffer,NULL);
     if (FAILED(hr)) {
+	printf("\nFailed to create VertexBuffer (D3DTLVERTEX)\n");
 	error(CREATEVERTEXBUFFER, hr);
     }
 }
@@ -1747,7 +1809,7 @@ VOID D3dCtx::freeVBList(D3dVertexBufferVector *v)
 }
 
 
-VOID D3dCtx::freeResourceList(LPDIRECT3DRESOURCE8Vector *v)
+VOID D3dCtx::freeResourceList(LPDIRECT3DRESOURCE9Vector *v)
 {
     LPDIRECT3DRESOURCE9 *s;
 
