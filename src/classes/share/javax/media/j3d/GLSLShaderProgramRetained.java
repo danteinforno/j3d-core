@@ -112,39 +112,64 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	initMirrorObject();
     }
 
+    
+    private native ShaderError createUniformLocation(long ctx,
+						     long shaderProgramId,
+						     String attrName,
+						     long[] uniformLocation);
 
-    /**
-     * Initializes a mirror object.
-     */
-    synchronized void initMirrorObject() {
-	mirror.source = source;
+    private native ShaderError setUniform1i(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int value);
+    
+    private native ShaderError setUniform1f(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    float value);
+    
+    private native ShaderError setUniform2i(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int[] value);
+    
+    private native ShaderError setUniform2f(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    float[] value);
+    
+    private native ShaderError setUniform3i(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int[] value);
+    
+    private native ShaderError setUniform3f(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    float[] value);    
+    
+    private native ShaderError setUniform4i(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int[] value);
+    
+    private native ShaderError setUniform4f(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    float[] value);    
+    
+    private native void setUniformMatrix3f(long ctx,
+					   long shaderProgram,
+				           long uniformLocation,
+					   float[] value);
 
-	((GLSLShaderProgramRetained)mirror).shaders = new ShaderRetained[this.shaders.length];
-	// Copy vertex and fragment shader
-	for (int i = 0; i < this.shaders.length; i++) {
-	    ((GLSLShaderProgramRetained)mirror).shaders[i] = (ShaderRetained)this.shaders[i].mirror;
-	}
-	((GLSLShaderProgramRetained)mirror).resourceCreationMask = 0x0;
-	((GLSLShaderProgramRetained)mirror).shaderProgramIds = null;
-
-    }
-
-    /**
-     * Update the "component" field of the mirror object with the 
-     *  given "value"
-     */
-    synchronized void updateMirrorObject(int component, Object value) {
-
-	// System.out.println("GLSLShaderProgramRetained : updateMirrorObject");
-
-	GLSLShaderProgramRetained mirrorGLSLSp = (GLSLShaderProgramRetained)mirror;
-
-	if ((component & SHADER_PROGRAM_CREATE) != 0) {
-	    // Note: update from the mirror object only
-	    mirrorGLSLSp.resourceCreationMask = 0x0;
-	}
-    }
-
+    private native void setUniformMatrix4f(long ctx,
+					   long shaderProgram,
+			         	   long uniformLocation,
+					   float[] value);
+    
+    
+    // TODO : REMOVE Old native interfaces once ShaderAttribute implementation is done.
     private native void setUniform1i(long ctx,
 				     int shaderProgram,
 				     String attrName,
@@ -187,33 +212,16 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 					   float[] value);
 
     /* New native interfaces */
-    private native ShaderError createShader(long ctx, int shaderType, long[] shaderId);
-    private native ShaderError destroyShader(long ctx, long shaderId);
-    private native ShaderError compileShader(long ctx, long shaderId, String program);
+    private native ShaderError createNativeShader(long ctx, int shaderType, long[] shaderId);
+    private native ShaderError destroyNativeShader(long ctx, long shaderId);
+    private native ShaderError compileNativeShader(long ctx, long shaderId, String program);
 
-    private native ShaderError createShaderProgram(long ctx, long[] shaderProgramId);
-    private native ShaderError destroyShaderProgram(long ctx, long shaderProgramId);
-    private native ShaderError linkShaderProgram(long ctx, long shaderProgramId,
-						 long[] shaderId);
+    private native ShaderError createNativeShaderProgram(long ctx, long[] shaderProgramId);
+    private native ShaderError destroyNativeShaderProgram(long ctx, long shaderProgramId);
+    private native ShaderError linkNativeShaderProgram(long ctx, long shaderProgramId,
+						       long[] shaderId);
     private native ShaderError useShaderProgram(long ctx, long shaderProgramId);
  
-    /*
-    private native ShaderError createUniformLocation(long ctx,
-						     long shaderProgramId,
-						     String attrName,
-						     long[] uniformLocation);
-
-    private native ShaderError setUniform1i(long ctx,
-					    long shaderProgramId,
-					    long uniformLocation,
-					    int value);
-
-    private native ShaderError setUniform3f(long ctx,
-					    long shaderProgramId,
-					    long uniformLocation,
-					    float[] value);    
-    */
-
     /**
      * Method to return a flag indicating whether this
      * ShaderProgram is supported on the specified Canvas.
@@ -226,54 +234,50 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
      * Method to create the native shader.
      */
     ShaderError createShader(long ctx, ShaderRetained shader, long[] shaderIdArr) {	
-	  return  createShader(ctx, shader.shaderType, shaderIdArr);
+	  return  createNativeShader(ctx, shader.shaderType, shaderIdArr);
     }
     
     /**
      * Method to destroy the native shader.
      */
-    ShaderError destroyShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-	return destroyShader(ctx, shader.shaderIds[cvRdrIndex]);
+    ShaderError destroyShader(long ctx, long shaderId) {
+	return destroyNativeShader(ctx, shaderId);
     }
     
     /**
      * Method to compile the native shader.
      */
-    ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader) {
-        return compileShader(ctx, shader.shaderIds[cvRdrIndex],
-                ((SourceCodeShaderRetained)shader).getShaderSource());
-
+    ShaderError compileShader(long ctx, long shaderId, String source) {
+        return compileNativeShader(ctx, shaderId, source );
     }
 
     /**
      * Method to create the native shader program.
      */
-    ShaderError createShaderProgram(long ctx, int cvRdrIndex, long[] shaderProgramIdArr) {
-
-	    return createShaderProgram(ctx, shaderProgramIdArr);  
-
+    ShaderError createShaderProgram(long ctx, long[] shaderProgramIdArr) {
+	    return createNativeShaderProgram(ctx, shaderProgramIdArr);  
     }
 
     /**
      * Method to destroy the native shader program.
      */
-    ShaderError destroyShaderProgram(long ctx, int cvRdrIndex) {
-        return destroyShaderProgram(ctx, shaderProgramIds[cvRdrIndex]);
+    ShaderError destroyShaderProgram(long ctx, long shaderProgramId) {
+        return destroyNativeShaderProgram(ctx, shaderProgramId);
     }
 
     /**
      * Method to link the native shader program.
      */
-    ShaderError linkShaderProgram(long ctx, int cvRdrIndex, long[] shaderIds) {
-        return linkShaderProgram(ctx, shaderProgramIds[cvRdrIndex], shaderIds);
+    ShaderError linkShaderProgram(long ctx, long shaderProgramId, long[] shaderIds) {
+        return linkNativeShaderProgram(ctx, shaderProgramId, shaderIds);
     }
  
 
     /**
      * Method to enable the native shader program.
      */
-    ShaderError enableShaderProgram(long ctx, int cvRdrIndex) {
-	return useShaderProgram(ctx, shaderProgramIds[cvRdrIndex]);
+    ShaderError enableShaderProgram(long ctx, long shaderProgramId) {
+	return useShaderProgram(ctx, shaderProgramId);
     }
 	
     /**
