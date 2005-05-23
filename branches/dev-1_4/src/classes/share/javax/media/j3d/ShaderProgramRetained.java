@@ -40,12 +40,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     // loaded the shader program. 0 means otherwise.
     protected int resourceCreationMask = 0x0;
 
-    // shaderProgramId use by native code. One per Canvas.
-    protected long[] shaderProgramIds;
-    
-    // linked flag native for one per Canvas.
-    protected boolean[] linked;
-    
+    protected ShaderProgramData shaderProgramData[];
+
     // Flag indicating whether an UNSUPPORTED_LANGUAGE_ERROR has
     // already been reported for this shader program object.  It is
     // set in verifyShaderProgram and cleared in setLive or clearLive.
@@ -110,33 +106,32 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     /**
      * Method to destroy the native shader.
      */
-    abstract ShaderError destroyShader(long ctx, int cvRdrIndex, ShaderRetained shader);
+    abstract ShaderError destroyShader(long ctx, long shaderId);
 
     /**
      * Method to compile the native shader.
      */
-    abstract ShaderError compileShader(long ctx, int cvRdrIndex, ShaderRetained shader);
-
+    abstract ShaderError compileShader(long ctx, long shaderId, String source);
 
     /**
      * Method to create the native shader program.
      */
-    abstract ShaderError createShaderProgram(long ctx, int cvRdrIndex, long[] shaderProgramIdArr);
+    abstract ShaderError createShaderProgram(long ctx, long[] shaderProgramIdArr);
 
     /**
      * Method to destroy the native shader program.
      */
-    abstract ShaderError destroyShaderProgram(long ctx, int cvRdrIndex);
+    abstract ShaderError destroyShaderProgram(long ctx, long shaderProgramId);
 
     /**
      * Method to link the native shader program.
      */
-    abstract ShaderError linkShaderProgram(long ctx, int cvRdrIndex, long[] shaderIds);
+    abstract ShaderError linkShaderProgram(long ctx, long shaderProgramId, long[] shaderIds);
 
     /**
      * Method to use the native shader program.
      */
-    abstract ShaderError enableShaderProgram(long ctx, int cvRdrIndex);
+    abstract ShaderError enableShaderProgram(long ctx, long shaderProgramId);
     
     /**
      * Method to disable the native shader program.
@@ -195,7 +190,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     private ShaderError enableShaderProgram(Canvas3D cv, int cvRdrIndex) {
         assert(cvRdrIndex >= 0);
 	synchronized(resourceLock) {
-            return enableShaderProgram(cv.ctx, cvRdrIndex);
+            return enableShaderProgram(cv.ctx, 
+				       shaderProgramData[cvRdrIndex].getShaderProgramId());
 	}
 
     }
@@ -207,43 +203,71 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         return disableShaderProgram(cv.ctx);
     }
     
-   
+    /**
+     * Initializes a mirror object.
+     */
+    synchronized void initMirrorObject() {
+	mirror.source = source;
+	
+	((ShaderProgramRetained)mirror).shaders = new ShaderRetained[this.shaders.length];
+	// Copy vertex and fragment shader
+	for (int i = 0; i < this.shaders.length; i++) {
+	    ((ShaderProgramRetained)mirror).shaders[i] = 
+		(ShaderRetained)this.shaders[i].mirror;
+	}
+	((ShaderProgramRetained)mirror).resourceCreationMask = 0x0;
+	((ShaderProgramRetained)mirror).shaderProgramData = null;
+	
+    }
+    
+    /**
+     * Update the "component" field of the mirror object with the  given "value"
+     */
+    synchronized void updateMirrorObject(int component, Object value) {
+
+	// System.out.println("ShaderProgramRetained : updateMirrorObject");
+
+	ShaderProgramRetained mirrorSp = (ShaderProgramRetained)mirror;
+
+	if ((component & SHADER_PROGRAM_CREATE) != 0) {
+	    // Note: update from the mirror object only
+	    mirrorSp.resourceCreationMask = 0x0;
+	}
+    } 
+
     /**
      * Method to create the native shader program.
      */
     private ShaderError createShaderProgram(Canvas3D cv, int cvRdrIndex) {
         // Create shaderProgram resources if it has not been done.
         synchronized(resourceLock) {
-            if(shaderProgramIds == null){
-                // We rely on Java to initial the array elements to 0 or false;
-                shaderProgramIds = new long[cvRdrIndex+1];
-                linked = new boolean[cvRdrIndex+1];
-            } else if( shaderProgramIds.length <= cvRdrIndex) {
-                // We rely on Java to initial the array elements to 0 or false;
-                long[] tempSpIds = new long[cvRdrIndex+1];
-                boolean[] tempLinked = new boolean[cvRdrIndex+1];
-                
-                System.arraycopy(shaderProgramIds, 0,
-                        tempSpIds, 0,
-                        shaderProgramIds.length);
-                shaderProgramIds = tempSpIds;
-                
-                System.arraycopy(linked, 0,
-                        tempLinked, 0,
-                        linked.length);
-                linked = tempLinked;
-            }
-            if(shaderProgramIds[cvRdrIndex] != 0) {
+
+	    // TODO : Handle creation of ShaderProgramData object here --- Chien stopped here.
+	    
+	    if(shaderProgramData == null) {
+                // We rely on Java to initial the array elements to null.
+                shaderProgramData = new ShaderProgramData[cvRdrIndex+1];
+	    }
+	    else if(shaderProgramData.length <= cvRdrIndex) {
+                // We rely on Java to initial the array elements to null.
+		ShaderProgramData[] tempSPData = new ShaderProgramData[cvRdrIndex+1];
+                System.arraycopy(shaderProgramData, 0,
+                        tempSPData, 0,
+                        shaderProgramData.length);
+                shaderProgramData = tempSPData;
+	    }
+
+            if(shaderProgramData[cvRdrIndex] != null) {
                 // We have already created the shaderProgramId for this Canvas.
                 return null;
             }
             
             long[] spIdArr = new long[1];
-            ShaderError err = createShaderProgram(cv.ctx, cvRdrIndex, spIdArr);
+            ShaderError err = createShaderProgram(cv.ctx, spIdArr);
             if(err != null) {
                 return err;
             }
-            shaderProgramIds[cvRdrIndex] = spIdArr[0];
+            shaderProgramData[cvRdrIndex] = new ShaderProgramData(spIdArr[0]);
             resourceCreationMask |= (1 << cvRdrIndex);
         }
         
@@ -253,9 +277,10 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     /**
      * Method to link the native shader program.
      */
-    private ShaderError linkShaderProgram(Canvas3D cv, int cvRdrIndex, ShaderRetained[] shaders) {
+    private ShaderError linkShaderProgram(Canvas3D cv, int cvRdrIndex, 
+					  ShaderRetained[] shaders) {
 	synchronized(resourceLock) {
-            if(linked[cvRdrIndex] == true) {
+            if(shaderProgramData[cvRdrIndex].isLinked() == true) {
                 // We have already linked the shaderProgramId for this Canvas. 
                 return null;
             }
@@ -266,16 +291,18 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                     shaderIds[i] = shaders[i].shaderIds[cvRdrIndex];
                 }
 	    }
-	    ShaderError err = linkShaderProgram(cv.ctx, cvRdrIndex, shaderIds);
+	    ShaderError err = 
+		linkShaderProgram(cv.ctx, 
+				  shaderProgramData[cvRdrIndex].getShaderProgramId(),
+				  shaderIds);
             if(err != null) {
                 return err;
             }
-            linked[cvRdrIndex] = true;
+	    shaderProgramData[cvRdrIndex].setLinked(true);
 	}
 
 	return null;
     }
- 
 
     
     /**
@@ -319,7 +346,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         }
         return null;
     }
-    
+
     /**
      * Method to compile the native shader.
      */
@@ -332,7 +359,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 return null;
             }
             
-            ShaderError err = compileShader(cv.ctx, cvRdrIndex, shader);
+	    String source = ((SourceCodeShaderRetained)shader).getShaderSource();
+            ShaderError err = compileShader(cv.ctx, shader.shaderIds[cvRdrIndex], source);
             if(err != null) {
                 return err;
             }
@@ -396,7 +424,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 
             // Destroy the native resource and set the ID to 0 for this canvas/renderer
             // Ignore any possible shader error, because there is no meaningful way to report it
-            destroyShader(cv.ctx, cvRdrIndex, shader);
+            destroyShader(cv.ctx, shader.shaderIds[cvRdrIndex]);
             shader.shaderIds[cvRdrIndex] = 0;
         }
     }
@@ -412,21 +440,23 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         
         // Destroy shaderProgram resource if it exists
         synchronized(resourceLock) {
-            // Check whether an entry in the shaderProgramIds array has been allocated
-            if (shaderProgramIds == null || shaderProgramIds.length <= cvRdrIndex) {
+            // Check whether an entry in the shaderProgramData array has been allocated
+            if (shaderProgramData == null || shaderProgramData.length <= cvRdrIndex) {
                 return;
             }
             
+	    long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId(); 
             // Nothing to do if the shaderProgramId is 0
-            if (shaderProgramIds[cvRdrIndex] == 0) {
+            if ( shaderProgramId == 0) {
                 return;
             }
 
             // Destroy the native resource, set the ID to 0 for this canvas/renderer,
             // and clear the bit in the resourceCreationMask
             // Ignore any possible shader error, because there is no meaningful way to report it
-            destroyShaderProgram(cv.ctx, cvRdrIndex);
-            shaderProgramIds[cvRdrIndex] = 0;
+            destroyShaderProgram(cv.ctx, shaderProgramId);
+            // Free this ShaderProgramData object.
+	    shaderProgramData[cvRdrIndex] = null;
             resourceCreationMask &= ~(1 << cvRdrIndex);
         }
     } 
@@ -437,7 +467,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * update the shader program state
      */
     void updateNative(Canvas3D cv, boolean enable) {
-	// System.out.println("GLSLShaderProgramRetained.updateNative : ");
+	// System.out.println("ShaderProgramRetained.updateNative : ");
 
         if (!verifyShaderProgramSupported(cv)) {
             return;
@@ -467,15 +497,15 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 	    }
             cvRdrIndex = cv.screen.renderer.rendererId;
 	} else {
-	    // Or (shaderProgramIds[cv.canvasId] == null)
+	    // Or (shaderProgramData[cv.canvasId] == null)
             if ((resourceCreationMask & cv.canvasBit) == 0) {
 		loadShaderProgram = true;               
 	    }
             cvRdrIndex = cv.canvasId;
 	}
 
-	// System.out.println(".... loadShaderProgram = " + loadShaderProgram);
-	// System.out.println(".... resourceCreationMask= " + resourceCreationMask);
+	//System.out.println(".... loadShaderProgram = " + loadShaderProgram);
+	//System.out.println(".... resourceCreationMask= " + resourceCreationMask);
  
         ShaderError err;
         boolean errorOccurred = false;
@@ -558,5 +588,46 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         // Now we can enable the shader program
 	enableShaderProgram(cv, cvRdrIndex);
     }
+
+    class ShaderProgramData extends Object {
+	
+	// shaderProgramId use by native code. 
+	private long shaderProgramId;
+	
+	// linked flag for native.
+	private boolean linked;
+	
+	// A map of locations for ShaderAttributes.
+	private HashMap locationMap = new HashMap();
+
+	/** ShaderProgramData Constructor */
+	ShaderProgramData(long shaderProgramId) {
+	    this.shaderProgramId = shaderProgramId;
+	}
+
+	long getShaderProgramId() {
+	    return this.shaderProgramId;
+	}
+
+	void setLinked(boolean linked) {
+	    this.linked = linked;
+	}
+
+	boolean isLinked() {
+	    return linked;
+	}
+
+	void setLocation(String shaderAttribute, Long locObj) {
+	    assert(shaderAttribute != null);
+	    locationMap.put(shaderAttribute, locObj);
+	}
+
+	Long getLocation(String shaderAttribute) {
+	    return  (Long) locationMap.get(shaderAttribute);
+	}
+
+
+    }
+
 
 }

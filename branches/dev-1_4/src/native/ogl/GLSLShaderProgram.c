@@ -64,11 +64,11 @@ getInfoLog(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    createShader
+ * Method:    createNativeShader
  * Signature: (JI[J)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
+Java_javax_media_j3d_GLSLShaderProgramRetained_createNativeShader(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -113,11 +113,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShader(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    destroyShader
+ * Method:    destroyNativeShader
  * Signature: (JJ)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
+Java_javax_media_j3d_GLSLShaderProgramRetained_destroyNativeShader(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -132,11 +132,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShader(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    compileShader
+ * Method:    compileNativeShader
  * Signature: (JJLjava/lang/String;)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
+Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -178,11 +178,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileShader(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    createShaderProgram
+ * Method:    createNativeShaderProgram
  * Signature: (J[J)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_createShaderProgram(
+Java_javax_media_j3d_GLSLShaderProgramRetained_createNativeShaderProgram(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -213,11 +213,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createShaderProgram(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    destroyShaderProgram
+ * Method:    destroyNativeShaderProgram
  * Signature: (JJ)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
+Java_javax_media_j3d_GLSLShaderProgramRetained_destroyNativeShaderProgram(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -232,11 +232,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyShaderProgram(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    linkShaderProgram
+ * Method:    linkNativeShaderProgram
  * Signature: (JJ[J)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_linkShaderProgram(
+Java_javax_media_j3d_GLSLShaderProgramRetained_linkNativeShaderProgram(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
