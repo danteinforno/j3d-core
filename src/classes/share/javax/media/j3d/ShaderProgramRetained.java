@@ -57,8 +57,54 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     // an array of shaders used by this shader program
     protected ShaderRetained[] shaders;
 
+    // an array of vertex attribute names
+    protected String[] vertexAttrNames;
+
+    // an array of (uniform) shader attribute names
+    protected String[] shaderAttrNames;
+
     // need to synchronize access from multiple rendering threads 
     Object resourceLock = new Object();
+
+    /**
+     * Sets the vertex attribute names array for this ShaderProgram
+     * object. Each element in the array specifies the shader
+     * attribute name that is bound to the corresponding numbered
+     * vertex attribute within a GeometryArray object that uses this
+     * shader program. Array element 0 specifies the name of
+     * GeometryArray vertex attribute 0, array element 1 specifies the
+     * name of GeometryArray vertex attribute 1, and so forth.
+     *
+     * @param vertexAttrNames array of vertex attribute names for this
+     * shader program. A copy of this array is made.
+     */
+    void setVertexAttrNames(String[] vertexAttrNames) {
+        if (vertexAttrNames == null) {
+            this.vertexAttrNames = null;
+        }
+        else {
+            this.vertexAttrNames = (String[])vertexAttrNames.clone();
+        }
+    }
+
+    /**
+     * Sets the shader attribute names array for this ShaderProgram
+     * object. Each element in the array specifies a shader
+     * attribute name that may be set via a ShaderAttribute object.
+     * Only those attributes whose names that appear in the shader
+     * attribute names array can be set for a given shader program.
+     *
+     * @param shaderAttrNames array of shader attribute names for this
+     * shader program. A copy of this array is made.
+     */
+    void setShaderAttrNames(String[] shaderAttrNames) {
+        if (shaderAttrNames == null) {
+            this.shaderAttrNames = null;
+        }
+        else {
+            this.shaderAttrNames = (String[])shaderAttrNames.clone();
+        }
+    }
 
     /**
      * Copies the specified array of shaders into this shader
@@ -127,6 +173,16 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Method to link the native shader program.
      */
     abstract ShaderError linkShaderProgram(long ctx, long shaderProgramId, long[] shaderIds);
+
+    /**
+     * Method to bind a vertex attribute name to the specified index.
+     */
+    abstract ShaderError bindVertexAttrName(long ctx, long shaderProgramId, String attrName, int attrIndex);
+
+    /**
+     * Method to bind a vertex attribute name to the specified index.
+     */
+    abstract ShaderError lookupShaderAttrName(long ctx, long shaderProgramId, String attrName, long[] locArr);
 
     /**
      * Method to use the native shader program.
@@ -207,17 +263,38 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Initializes a mirror object.
      */
     synchronized void initMirrorObject() {
-	mirror.source = source;
-	
-	((ShaderProgramRetained)mirror).shaders = new ShaderRetained[this.shaders.length];
-	// Copy vertex and fragment shader
-	for (int i = 0; i < this.shaders.length; i++) {
-	    ((ShaderProgramRetained)mirror).shaders[i] = 
-		(ShaderRetained)this.shaders[i].mirror;
-	}
-	((ShaderProgramRetained)mirror).resourceCreationMask = 0x0;
-	((ShaderProgramRetained)mirror).shaderProgramData = null;
-	
+        mirror.source = source;
+        
+        // Create mirror copy of shaders
+        if (this.shaders == null) {
+            ((ShaderProgramRetained)mirror).shaders = null;
+        }
+        else {
+            ((ShaderProgramRetained)mirror).shaders = new ShaderRetained[this.shaders.length];
+            // Copy vertex and fragment shader
+            for (int i = 0; i < this.shaders.length; i++) {
+                ((ShaderProgramRetained)mirror).shaders[i] =
+                        (ShaderRetained)this.shaders[i].mirror;
+            }
+        }
+        ((ShaderProgramRetained)mirror).resourceCreationMask = 0x0;
+        ((ShaderProgramRetained)mirror).shaderProgramData = null;
+        
+        // Create mirror copy of vertex attribute names
+        if (this.vertexAttrNames == null) {
+            ((ShaderProgramRetained)mirror).vertexAttrNames = null;
+        }
+        else {
+            ((ShaderProgramRetained)mirror).vertexAttrNames = (String[])this.vertexAttrNames.clone();
+        }
+        
+        // Create mirror copy of shader attribute names
+        if (this.shaderAttrNames == null) {
+            ((ShaderProgramRetained)mirror).shaderAttrNames = null;
+        }
+        else {
+            ((ShaderProgramRetained)mirror).shaderAttrNames = (String[])this.shaderAttrNames.clone();
+        }
     }
     
     /**
@@ -241,9 +318,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     private ShaderError createShaderProgram(Canvas3D cv, int cvRdrIndex) {
         // Create shaderProgram resources if it has not been done.
         synchronized(resourceLock) {
-
-	    // TODO : Handle creation of ShaderProgramData object here --- Chien stopped here.
-	    
 	    if(shaderProgramData == null) {
                 // We rely on Java to initial the array elements to null.
                 shaderProgramData = new ShaderProgramData[cvRdrIndex+1];
@@ -280,11 +354,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     private ShaderError linkShaderProgram(Canvas3D cv, int cvRdrIndex, 
 					  ShaderRetained[] shaders) {
 	synchronized(resourceLock) {
-            if(shaderProgramData[cvRdrIndex].isLinked() == true) {
-                // We have already linked the shaderProgramId for this Canvas. 
-                return null;
-            }
-            
             long[] shaderIds = new long[shaders.length];
 	    for(int i=0; i<shaders.length; i++) {
                 synchronized(shaders[i]) {
@@ -305,6 +374,50 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     }
 
     
+    private ShaderError bindVertexAttrNames(Canvas3D cv, int cvRdrIndex, String[] attrNames) {
+        synchronized(resourceLock) {
+            long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
+            System.err.println("bindVertexAttrNames: attrNames.length = " + attrNames.length);
+            for (int i = 0; i < attrNames.length; i++) {
+                System.err.println("attrNames[" + i + "] = " + attrNames[i]);
+                ShaderError err = bindVertexAttrName(cv.ctx, shaderProgramId, attrNames[i], i);
+                if (err != null) {
+                    return err;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    private ShaderError lookupShaderAttrNames(Canvas3D cv, int cvRdrIndex, String[] attrNames) {
+        // TODO Chien: Finish and test this...
+        synchronized(resourceLock) {
+            long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
+            System.err.println("lookupShaderAttrNames: attrNames.length = " + attrNames.length);
+            for (int i = 0; i < attrNames.length; i++) {
+                long[] locArr = new long[1];
+                ShaderError err = lookupShaderAttrName(cv.ctx, shaderProgramId, attrNames[i], locArr);
+                if (err != null) {
+                    return err;
+                }
+                System.err.println(attrNames[i] + " = " + locArr[0]);
+                shaderProgramData[cvRdrIndex].setLocation(attrNames[i], new Long(locArr[0]));
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Method to return the shaderProgram data for the specified canvas or renderer
+     */
+    private ShaderProgramData getShaderProgramData(int cvRdrIndex) {
+        synchronized(resourceLock) {
+            return shaderProgramData[cvRdrIndex];
+        }
+    }
+
     /**
      * Method to create the native shader.
      */
@@ -441,13 +554,15 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         // Destroy shaderProgram resource if it exists
         synchronized(resourceLock) {
             // Check whether an entry in the shaderProgramData array has been allocated
-            if (shaderProgramData == null || shaderProgramData.length <= cvRdrIndex) {
+            if (shaderProgramData == null ||
+                    shaderProgramData.length <= cvRdrIndex ||
+                    shaderProgramData[cvRdrIndex] == null) {
                 return;
             }
             
 	    long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId(); 
             // Nothing to do if the shaderProgramId is 0
-            if ( shaderProgramId == 0) {
+            if (shaderProgramId == 0) {
                 return;
             }
 
@@ -539,7 +654,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 }
             }
             
-            // Create and link shader program
+            // Create shader program
             if (!errorOccurred) {
                 err = createShaderProgram(cv, cvRdrIndex);
                 if (err != null) {
@@ -550,27 +665,49 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 }
             }
             
-            // Bind vertex attribute names
-            if (!errorOccurred) {
-                // TODO KCR: implement this
-            }
-             
-            // Link shader program
-            if (!errorOccurred) {
-                err = linkShaderProgram(cv, cvRdrIndex, shaders);
-                if (err != null) {
-                    err.setShaderProgram((ShaderProgram)this.source);
-                    err.setCanvas3D(cv);
-                    notifyErrorListeners(cv, err);
-                    destroyShaderProgram(cv, cvRdrIndex);
-                    linkErrorOccurred = true;
-                    errorOccurred = true;
+            boolean linked = getShaderProgramData(cvRdrIndex).isLinked();
+            if (!linked) {
+                // Bind vertex attribute names
+                if (!errorOccurred) {
+                    if (vertexAttrNames != null) {
+                        err = bindVertexAttrNames(cv, cvRdrIndex, vertexAttrNames);
+                        if (err != null) {
+                            err.setShaderProgram((ShaderProgram)this.source);
+                            err.setCanvas3D(cv);
+                            notifyErrorListeners(cv, err);
+                            linkErrorOccurred = true;
+                            errorOccurred = true;
+                        }
+                    }
                 }
-            }
-
-            // Lookup shader attribute names
-            if (!errorOccurred) {
-                // TODO KCR: implement this
+                
+                // Link shader program
+                if (!errorOccurred) {
+                    err = linkShaderProgram(cv, cvRdrIndex, shaders);
+                    if (err != null) {
+                        err.setShaderProgram((ShaderProgram)this.source);
+                        err.setCanvas3D(cv);
+                        notifyErrorListeners(cv, err);
+                        destroyShaderProgram(cv, cvRdrIndex);
+                        linkErrorOccurred = true;
+                        errorOccurred = true;
+                    }
+                }
+                
+                // Lookup shader attribute names
+                if (!errorOccurred) {
+                    if (shaderAttrNames != null) {
+                        err = lookupShaderAttrNames(cv, cvRdrIndex, shaderAttrNames);
+                        if (err != null) {
+                            err.setShaderProgram((ShaderProgram)this.source);
+                            err.setCanvas3D(cv);
+                            notifyErrorListeners(cv, err);
+                            destroyShaderProgram(cv, cvRdrIndex);
+                            linkErrorOccurred = true;
+                            errorOccurred = true;
+                        }
+                    }
+                }
             }
             
             // Restore current context if we changed it to the shareCtx

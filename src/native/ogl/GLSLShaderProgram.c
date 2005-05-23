@@ -282,6 +282,71 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkNativeShaderProgram(
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    bindNativeVertexAttrName
+ * Signature: (JJLjava/lang/String;I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
+    JNIEnv * env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jstring attrName,
+    jint attrIndex)
+{
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    jobject shaderError = NULL;
+    GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+
+    fprintf(stderr,
+	    "GLSLShaderProgramRetained.bindNativeVertexAttrName: %s\n",
+	    attrNameString);
+
+    ctxProperties->pfnglBindAttribLocationARB((GLhandleARB)shaderProgramId,
+					      attrIndex + 1,
+					      attrNameString);
+
+    /* No error checking needed, so just return */
+
+    return shaderError;
+}
+
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    lookupNativeShaderAttrName
+ * Signature: (JJLjava/lang/String;[J)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL
+Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jstring attrName,
+    jlongArray locArr)
+{
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    jobject shaderError = NULL;
+    GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+
+    fprintf(stderr,
+	    "GLSLShaderProgramRetained.lookupNativeShaderAttrName: %s\n",
+	    attrNameString);
+
+    /* TODO Chien: implement this */
+
+    shaderError = createShaderError(env,
+				    javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_ERROR,
+				    "lookupNativeShaderAttrName is not implemented",
+				    NULL);
+
+    return shaderError;
+}
+
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    useShaderProgram
  * Signature: (JI)Ljavax/media/j3d/ShaderError;
  */

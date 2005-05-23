@@ -740,7 +740,7 @@ public abstract class GeometryArray extends Geometry {
 
 	// Until they are implemented...
 	if (vertexAttrCount != 0 || vertexAttrSizes != null) {
-	    throw new RuntimeException("not implemented");
+	    System.err.println("GeometryArray: vertex attributes not yet implemented");
 	}
 
 	// TODO: Check validity of vertexAttr* parameters
