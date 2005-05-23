@@ -36,7 +36,7 @@ public class GLSLShaderProgram extends ShaderProgram {
     public void setVertexAttrNames(String[] vertexAttrNames) {
 	checkForLiveOrCompiled();
 
-	throw new RuntimeException("not implemented");
+ 	((GLSLShaderProgramRetained)this.retained).setVertexAttrNames(vertexAttrNames);
     }
 
     // Implement abstract getVertexAttrNames method (inherit javadoc from parent class)
@@ -48,7 +48,7 @@ public class GLSLShaderProgram extends ShaderProgram {
     public void setShaderAttrNames(String[] shaderAttrNames) {
 	checkForLiveOrCompiled();
 
-	throw new RuntimeException("not implemented");
+	((GLSLShaderProgramRetained)this.retained).setShaderAttrNames(shaderAttrNames);
     }
 
     // Implement abstract getShaderAttrNames method (inherit javadoc from parent class)
@@ -103,7 +103,6 @@ public class GLSLShaderProgram extends ShaderProgram {
     void createRetained() {
 	this.retained = new GLSLShaderProgramRetained();
 	this.retained.setSource(this);
-	// System.out.println("GLSLShaderProgram.createRetained()");
     }
 
 

@@ -220,6 +220,11 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
     private native ShaderError destroyNativeShaderProgram(long ctx, long shaderProgramId);
     private native ShaderError linkNativeShaderProgram(long ctx, long shaderProgramId,
 						       long[] shaderId);
+    private native ShaderError bindNativeVertexAttrName(long ctx, long shaderProgramId,
+                                                        String attrName, int attrIndex);
+    private native ShaderError lookupNativeShaderAttrName(long ctx, long shaderProgramId,
+                                                          String attrName, long[] locArr);
+    
     private native ShaderError useShaderProgram(long ctx, long shaderProgramId);
  
     /**
@@ -272,6 +277,13 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
         return linkNativeShaderProgram(ctx, shaderProgramId, shaderIds);
     }
  
+    ShaderError bindVertexAttrName(long ctx, long shaderProgramId, String attrName, int attrIndex) {
+        return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
+    }
+
+    ShaderError lookupShaderAttrName(long ctx, long shaderProgramId, String attrName, long[] locArr) {
+        return lookupNativeShaderAttrName(ctx, shaderProgramId, attrName, locArr);
+    }
 
     /**
      * Method to enable the native shader program.
