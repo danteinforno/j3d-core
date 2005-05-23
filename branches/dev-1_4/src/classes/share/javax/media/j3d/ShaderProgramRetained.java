@@ -377,9 +377,9 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     private ShaderError bindVertexAttrNames(Canvas3D cv, int cvRdrIndex, String[] attrNames) {
         synchronized(resourceLock) {
             long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
-            System.err.println("bindVertexAttrNames: attrNames.length = " + attrNames.length);
+//            System.err.println("bindVertexAttrNames: attrNames.length = " + attrNames.length);
             for (int i = 0; i < attrNames.length; i++) {
-                System.err.println("attrNames[" + i + "] = " + attrNames[i]);
+//                System.err.println("attrNames[" + i + "] = " + attrNames[i]);
                 ShaderError err = bindVertexAttrName(cv.ctx, shaderProgramId, attrNames[i], i);
                 if (err != null) {
                     return err;
