@@ -298,9 +298,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
     jobject shaderError = NULL;
     GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
 
+    /*
     fprintf(stderr,
 	    "GLSLShaderProgramRetained.bindNativeVertexAttrName: %s\n",
 	    attrNameString);
+    */
 
     ctxProperties->pfnglBindAttribLocationARB((GLhandleARB)shaderProgramId,
 					      attrIndex + 1,
