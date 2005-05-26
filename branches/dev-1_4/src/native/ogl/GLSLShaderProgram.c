@@ -331,19 +331,41 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     jobject shaderError = NULL;
     GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+    jlong *locPtr;
+    jlong loc;
+    
+    locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
 
     fprintf(stderr,
 	    "GLSLShaderProgramRetained.lookupNativeShaderAttrName: %s\n",
 	    attrNameString);
 
-    /* TODO Chien: implement this */
+    if (attrNameString == NULL) {
+	shaderError = createShaderError(env,
+					javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_ERROR,
+					"lookupNativeShaderAttrName is not implemented",
+					NULL);
+	
+    }
 
-    shaderError = createShaderError(env,
-				    javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_ERROR,
-				    "lookupNativeShaderAttrName is not implemented",
-				    NULL);
+    /*
+     * Get uniform attribute location
+     */
+    loc = ctxProperties->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
+						    attrNameString);
+    
+    fprintf(stderr,
+	    "str = %s, loc = %d\n",
+	    attrNameString, loc);
+
+    locPtr[0] = loc;
+    
+    free(attrNameString);    
+
+    (*env)->ReleaseLongArrayElements(env, locArr, locPtr, 0);
 
     return shaderError;
+
 }
 
 
@@ -366,398 +388,239 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_useShaderProgram(
     return NULL;
 }
 
-
-/* KCR: BEGIN GLSL SHADER HACK */
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform1i
+ * Signature: (JJJI)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jint value)
 {
-    JNIEnv table = *env;
-    
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
-
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = %d\n",
-	    attrNameString, loc, value);
-    */
-    free(attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
     /* Load attribute */
-    ctxProperties->pfnglUniform1iARB(loc, value);
+    ctxProperties->pfnglUniform1iARB(location, value);
+
+    return NULL;
+
 }
 
-
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
-    JNIEnv *env,
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform1f
+ * Signature: (JJJF)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
+								    JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jfloat value)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = %f\n",
-	    attrNameString, loc, value);
-    */
-    free(attrNameString);
+    /* Why shaderProgramId is not needed ? */
 
     /* Load attribute */
-    ctxProperties->pfnglUniform1fARB(loc, value);
-}
-
-
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
-    JNIEnv *env,
-    jobject obj,
-    jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
-    jintArray varray)
-{
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
-    jint *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
+    ctxProperties->pfnglUniform1fARB(location, value);
     
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
-    /* Get array values */
-    values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%d, %d)\n",
-	    attrNameString, loc,
-	    values[0], values[1]);
-    */
-    free(attrNameString);
-
-    /* Load attribute */
-    ctxProperties->pfnglUniform2iARB(loc, values[0], values[1]);
-
-    /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
 }
 
-
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform2i
+ * Signature: (JJJ[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
+    jintArray varray)
+{    
+
+    jint *values;
+	
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Why shaderProgramId is not needed ? */
+    
+    /* Get array values */
+    values = (*env)->GetIntArrayElements(env, varray, NULL);
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform2iARB(location, values[0], values[1]);
+
+    /* Release array values */
+    (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
+
+}
+
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform2f
+ * Signature: (JJJ[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
     jfloatArray varray)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
+    
     /* Get array values */
-    values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%f, %f)\n",
-	    attrNameString, loc,
-	    values[0], values[1]);
-    */
-    free(attrNameString);
+    values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2fARB(loc, values[0], values[1]);
+    ctxProperties->pfnglUniform2fARB(location, values[0], values[1]);
 
     /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
+    (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
 }
 
 
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform3i
+ * Signature: (JJJ[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jintArray varray)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jint *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
+    
     /* Get array values */
-    values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%d, %d, %d)\n",
-	    attrNameString, loc,
-	    values[0], values[1], values[2]);
-    */
-    free(attrNameString);
+    values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3iARB(loc, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3iARB(location, values[0], values[1], values[2]);
 
     /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
+    (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
 }
 
 
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform3f
+ * Signature: (JJJ[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jfloatArray varray)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
+    
     /* Get array values */
-    values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%f, %f, %f)\n",
-	    attrNameString, loc,
-	    values[0], values[1], values[2]);
-    */
-    free(attrNameString);
+    values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3fARB(loc, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3fARB(location, values[0], values[1], values[2]);
 
     /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
+    (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+
 }
 
 
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform4i
+ * Signature: (JJJ[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jintArray varray)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jint *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
+    
     /* Get array values */
-    values = (jint *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%d, %d, %d, %d)\n",
-	    attrNameString, loc,
-	    values[0], values[1], values[2], values[3]);
-    */
-    free(attrNameString);
+    values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4iARB(loc, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4iARB(location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
+    (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
 }
 
 
-JNIEXPORT void JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform4f
+ * Signature: (JJJ[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
-    jint shaderProgram,
-    jstring attrName,
+    jlong shaderProgramId,
+    jlong location,
     jfloatArray varray)
 {
-    JNIEnv table = *env;
-
-    GLcharARB *attrNameString = NULL; /* Null-terminated "C" string */
     jfloat *values;
-    GLint loc = -1;
-    GLhandleARB glShaderProgram = (GLhandleARB)shaderProgram;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    attrNameString = (GLcharARB *)strJavaToC(env, attrName);
-    if (attrNameString == NULL) {
-	return;
-    }
-
-    /*
-     * Get uniform attribute location
-     *
-     * TODO: we need to separate the string lookup from the setting of
-     * the value
-     */
-    loc = ctxProperties->pfnglGetUniformLocationARB(glShaderProgram, attrNameString);
-
+    /* Why shaderProgramId is not needed ? */
+    
     /* Get array values */
-    values = (jfloat *)table->GetPrimitiveArrayCritical(env, varray , NULL);
-    /*
-    fprintf(stderr,
-	    "str = %s, loc = %d, val = (%f, %f, %f, %f)\n",
-	    attrNameString, loc,
-	    values[0], values[1], values[2], values[3]);
-    */
-    free(attrNameString);
+    values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4fARB(loc, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4fARB(location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
-    table->ReleasePrimitiveArrayCritical(env,
-					 varray,
-					 values,
-					 JNI_ABORT);
+    (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+
 }
-/* KCR: END GLSL SHADER HACK */
