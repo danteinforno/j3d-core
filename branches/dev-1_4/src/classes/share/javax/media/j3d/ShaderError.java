@@ -49,22 +49,35 @@ public class ShaderError extends Object {
     public static final int LINK_ERROR = 2;
 
     /**
-     * Indicates a error in looking up a uniform shader attribute, or
-     * a mismatch in the type of the attribute versus what the shader
-     * program was expecting.
+     * Indicates a error in looking up a vertex attribute
+     * name within a given shader program.
      */
-    public static final int SHADER_ATTRIBUTE_ERROR = 3;
+    public static final int VERTEX_ATTRIBUTE_LOOKUP_ERROR = 3;
 
     /**
-     * Indicates a error in looking up a vertex attribute.
+     * Indicates a error in looking up the location of a uniform
+     * shader attribute name within a given shader program.
      */
-    public static final int VERTEX_ATTRIBUTE_ERROR = 4;
+    public static final int SHADER_ATTRIBUTE_LOOKUP_ERROR = 4;
+
+    /**
+     * Indicates a error caused by a ShaderAttribute whose name does not
+     * appear in the list of shader attribute names in the corresponding
+     * ShaderProgram object.
+     */
+    public static final int SHADER_ATTRIBUTE_NAME_NOT_SET_ERROR = 5;
+
+    /**
+     * Indicates a error in the type of the attribute versus what the shader
+     * program was expecting.
+     */
+    public static final int SHADER_ATTRIBUTE_TYPE_ERROR = 6;
 
     /**
      * Indicates that the specified shading language is not supported
      * on the screen display device.
      */
-    public static final int UNSUPPORTED_LANGUAGE_ERROR = 5;
+    public static final int UNSUPPORTED_LANGUAGE_ERROR = 7;
 
 
     /**
@@ -368,11 +381,17 @@ public class ShaderError extends Object {
 	case LINK_ERROR:
 	    errorCodeStr = "LINK_ERROR";
 	    break;
-	case SHADER_ATTRIBUTE_ERROR:
-	    errorCodeStr = "SHADER_ATTRIBUTE_ERROR";
+	case VERTEX_ATTRIBUTE_LOOKUP_ERROR:
+	    errorCodeStr = "VERTEX_ATTRIBUTE_LOOKUP_ERROR";
 	    break;
-	case VERTEX_ATTRIBUTE_ERROR:
-	    errorCodeStr = "VERTEX_ATTRIBUTE_ERROR";
+	case SHADER_ATTRIBUTE_LOOKUP_ERROR:
+	    errorCodeStr = "SHADER_ATTRIBUTE_LOOKUP_ERROR";
+	    break;
+        case SHADER_ATTRIBUTE_NAME_NOT_SET_ERROR:
+	    errorCodeStr = "SHADER_ATTRIBUTE_NAME_NOT_SET_ERROR";
+	    break;
+	case SHADER_ATTRIBUTE_TYPE_ERROR:
+	    errorCodeStr = "SHADER_ATTRIBUTE_TYPE_ERROR";
 	    break;
 	case UNSUPPORTED_LANGUAGE_ERROR:
 	    errorCodeStr = "UNSUPPORTED_LANGUAGE_ERROR";

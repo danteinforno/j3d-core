@@ -333,20 +333,22 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
     GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
     jlong *locPtr;
     jlong loc;
+    jclass oom;
+
+    JNIEnv table = *env;
+
+    if (attrNameString == NULL) {
+	/* Just return, since strJavaToC will throw OOM if it returns NULL */
+	return NULL;
+    }
     
     locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
 
+    /*
     fprintf(stderr,
 	    "GLSLShaderProgramRetained.lookupNativeShaderAttrName: %s\n",
 	    attrNameString);
-
-    if (attrNameString == NULL) {
-	shaderError = createShaderError(env,
-					javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_ERROR,
-					"lookupNativeShaderAttrName is not implemented",
-					NULL);
-	
-    }
+    */
 
     /*
      * Get uniform attribute location
@@ -354,6 +356,25 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
     loc = ctxProperties->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
 						    attrNameString);
     
+    if (loc == -1) {
+	char *msgStr = "Attribute name lookup failed: ";
+	char *errMsg = (char*)malloc(strlen(msgStr) + strlen(attrNameString) + 1);
+	if (errMsg == NULL) {
+	    if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+		table->ThrowNew(env, oom, "malloc");
+	    }
+	    return NULL;
+	}
+	strcpy(errMsg, msgStr);
+	strcat(errMsg, attrNameString);
+
+	shaderError = createShaderError(env,
+		javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_LOOKUP_ERROR,
+		errMsg,
+		NULL);
+	free(errMsg);
+    }
+
     fprintf(stderr,
 	    "str = %s, loc = %d\n",
 	    attrNameString, loc);
