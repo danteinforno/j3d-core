@@ -301,7 +301,7 @@ class ShaderBin implements ObjectUpdate {
 	    shaderProgram.updateNative(cv, true);
 
 	    if (shaderAttributeSet != null) {
-		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
+		shaderAttributeSet.updateNative(cv, shaderProgram);
 	    }
 
 	}

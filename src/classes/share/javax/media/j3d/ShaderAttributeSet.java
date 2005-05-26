@@ -217,17 +217,14 @@ public class ShaderAttributeSet extends NodeComponent {
     }
 
 
-    void updateNative(long ctx, ShaderProgramRetained shaderProgram) {
-	Iterator it = attrs.values().iterator();
-	while (it.hasNext()) {
-	    ShaderAttribute sa = (ShaderAttribute)it.next();
-	    if (sa instanceof ShaderAttributeValue) {
-		shaderProgram.setUniformAttrValue(ctx, (ShaderAttributeValue)sa);
-	    }
-	    else {
-		throw new RuntimeException("not implemented");
-	    }
-	}
+    void updateNative(Canvas3D cv, ShaderProgramRetained shaderProgram) {
+        
+        shaderProgram.setShaderAttributes(cv, this);        
+
     }
 
+    // Need to move this to retained class  -- Chien
+    Map getAttrs() {
+        return attrs;
+    }
 }
