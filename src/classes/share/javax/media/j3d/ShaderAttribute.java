@@ -56,6 +56,10 @@ public abstract class ShaderAttribute extends NodeComponent {
      * Package scope constructor
      */
     ShaderAttribute(String attrName) {
+        if (attrName == null) {
+            throw new NullPointerException();
+        }
+
 	this.attrName = attrName;
     }
 
