@@ -3586,6 +3586,10 @@ strJavaToC(JNIEnv *env, jstring str)
     const jbyte *strUTFBytes;	/* Array of UTF-8 bytes */
     char *cString = NULL;	/* Null-terminated "C" string */
 
+    if (str == NULL) {
+	return NULL;
+    }
+
     strUTFBytes = table->GetStringUTFChars(env, str, NULL);
     if (strUTFBytes == NULL) {
 	/* Just return, since GetStringUTFChars will throw OOM if it returns NULL */

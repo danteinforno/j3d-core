@@ -68,6 +68,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * shader program. Array element 0 specifies the name of
      * GeometryArray vertex attribute 0, array element 1 specifies the
      * name of GeometryArray vertex attribute 1, and so forth.
+     * The array of names may be null or empty (0 length), but the
+     * elements of the array must be non-null.
      *
      * @param vertexAttrNames array of vertex attribute names for this
      * shader program. A copy of this array is made.
@@ -87,6 +89,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * attribute name that may be set via a ShaderAttribute object.
      * Only those attributes whose names that appear in the shader
      * attribute names array can be set for a given shader program.
+     * The array of names may be null or empty (0 length), but the
+     * elements of the array must be non-null.
      *
      * @param shaderAttrNames array of shader attribute names for this
      * shader program. A copy of this array is made.
@@ -454,6 +458,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 
     
     private ShaderError bindVertexAttrName(Canvas3D cv, int cvRdrIndex, String attrName, int attrIndex) {
+        assert(attrName != null);
         synchronized(resourceLock) {
             long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
 //            System.err.println("attrName = " + attrName);
@@ -467,7 +472,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 
 
     private ShaderError lookupShaderAttrName(Canvas3D cv, int cvRdrIndex, String attrName) {
-         synchronized(resourceLock) {
+        assert(attrName != null);
+        synchronized(resourceLock) {
             long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
             long[] locArr = new long[1];
             ShaderError err = lookupShaderAttrName(cv.ctx, shaderProgramId, attrName, locArr);

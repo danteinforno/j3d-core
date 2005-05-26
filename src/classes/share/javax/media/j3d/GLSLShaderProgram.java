@@ -36,7 +36,15 @@ public class GLSLShaderProgram extends ShaderProgram {
     public void setVertexAttrNames(String[] vertexAttrNames) {
 	checkForLiveOrCompiled();
 
- 	((GLSLShaderProgramRetained)this.retained).setVertexAttrNames(vertexAttrNames);
+        if (vertexAttrNames != null) {
+            for (int i = 0; i < vertexAttrNames.length; i++) {
+                if (vertexAttrNames[i] == null) {
+                    throw new NullPointerException();
+                }
+            }
+        }
+
+        ((GLSLShaderProgramRetained)this.retained).setVertexAttrNames(vertexAttrNames);
     }
 
     // Implement abstract getVertexAttrNames method (inherit javadoc from parent class)
@@ -48,7 +56,15 @@ public class GLSLShaderProgram extends ShaderProgram {
     public void setShaderAttrNames(String[] shaderAttrNames) {
 	checkForLiveOrCompiled();
 
-	((GLSLShaderProgramRetained)this.retained).setShaderAttrNames(shaderAttrNames);
+        if (shaderAttrNames != null) {
+            for (int i = 0; i < shaderAttrNames.length; i++) {
+                if (shaderAttrNames[i] == null) {
+                    throw new NullPointerException();
+                }
+            }
+        }
+
+        ((GLSLShaderProgramRetained)this.retained).setShaderAttrNames(shaderAttrNames);
     }
 
     // Implement abstract getShaderAttrNames method (inherit javadoc from parent class)
@@ -77,6 +93,9 @@ public class GLSLShaderProgram extends ShaderProgram {
      *
      * @exception ClassCastException if any shader in the shaders
      * array is <em>not</em> a SourceCodeShader.
+     *
+     * @exception NullPointerException if any element in the
+     * shaders array is null.
      */
     public void setShaders(Shader[] shaders) {
 	checkForLiveOrCompiled();

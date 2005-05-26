@@ -73,12 +73,17 @@ public abstract class ShaderProgram extends NodeComponent {
      * shader program. Array element 0 specifies the name of
      * GeometryArray vertex attribute 0, array element 1 specifies the
      * name of GeometryArray vertex attribute 1, and so forth.
+     * The array of names may be null or empty (0 length), but the
+     * elements of the array must be non-null.
      *
      * @param vertexAttrNames array of vertex attribute names for this
      * shader program. A copy of this array is made.
      *
      * @exception RestrictedAccessException if the method is called
      * when this object is part of live or compiled scene graph.
+     *
+     * @exception NullPointerException if any element in the
+     * vertexAttrNames array is null.
      */
     public abstract void setVertexAttrNames(String[] vertexAttrNames);
 
@@ -100,6 +105,8 @@ public abstract class ShaderProgram extends NodeComponent {
      * attribute name that may be set via a ShaderAttribute object.
      * Only those attributes whose names that appear in the shader
      * attribute names array can be set for a given shader program.
+     * The array of names may be null or empty (0 length), but the
+     * elements of the array must be non-null.
      *
      * <p>
      * TODO: finish this.
@@ -109,6 +116,9 @@ public abstract class ShaderProgram extends NodeComponent {
      *
      * @exception RestrictedAccessException if the method is called
      * when this object is part of live or compiled scene graph.
+     *
+     * @exception NullPointerException if any element in the
+     * shaderAttrNames array is null.
      */
     public abstract void setShaderAttrNames(String[] shaderAttrNames);
 
@@ -141,6 +151,9 @@ public abstract class ShaderProgram extends NodeComponent {
      * @exception IllegalArgumentException if the shading language of
      * any shader in the shaders array doesn't match the type of the
      * subclass.
+     *
+     * @exception NullPointerException if any element in the
+     * shaders array is null.
      */
     public abstract void setShaders(Shader[] shaders);
     
