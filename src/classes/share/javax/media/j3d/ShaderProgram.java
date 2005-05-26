@@ -170,6 +170,7 @@ public abstract class ShaderProgram extends NodeComponent {
 
     static class DefaultErrorListener implements ShaderErrorListener {
 	public void errorOccurred(ShaderError error) {
+            System.err.println();
 	    System.err.println("DefaultShaderErrorListener.errorOccurred:");
 	    error.printVerbose();
 	}
