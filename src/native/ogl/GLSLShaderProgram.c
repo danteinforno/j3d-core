@@ -423,14 +423,16 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     jlong location,
     jint value)
 {
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    /* Why shaderProgramId is not needed ? */
     /* Load attribute */
     ctxProperties->pfnglUniform1iARB(location, value);
 
+    /* TODO : We need to handle ShaderError. */
     return NULL;
-
 }
 
 /*
@@ -447,14 +449,17 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     jlong location,
     jfloat value)
 {
-
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    /* Why shaderProgramId is not needed ? */
 
     /* Load attribute */
     ctxProperties->pfnglUniform1fARB(location, value);
-    
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
 }
 
 /*
