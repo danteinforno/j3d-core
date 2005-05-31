@@ -30,9 +30,8 @@ class SourceCodeShaderRetained extends ShaderRetained {
 
     SourceCodeShaderRetained() {
     }
-    
-    final void set(int shadingLanguage, int shaderType, String shaderSource) {
 
+    final void set(int shadingLanguage, int shaderType, String shaderSource) {
 	this.shadingLanguage = shadingLanguage;
 	this.shaderType = shaderType;
 	this.shaderSource = shaderSource;
@@ -47,7 +46,7 @@ class SourceCodeShaderRetained extends ShaderRetained {
 	return shaderSource;
     }
 
-    final void setShaderSource(String sc) {
+    final void setShaderSource(String shaderSource) {
 	this.shaderSource = shaderSource;
     }    
 

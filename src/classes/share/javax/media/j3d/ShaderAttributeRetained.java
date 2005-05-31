@@ -15,7 +15,7 @@ package javax.media.j3d;
 import javax.vecmath.*;
 
 /**
- * The ShaderAttribute object encapsulates a uniform attribute for a
+ * The ShaderAttributeRetained object encapsulates a uniform attribute for a
  * shader programs.  Uniform attributes (variables) are those
  * attributes whose values are constant during the rendering of a
  * primitive. Their values may change from primitive to primitive, but
@@ -29,38 +29,37 @@ import javax.vecmath.*;
  * attributes: explicitly, by providing a value; and implicitly, by
  * defining a binding between a Java 3D system attribute and a uniform
  * attribute. This functionality is provided by two subclasses of
- * ShaderAttribute as follows:
+ * ShaderAttributeRetained as follows:
  *
  * <ul>
- * <li>ShaderAttributeObject, in which attributes are expressed as
+ * <li>ShaderAttributeObjectRetained, in which attributes are expressed as
  * <code>(attrName,&nbsp;value)</code> pairs, is used for explicitly
  * defined attributes</li>
- * <li>ShaderAttributeBinding, in which attributes are expressed as
+ * <li>ShaderAttributeBindingRetained, in which attributes are expressed as
  * <code>(attrName,&nbsp;j3dAttrName)</code> pairs, is used for
  * implicitly defined, automatically tracked attributes</li>
  * </ul>
  *
- * @see ShaderAttributeSet
- * @see ShaderProgram
+ * @see ShaderAttributeSetRetained
+ * @see ShaderProgramRetained
  *
  * @since Java 3D 1.4
  */
 
-public abstract class ShaderAttribute extends NodeComponent {
+abstract class ShaderAttributeRetained extends NodeComponentRetained {
     /**
      * Name of the shader attribute (immutable)
      */
+    String attrName;
 
     /**
      * Package scope constructor
-     *
      */
-    ShaderAttribute(String attrName) {   
-	if (attrName == null) {
-	    throw new NullPointerException();
-	}
+    ShaderAttributeRetained() {
+    }
 
-	((ShaderAttributeRetained)this.retained).initAttrName(attrName);
+    void initAttrName(String attrName) {
+	this.attrName = attrName;
     }
 
     /**
@@ -68,10 +67,8 @@ public abstract class ShaderAttribute extends NodeComponent {
      *
      * @return the name of this shader attribute
      */
-    public String getAttributeName() {
-
- 	return ((ShaderAttributeRetained)this.retained).getAttributeName();
- 
-   }
+    String getAttributeName() {
+	return attrName;
+    }
 
 }

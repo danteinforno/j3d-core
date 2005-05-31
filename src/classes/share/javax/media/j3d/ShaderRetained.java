@@ -38,7 +38,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
     // need to synchronize access from multiple rendering threads 
     Object resourceLock = new Object();
 
-    void set(int shadingLanguage, int shaderType) {
+    void initShader(int shadingLanguage, int shaderType) {
 	this.shadingLanguage = shadingLanguage;
 	this.shaderType = shaderType;
     }
