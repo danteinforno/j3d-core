@@ -173,7 +173,7 @@ I. New/deprecated fields, constructors, methods
 
 
     RenderingAttributes
-    -----------
+    -------------------
     New fields:
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
@@ -206,6 +206,12 @@ I. New/deprecated fields, constructors, methods
     New methods:
 	public void setDepthTestFunction(int function)
 	public int getDepthTestFunction()
+
+
+    Font3D
+    ------
+    New methods:
+	public GeometryArray getGlyphGeometry(char c)
 
 
 II. Reparented classes
