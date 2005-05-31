@@ -80,29 +80,14 @@ import javax.vecmath.*;
  * @since Java 3D 1.4
  */
 
-public class ShaderAttributeBinding extends ShaderAttribute {
+class ShaderAttributeBindingRetained extends ShaderAttributeRetained {
+    String j3dAttrName;
 
-    /**
-     * Constructs a new ShaderAttributeBinding from the specified
-     * <code>(attrName,&nbsp;j3dAttrName)</code> pair.
-     *
-     * @param attrName the name of the shader attribute to be added
-     * @param j3dAttrName the name of the Java&nbsp;3D attribute
-     * to bind to the shader attribute
-     *
-     * @exception UnsupportedOperationException this class is not
-     * yet implemented
-     *
-     * @exception NullPointerException if attrName or j3dAttrName is null
-     *
-     * @exception IllegalArgumentException if j3dAttrName is not the name
-     * of a valid predefined Java&nbsp;3D system attribute
-     */
-    public ShaderAttributeBinding(String attrName, String j3dAttrName) {
-	super(attrName);
-	((ShaderAttributeBindingRetained)this.retained).initJ3dAttrName(j3dAttrName);
-	// TODO: implement this class
-	throw new UnsupportedOperationException(J3dI18N.getString("ShaderAttributeBinding0"));
+    ShaderAttributeBindingRetained() {
+    }
+
+    void initJ3dAttrName(String j3dAttrName) {
+	this.j3dAttrName = j3dAttrName;
     }
 
     /**
@@ -112,17 +97,8 @@ public class ShaderAttributeBinding extends ShaderAttribute {
      * @return the name of the Java 3D system attribute that is bound to this
      * shader attribute
      */
-    public String getJ3DAttributeName() {
- 	return ((ShaderAttributeBindingRetained)this.retained).getJ3DAttributeName();
-    }
-
-    /**
-     * Creates a retained mode ShaderAttributeBindingRetained object that this
-     * ShaderAttributeBinding component object will point to.
-     */
-    void createRetained() {
-	this.retained = new ShaderAttributeBindingRetained();
-	this.retained.setSource(this);
+    String getJ3DAttributeName() {
+	return j3dAttrName;
     }
 
 }

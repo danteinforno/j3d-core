@@ -29,11 +29,8 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     //
  
     protected ShaderProgramRetained shaderProgram = null;
-  
+    protected ShaderAttributeSetRetained shaderAttributeSet = null;
 
-    // ShaderAttributeSetRetained shaderAttributeSet = null;
-    protected ShaderAttributeSet shaderAttributeSet = null;    
-    
     static final int SHADER_PROGRAM = 0x0800;
 
     /**
@@ -89,11 +86,13 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      *
      * @param shaderAttributeSet object that specifies the desired shader attributes
      */
-    void setShaderAttributeSet(ShaderAttributeSet shaderAttributeSet) {
-	/* KCR: BEGIN CG SHADER HACK */
-	// TODO: implement this for real once we have a ShaderAttributeSetRetained object
-	this.shaderAttributeSet = shaderAttributeSet;
-	/* KCR: END CG SHADER HACK */
+    void setShaderAttributeSet(ShaderAttributeSet sas) {
+	//TODO : Mirror object --- Chien
+	if (sas == null) {
+	    this.shaderAttributeSet = null;
+	} else {
+	    this.shaderAttributeSet = (ShaderAttributeSetRetained)sas.retained;
+	}
     }
 
 
@@ -102,8 +101,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * @return current ShaderAttributeSet object
      */
     ShaderAttributeSet getShaderAttributeSet() {
-	return (shaderAttributeSet == null ? null : shaderAttributeSet);	
-	// return (shaderAttributeSet == null ? null : (ShaderAttributeSet)shaderAttributeSet.source);	
+	return (shaderAttributeSet == null ? null : (ShaderAttributeSet)shaderAttributeSet.source);	
 
     }
 

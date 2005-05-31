@@ -58,30 +58,15 @@ import javax.vecmath.*;
  * @since Java 3D 1.4
  */
 
-public class ShaderAttributeSet extends NodeComponent {
-
-    /**
-     * Specifies that this ShaderAttributeSet object allows reading
-     * its attributes.
-     */
-    public static final int
-	ALLOW_ATTRIBUTES_READ =
-	CapabilityBits.SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_READ;
-
-    /**
-     * Specifies that this ShaderAttributeSet object allows writing
-     * its attributes.
-     */
-    public static final int
-	ALLOW_ATTRIBUTES_WRITE =
-	CapabilityBits.SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_WRITE;
+class ShaderAttributeSetRetained extends NodeComponentRetained {
+    private Map attrs = new HashMap();
 
 
     /**
-     * Constructs an empty ShaderAttributeSet object. The attributes set
+     * Constructs an empty ShaderAttributeSetretained object. The attributes set
      * is initially empty.
      */
-    public ShaderAttributeSet() {
+    ShaderAttributeSetRetained() {
     }
 
     //
@@ -96,18 +81,9 @@ public class ShaderAttributeSet extends NodeComponent {
      *
      * @param attr the shader attribute to be added to the set
      *
-     * @exception NullPointerException if attr is null
-     *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public void put(ShaderAttribute attr) {
-	if (attr == null) {
-	    throw new NullPointerException();
-	}
-
-        ((ShaderAttributeSetRetained)this.retained).put(attr);
-
+    void put(ShaderAttribute attr) {
+	attrs.put(attr.getAttributeName(), attr);
     }
 
     /**
@@ -117,21 +93,11 @@ public class ShaderAttributeSet extends NodeComponent {
      *
      * @param attrName the name of the shader attribute to be retrieved
      *
-     * @exception NullPointerException if attrName is null
-     *
-     * @return a the shader attribute associated with the specified
-     * attribute name, or null if the name is not in the attributes
-     * set
-     *
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
      */
-    public ShaderAttribute get(String attrName) {
-	if (attrName == null) {
-	    throw new NullPointerException();
-	}
-
-	return ((ShaderAttributeSetRetained)this.retained).get(attrName);
+    ShaderAttribute get(String attrName) {
+	return (ShaderAttribute)attrs.get(attrName);
     }
 
     /**
@@ -140,18 +106,9 @@ public class ShaderAttributeSet extends NodeComponent {
      * not exist in the attributes set then nothing happens.
      *
      * @param attrName the name of the shader attribute to be removed
-     *
-     * @exception NullPointerException if attrName is null
-     *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public void remove(String attrName) {
-	if (attrName == null) {
-	    throw new NullPointerException();
-	}
-
-	((ShaderAttributeSetRetained)this.retained).remove(attrName);
+    void remove(String attrName) {
+	attrs.remove(attrName);
     }
 
     /**
@@ -164,29 +121,21 @@ public class ShaderAttributeSet extends NodeComponent {
      * <code>removeAttribute(String)</code>.
      *
      * @param attr the shader attribute to be removed
-     *
-     * @exception NullPointerException if attr is null
-     *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public void remove(ShaderAttribute attr) {
-	if (attr == null) {
-	    throw new NullPointerException();
+    void remove(ShaderAttribute attr) {
+	String attrName = attr.getAttributeName();
+	if (attrs.get(attrName) == attr) {
+	    attrs.remove(attrName);
 	}
-
-	((ShaderAttributeSetRetained)this.retained).remove(attr);
     }
 
     /**
      * Removes all shader attributes from the attributes set. The
      * attributes set will be empty following this call.
      *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public void clear() {
-	((ShaderAttributeSetRetained)this.retained).clear();
+    void clear() {
+	attrs.clear();
     }
 
     /**
@@ -194,11 +143,9 @@ public class ShaderAttributeSet extends NodeComponent {
      *
      * @return a shallow copy of the attributes set
      *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public ShaderAttribute[] getAll() {
-	return ((ShaderAttributeSetRetained)this.retained).getAll();
+    ShaderAttribute[] getAll() {
+	return (ShaderAttribute[])attrs.values().toArray(new ShaderAttribute[attrs.size()]);
     }
 
     /**
@@ -206,20 +153,17 @@ public class ShaderAttributeSet extends NodeComponent {
      *
      * @return the number of elements in the attributes set
      *
-     * @exception CapabilityNotSetException if appropriate capability is 
-     * not set and this object is part of live or compiled scene graph
      */
-    public int size() {
-	return ((ShaderAttributeSetRetained)this.retained).size();
+    int size() {
+	return attrs.size();
     }
 
-    /**
-     * Creates a retained mode ShaderAttributeSetRetained object that this
-     * ShaderAttributeSet component object will point to.
-     */
-    void createRetained() {
-	// System.out.println("ShaderAttributeSet : createRetained() ...");
-	this.retained = new ShaderAttributeSetRetained();
-	this.retained.setSource(this);
+
+    void updateNative(Canvas3D cv, ShaderProgramRetained shaderProgram) {        
+        shaderProgram.setShaderAttributes(cv, this);
+    }
+
+    Map getAttrs() {
+        return attrs;
     }
 }

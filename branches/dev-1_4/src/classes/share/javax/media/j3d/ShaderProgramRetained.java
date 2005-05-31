@@ -16,11 +16,11 @@ import java.util.*;
 import javax.vecmath.*;
 
 /**
- * The ShaderProgram object is a component object of an Appearance object
- * that defines the shader properties used when programmable shader is
- * enabled. ShaderProgram object is an abstract class. All shader program 
- * objects must be created as either a GLSLShaderProgram object or a
- * CgShaderProgram object.
+ * The ShaderProgramRetained object is a component object of an AppearanceRetained 
+ * object that defines the shader properties used when programmable shader is
+ * enabled. ShaderProgramRetained object is an abstract class. All shader program 
+ * objects must be created as either a GLSLShaderProgramRetained object or a
+ * CgShaderProgramRetained object.
  */
 abstract class ShaderProgramRetained extends NodeComponentRetained {
     
@@ -819,81 +819,80 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     /**
      * Update native value for ShaderAttributeValue class
      */
-    ShaderError setUniformAttrValue(long ctx, long shaderProgramId, long loc, ShaderAttributeValue sav) {
+    ShaderError setUniformAttrValue(long ctx, long shaderProgramId, long loc, ShaderAttributeValueRetained sav) {
         
         switch (sav.classType) {           
-        case ShaderAttributeObject.TYPE_INTEGER:
+        case ShaderAttributeObjectRetained.TYPE_INTEGER:
             
             return setUniform1i(ctx, shaderProgramId, loc,
                     ((int[])sav.attrWrapper.getRef())[0]);
 
             
 
-        case ShaderAttributeObject.TYPE_FLOAT:
+        case ShaderAttributeObjectRetained.TYPE_FLOAT:
 
             return setUniform1f(ctx, shaderProgramId, loc,
                     ((float[])sav.attrWrapper.getRef())[0]);
             
 
-        case ShaderAttributeObject.TYPE_DOUBLE:
+        case ShaderAttributeObjectRetained.TYPE_DOUBLE:
             throw new RuntimeException("not implemented");
 
-        case ShaderAttributeObject.TYPE_TUPLE2I:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE2I:
             return setUniform2i(ctx, shaderProgramId, loc,
                     (int[])sav.attrWrapper.getRef());
             
 
-        case ShaderAttributeObject.TYPE_TUPLE2F:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE2F:
             return setUniform2f(ctx, shaderProgramId, loc,
                     (float[])sav.attrWrapper.getRef());
             
 
-        case ShaderAttributeObject.TYPE_TUPLE2D:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE2D:
             throw new RuntimeException("not implemented");
 
-        case ShaderAttributeObject.TYPE_TUPLE3I:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE3I:
             return setUniform3i(ctx, shaderProgramId, loc,
                     (int[])sav.attrWrapper.getRef());
             
 
-        case ShaderAttributeObject.TYPE_TUPLE3F:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE3F:
             return setUniform3f(ctx, shaderProgramId, loc,
                     (float[])sav.attrWrapper.getRef());
             
 
-        case ShaderAttributeObject.TYPE_TUPLE3D:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE3D:
             throw new RuntimeException("not implemented");
 
-        case ShaderAttributeObject.TYPE_TUPLE4I:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE4I:
             return setUniform4i(ctx, shaderProgramId, loc,
                     (int[])sav.attrWrapper.getRef());
             
 
-        case ShaderAttributeObject.TYPE_TUPLE4F:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE4F:
             return setUniform4f(ctx, shaderProgramId, loc,
-                    (float[])sav.attrWrapper.getRef());
-            
+				(float[])sav.attrWrapper.getRef());
 
-        case ShaderAttributeObject.TYPE_TUPLE4D:
+        case ShaderAttributeObjectRetained.TYPE_TUPLE4D:
             throw new RuntimeException("not implemented");
 
-        case ShaderAttributeObject.TYPE_MATRIX3F:
+        case ShaderAttributeObjectRetained.TYPE_MATRIX3F:
             throw new RuntimeException("not implemented");
         /*
         return setUniformMatrix3f(ctx, shaderProgramId, loc,
                            (float[])sav.attrWrapper.getRef());
         
          */
-        case ShaderAttributeObject.TYPE_MATRIX3D:
+        case ShaderAttributeObjectRetained.TYPE_MATRIX3D:
             throw new RuntimeException("not implemented");
-        case ShaderAttributeObject.TYPE_MATRIX4F:
+        case ShaderAttributeObjectRetained.TYPE_MATRIX4F:
             throw new RuntimeException("not implemented");
         /*
         return setUniformMatrix4f(ctx, shaderProgramId, loc,
                            (float[])sav.attrWrapper.getRef());
         
          */
-        case ShaderAttributeObject.TYPE_MATRIX4D:
+        case ShaderAttributeObjectRetained.TYPE_MATRIX4D:
             throw new RuntimeException("not implemented");
 
         default:
@@ -903,7 +902,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         }
     }
     
-    void setShaderAttributes(Canvas3D cv, ShaderAttributeSet attributeSet) {
+    void setShaderAttributes(Canvas3D cv, ShaderAttributeSetRetained attributeSet) {
         final boolean useSharedCtx = cv.useSharedCtx && cv.screen.renderer.sharedCtx != 0;
         final int cvRdrIndex = useSharedCtx ? cv.screen.renderer.rendererId : cv.canvasId;        
         ShaderProgramData spData = getShaderProgramData(cvRdrIndex);
@@ -919,20 +918,21 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         Iterator attrs = attributeSet.getAttrs().values().iterator();
         while (attrs.hasNext()) {
             ShaderAttribute sa = (ShaderAttribute)attrs.next();
-            
-            Long attrLocation = spData.getLocation(sa.getAttributeName());
+	    ShaderAttributeRetained saRetained = (ShaderAttributeRetained) sa.retained;
+
+            Long attrLocation = spData.getLocation(saRetained.getAttributeName());
             if(attrLocation == null) {
                 // TODO : Need to generate a ShaderError.
-//                System.err.println("ShaderProgramRetained : attrLocation (" + sa.getAttributeName() + ") is null.");
-                String errMsg = "Attribute name not set in ShaderProgram: " + sa.getAttributeName(); // TODO: I18N
+//                System.err.println("ShaderProgramRetained : attrLocation (" + saRetained.getAttributeName() + ") is null.");
+                String errMsg = "Attribute name not set in ShaderProgram: " + saRetained.getAttributeName(); // TODO: I18N
                 err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_NAME_NOT_SET_ERROR, errMsg);
             } else {
                 long loc = attrLocation.longValue();
-                if (sa instanceof ShaderAttributeValue) {
-                    err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, (ShaderAttributeValue)sa);
-                } else if (sa instanceof ShaderAttributeArray) {
+                if (saRetained instanceof ShaderAttributeValueRetained) {
+                    err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, (ShaderAttributeValueRetained)saRetained);
+                } else if (saRetained instanceof ShaderAttributeArrayRetained) {
                     throw new RuntimeException("not implemented");
-                } else if (sa instanceof ShaderAttributeBinding) {
+                } else if (saRetained instanceof ShaderAttributeBindingRetained) {
                     throw new RuntimeException("not implemented");
                 } else {
                     assert(false);
@@ -941,7 +941,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             
             if (err != null) {
                 err.setShaderProgram((ShaderProgram)this.source);
-                err.setShaderAttributeSet(attributeSet);
+                err.setShaderAttributeSet((ShaderAttributeSet)attributeSet.source);
                 err.setShaderAttribute(sa);
                 err.setCanvas3D(cv);
                 notifyErrorListeners(cv, err);

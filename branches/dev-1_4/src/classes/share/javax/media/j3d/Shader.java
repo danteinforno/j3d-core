@@ -103,6 +103,7 @@ public abstract class Shader extends NodeComponent {
      * outside the javax.media.j3d package.
      */
     Shader(int shadingLanguage, int shaderType) {
+	((ShaderRetained)this.retained).initShader(shadingLanguage, shaderType);
     }
 
     /**
