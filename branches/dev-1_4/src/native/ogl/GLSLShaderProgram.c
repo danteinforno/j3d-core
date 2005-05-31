@@ -471,12 +471,12 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     jlong location,
     jintArray varray)
 {    
-
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
     jint *values;
 	
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-    /* Why shaderProgramId is not needed ? */
     
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
@@ -486,6 +486,9 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
 
 }
 
@@ -504,8 +507,11 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     jlong location,
     jfloatArray varray)
 {
-    jfloat *values;
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
 
+    jfloat *values;
+    
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Why shaderProgramId is not needed ? */
@@ -518,6 +524,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
 }
 
 
@@ -535,12 +545,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     jlong location,
     jintArray varray)
 {
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
     jint *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    /* Why shaderProgramId is not needed ? */
-    
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
@@ -549,6 +560,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
 }
 
 
@@ -566,11 +581,12 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     jlong location,
     jfloatArray varray)
 {
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
     jfloat *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-    /* Why shaderProgramId is not needed ? */
     
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
@@ -580,6 +596,9 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+    
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
 
 }
 
@@ -598,12 +617,12 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     jlong location,
     jintArray varray)
 {
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
     jint *values;
 
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-    /* Why shaderProgramId is not needed ? */
-    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;    
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
@@ -612,6 +631,9 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
 }
 
 
@@ -629,12 +651,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     jlong location,
     jfloatArray varray)
 {
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
     jfloat *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
-    /* Why shaderProgramId is not needed ? */
-    
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
@@ -643,5 +666,8 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
 
 }
