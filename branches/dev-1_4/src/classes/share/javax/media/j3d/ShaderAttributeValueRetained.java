@@ -47,20 +47,6 @@ class ShaderAttributeValueRetained extends ShaderAttributeObjectRetained {
     ShaderAttributeValueRetained() {
     }
 
-    // Implement abstract getValue method
-    Object getValue() {
-	return attrWrapper.get();
-    }
-
-    // Implement abstract setValue method
-    void setValue(Object value) {
-	if (value == null) {
-	    throw new NullPointerException();
-	}
-
-	attrWrapper.set(value);
-    }
-
     /**
      * Computes the base class from the specified object. A
      * ClassCastException is thrown if the object is not an instance

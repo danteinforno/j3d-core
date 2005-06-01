@@ -80,7 +80,9 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
      * Retrieves the value of this shader attribute.
      * A copy of the object is returned.
      */
-    abstract Object getValue();
+    Object getValue() {
+	return attrWrapper.get();
+    }
 
     /**
      * Sets the value of this shader attribute to the specified value.
@@ -95,7 +97,13 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
      * attribute object.
      *
      */
-    abstract void setValue(Object value);
+    void setValue(Object value) {
+	if (value == null) {
+	    throw new NullPointerException();
+	}
+	
+	attrWrapper.set(value);
+    }
 
     /**
      * Retrieves the base class of the value of this shader attribute.
