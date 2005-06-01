@@ -48,7 +48,7 @@ public class SourceCodeShader extends Shader {
 
     public SourceCodeShader(int shadingLanguage, int shaderType, String shaderSource) {
 	super(shadingLanguage, shaderType);
-	((SourceCodeShaderRetained)this.retained).setShaderSource(shaderSource);
+	((SourceCodeShaderRetained)this.retained).initShaderSource(shaderSource);
     }
 
     /**

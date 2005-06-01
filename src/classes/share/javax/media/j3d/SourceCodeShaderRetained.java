@@ -31,6 +31,13 @@ class SourceCodeShaderRetained extends ShaderRetained {
     SourceCodeShaderRetained() {
     }
 
+    // This method is similar to setShaderSource(). 
+    // To conform to j3d frame in retained creation, we will stick with method 
+    // with init name.
+    final void initShaderSource(String shaderSource) {
+	this.shaderSource = shaderSource;
+    }    
+
     final void set(int shadingLanguage, int shaderType, String shaderSource) {
 	this.shadingLanguage = shadingLanguage;
 	this.shaderType = shaderType;
