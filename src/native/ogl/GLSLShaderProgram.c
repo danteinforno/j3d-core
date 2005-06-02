@@ -150,6 +150,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
 
     /* Null-terminated "C" strings */
     GLcharARB *shaderString = NULL;
+    const GLcharARB *shaderStringArr[1];
 
     shaderString = (GLcharARB *)strJavaToC(env, program);
     if (shaderString == NULL) {	
@@ -157,7 +158,8 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
 	return NULL;
     }
 
-    ctxProperties->pfnglShaderSourceARB((GLhandleARB)shaderId, 1, &shaderString, NULL);
+    shaderStringArr[0] = shaderString;
+    ctxProperties->pfnglShaderSourceARB((GLhandleARB)shaderId, 1, shaderStringArr, NULL);
     ctxProperties->pfnglCompileShaderARB((GLhandleARB)shaderId);
     ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderId,
 						GL_OBJECT_COMPILE_STATUS_ARB,
@@ -429,7 +431,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
-    ctxProperties->pfnglUniform1iARB(location, value);
+    ctxProperties->pfnglUniform1iARB((GLint)location, value);
 
     /* TODO : We need to handle ShaderError. */
     return NULL;
@@ -442,7 +444,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
  */
 JNIEXPORT jobject
 JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
-								    JNIEnv *env,
+    JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jlong shaderProgramId,
@@ -456,7 +458,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
 
 
     /* Load attribute */
-    ctxProperties->pfnglUniform1fARB(location, value);
+    ctxProperties->pfnglUniform1fARB((GLint)location, value);
 
     /* TODO : We need to handle ShaderError. */
     return NULL;
@@ -487,7 +489,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2iARB(location, values[0], values[1]);
+    ctxProperties->pfnglUniform2iARB((GLint)location, values[0], values[1]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -525,7 +527,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2fARB(location, values[0], values[1]);
+    ctxProperties->pfnglUniform2fARB((GLint)location, values[0], values[1]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -561,7 +563,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3iARB(location, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3iARB((GLint)location, values[0], values[1], values[2]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -597,7 +599,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3fARB(location, values[0], values[1], values[2]);
+    ctxProperties->pfnglUniform3fARB((GLint)location, values[0], values[1], values[2]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -632,7 +634,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4iARB(location, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4iARB((GLint)location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -667,7 +669,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4fARB(location, values[0], values[1], values[2], values[3]);
+    ctxProperties->pfnglUniform4fARB((GLint)location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
