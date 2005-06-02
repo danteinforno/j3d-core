@@ -1774,8 +1774,8 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
 	        }		
 	        if ((vFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 	            for (k = 0; k < texCoordSetCount; k++) {
-	                 morphedGeo.setTextureCoordinateIndices(k, 0, 
-	            			(int[]) igeo.indexTexCoord[k]);
+	                 morphedGeo.setTextureCoordinateIndices(k, 0,
+                                 igeo.indexTexCoord[k]);
 	            }
 	        }
             }

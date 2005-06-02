@@ -2906,7 +2906,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
                         }
 
 			 System.arraycopy(vdata,
-			    (((int[])src.indexTexCoord[i])[index])*src.stride + src.textureOffset + interleavedOffset,
+			    (src.indexTexCoord[i][index])*src.stride + src.textureOffset + interleavedOffset,
 			    vertexData, tcOffset, texCoordStride);
 		    }
 		}
@@ -3039,7 +3039,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			for (i = 0, tOffset = vOffset; 
 				i < texCoordSetCount; i++) {
 			    System.arraycopy(src.refTexCoords[i],
-				((int[])src.indexTexCoord[i])[index]*texCoordStride,
+				src.indexTexCoord[i][index]*texCoordStride,
 				vertexData, tOffset, texCoordStride);
 			    tOffset += texCoordStride;
 			}
@@ -3050,7 +3050,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    for (index=start; index < end; index++) {
 			for (i = 0, tOffset = vOffset;
 			        i < texCoordSetCount; i++) {
-			     srcOffset = ((int[])src.indexTexCoord[i])[index];
+			     srcOffset = src.indexTexCoord[i][index];
 			     vertexData[tOffset] = 
 			      ((TexCoord2f[])src.refTexCoords[i])[srcOffset].x;
 			     vertexData[tOffset+1] = 
@@ -3064,7 +3064,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    for (index=start; index < end; index++) {
 			for (i = 0, tOffset = vOffset;
 			        i < texCoordSetCount; i++) {
-			     srcOffset = ((int[])src.indexTexCoord[i])[index];
+			     srcOffset = src.indexTexCoord[i][index];
 			     vertexData[tOffset] = 
 			      ((TexCoord3f[])src.refTexCoords[i])[srcOffset].x;
 			     vertexData[tOffset+1] = 
@@ -3164,7 +3164,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    for (i = 0; i < texCoordSetCount; 
 				i++, tcOffset += texCoordStride) {
 			
-			src.interleavedFloatBufferImpl.position((((int[])src.indexTexCoord[i])[index])*src.stride +
+			src.interleavedFloatBufferImpl.position((src.indexTexCoord[i][index])*src.stride +
 							    src.textureOffset);
 			src.interleavedFloatBufferImpl.get(vertexData, tcOffset, texCoordStride);
 		    }
@@ -3236,7 +3236,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			for (i = 0, tOffset = vOffset; 
 				i < texCoordSetCount; i++) {
 			    texBuffer = (FloatBufferWrapper)(((J3DBuffer) (src.refTexCoordsBuffer[i])).getBufferImpl());
-			    texBuffer.position(((int[])src.indexTexCoord[i])[index]*texCoordStride);
+			    texBuffer.position(src.indexTexCoord[i][index]*texCoordStride);
 			    texBuffer.get(vertexData, tOffset, texCoordStride);
 			    tOffset += texCoordStride;
 			}

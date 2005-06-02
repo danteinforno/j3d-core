@@ -3583,7 +3583,7 @@ strJavaToC(JNIEnv *env, jstring str)
     JNIEnv table = *env;
     jclass oom;
 
-    const jbyte *strUTFBytes;	/* Array of UTF-8 bytes */
+    const char *strUTFBytes;	/* Array of UTF-8 bytes */
     char *cString = NULL;	/* Null-terminated "C" string */
 
     if (str == NULL) {

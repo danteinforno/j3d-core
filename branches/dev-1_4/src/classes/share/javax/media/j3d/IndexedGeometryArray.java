@@ -14,6 +14,10 @@ package javax.media.j3d;
 
 import javax.vecmath.*;
 
+// ***************************************************************************
+// TODO KCR: ADD API FOR VERTEX ATTR INDEX ARRAYS
+// ***************************************************************************
+
 /**
  * The IndexedGeometryArray object contains separate integer arrays
  * that index into the arrays of positional coordinates, colors,
