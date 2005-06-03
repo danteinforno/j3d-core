@@ -64,10 +64,6 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
      * not set and this object is part of live or compiled scene graph
      */
     void setValue(int index, Object value) {
-	if (value == null) {
-	    throw new NullPointerException();
-	}
-
 	((ArrayWrapper)attrWrapper).set(index, value);
     }
 
@@ -86,6 +82,18 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Helper methods ...
 
+
+    synchronized void createMirrorObject() {
+	// System.out.println("ShaderAttributeArrayRetained : createMirrorObject");
+        // This method should only call by setLive().
+	if (mirror == null) {
+            ShaderAttributeArrayRetained mirrorSAA = new ShaderAttributeArrayRetained();
+	    mirror = mirrorSAA;
+	    mirror.source = source;
+	    
+	}
+	initMirrorObject();
+    }
 
 
     /**

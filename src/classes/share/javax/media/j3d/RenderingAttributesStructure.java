@@ -69,6 +69,7 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 	    case J3dMessage.TRANSPARENCYATTRIBUTES_CHANGED:
 	    case J3dMessage.MATERIAL_CHANGED:
 	    case J3dMessage.TEXCOORDGENERATION_CHANGED:
+	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:                
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
 		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();

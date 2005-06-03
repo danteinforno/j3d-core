@@ -47,6 +47,10 @@ import javax.vecmath.*;
  */
 
 abstract class ShaderAttributeRetained extends NodeComponentRetained {
+    // A list of pre-defined bits to indicate which component
+    // in this ShaderAttribute object changed.
+    static final int SHADER_ATTRIBUTE_VALUE_UPDATE            = 0x001;
+    
     /**
      * Name of the shader attribute (immutable)
      */
@@ -69,6 +73,10 @@ abstract class ShaderAttributeRetained extends NodeComponentRetained {
      */
     String getAttributeName() {
 	return attrName;
+    }
+
+    void initMirrorObject() {
+	((ShaderAttributeObjectRetained)mirror).initAttrName(this.attrName);
     }
 
 }

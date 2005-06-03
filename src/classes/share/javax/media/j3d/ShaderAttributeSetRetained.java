@@ -83,7 +83,13 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      *
      */
     void put(ShaderAttribute attr) {
-	attrs.put(attr.getAttributeName(), attr);
+	ShaderAttributeRetained sAttr = (ShaderAttributeRetained)attr.retained;
+	// System.out.println("attr is " + attr );
+	// System.out.println("attrName is " + sAttr.attrName + " attr.Retained is "+ sAttr );
+
+	assert(sAttr != null);
+
+	attrs.put(sAttr.attrName, sAttr);
     }
 
     /**
@@ -97,7 +103,7 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      * not set and this object is part of live or compiled scene graph
      */
     ShaderAttribute get(String attrName) {
-	return (ShaderAttribute)attrs.get(attrName);
+	return (ShaderAttribute)((ShaderAttributeRetained)attrs.get(attrName)).source;
     }
 
     /**
@@ -145,7 +151,15 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      *
      */
     ShaderAttribute[] getAll() {
-	return (ShaderAttribute[])attrs.values().toArray(new ShaderAttribute[attrs.size()]);
+
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	ShaderAttribute[] sAttrs = new ShaderAttribute[sAttrsRetained.length];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrs[i] = (ShaderAttribute) sAttrsRetained[i].source;
+	}
+	
+	return sAttrs;
     }
 
     /**
@@ -166,4 +180,69 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
     Map getAttrs() {
         return attrs;
     }
+    
+
+    void setLive(boolean backgroundGroup, int refCount) {
+	
+	// System.out.println("ShaderAttributeSetRetained.setLive()");
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].setLive(backgroundGroup, refCount);
+	}
+	
+	super.doSetLive(backgroundGroup, refCount);
+    }
+
+    void clearLive(int refCount) {
+	// System.out.println("ShaderAttributeSetRetained.clearLive()");
+	
+	super.clearLive(refCount);
+	
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].clearLive(refCount);
+	}
+    }
+
+    synchronized void createMirrorObject() {
+	// System.out.println("ShaderAttributeSetRetained : createMirrorObject");
+        // This method should only call by setLive().
+	if (mirror == null) {
+            ShaderAttributeSetRetained mirrorSAS = new ShaderAttributeSetRetained();
+	    mirror = mirrorSAS;
+	    mirror.source = source;
+
+	}
+	initMirrorObject();
+    }
+    
+    void initMirrorObject() {
+
+	ShaderAttributeRetained[] sAttrs = new ShaderAttributeRetained[attrs.size()];
+	sAttrs = (ShaderAttributeRetained[])attrs.values().toArray(sAttrs);
+	// Need to copy the mirror attrs 
+	for (int i = 0; i < sAttrs.length; i++) {
+	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained) sAttrs[i].mirror;
+	    assert(mirrorSA != null);
+	    ((ShaderAttributeSetRetained)mirror).attrs.put(mirrorSA.attrName, mirrorSA);
+	}
+    }
+    
+     /**
+     * Update the "component" field of the mirror object with the  given "value"
+     */
+    synchronized void updateMirrorObject(int component, Object value) {
+
+	System.out.println("ShaderAttributeSetRetained : updateMirrorObject NOT IMPLEMENTED YET");
+
+        /*
+	  ShaderAttributeSetRetained mirrorSAS = (ShaderAttributeSetRetained)mirror;
+	  
+	  if ((component & SHADER_ATTRIBUTE_VALUE_UPDATE) != 0) {
+	  mirrorSAV.attrWrapper.set(value);
+	  }
+	*/
+    }   
 }

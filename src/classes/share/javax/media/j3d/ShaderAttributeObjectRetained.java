@@ -12,6 +12,7 @@
 
 package javax.media.j3d;
 
+import java.util.ArrayList;
 import javax.vecmath.*;
 
 /**
@@ -47,10 +48,10 @@ import javax.vecmath.*;
 
 abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
 
-    Object value;
     int classType;
     Class baseClass;
     AttrWrapper attrWrapper;
+    Object value; 
 
     /**
      * Package scope constructor
@@ -64,6 +65,7 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
 			   ", value = " + value +
 			   ", value.class = " + value.getClass());
 	*/
+	this.value = value;
 	classType = computeClassType(value);
 	baseClass = getBaseClass(classType);
 	attrWrapper = createAttrWrapper(value, classType);
@@ -102,6 +104,7 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
 	    throw new NullPointerException();
 	}
 	
+	this.value = value;
 	attrWrapper.set(value);
     }
 
@@ -120,6 +123,70 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
     }
 
 
+    
+   /**
+     * Initializes a mirror object.
+     */
+    synchronized void initMirrorObject() {
+	super.initMirrorObject();        
+	((ShaderAttributeObjectRetained)mirror).initValue(this.value);
+    }
+    
+     /**
+     * Update the "component" field of the mirror object with the  given "value"
+     */
+    synchronized void updateMirrorObject(int component, Object value) {
+
+	System.out.println("ShaderProgramRetained : updateMirrorObject NOT IMPLEMENTED YET");
+
+	ShaderAttributeObjectRetained mirrorSAV = (ShaderAttributeObjectRetained)mirror;
+        
+        if ((component & SHADER_ATTRIBUTE_VALUE_UPDATE) != 0) {
+	    mirrorSAV.attrWrapper.set(value);
+	}
+    }
+    
+    final void sendMessage(int attrMask, Object attr) {
+	
+        System.out.println("ShaderAttributeObjectRetained : sendMessage() NOT TESTED YET");
+	ArrayList univList = new ArrayList();
+	ArrayList gaList = Shape3DRetained.getGeomAtomsList(mirror.users, univList);  
+
+	// Send to rendering attribute structure, regardless of
+	// whether there are users or not (alternate appearance case ..)
+	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
+	createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
+	createMessage.type = J3dMessage.SHADER_ATTRIBUTE_CHANGED;
+	createMessage.universe = null;
+	createMessage.args[0] = this;
+	createMessage.args[1]= new Integer(attrMask);
+	createMessage.args[2] = attr;
+	//	System.out.println("changedFreqent1 = "+changedFrequent);
+	createMessage.args[3] = new Integer(changedFrequent);
+	VirtualUniverse.mc.processMessage(createMessage);
+
+	// System.out.println("univList.size is " + univList.size());
+	for(int i=0; i<univList.size(); i++) {
+	    createMessage = VirtualUniverse.mc.getMessage();
+	    createMessage.threads = J3dThread.UPDATE_RENDER;
+	    createMessage.type = J3dMessage.SHADER_ATTRIBUTE_CHANGED;
+		
+	    createMessage.universe = (VirtualUniverse) univList.get(i);
+	    createMessage.args[0] = this;
+	    createMessage.args[1]= new Integer(attrMask);
+	    createMessage.args[2] = attr;
+
+	    ArrayList gL = (ArrayList)gaList.get(i);
+	    GeometryAtom[] gaArr = new GeometryAtom[gL.size()];
+	    gL.toArray(gaArr);
+	    createMessage.args[3] = gaArr;  
+	    
+	    VirtualUniverse.mc.processMessage(createMessage);
+	}
+
+    }
+        
+        
     // Enumerated types representing allowed classes for shader
     // attributes.
     //
