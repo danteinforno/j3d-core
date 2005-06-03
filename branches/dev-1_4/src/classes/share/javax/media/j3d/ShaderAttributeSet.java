@@ -106,6 +106,10 @@ public class ShaderAttributeSet extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet1"));
+	
         ((ShaderAttributeSetRetained)this.retained).put(attr);
 
     }
@@ -127,9 +131,14 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public ShaderAttribute get(String attrName) {
-	if (attrName == null) {
+
+ 	if (attrName == null) {
 	    throw new NullPointerException();
 	}
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet0"));
 
 	return ((ShaderAttributeSetRetained)this.retained).get(attrName);
     }
@@ -150,7 +159,11 @@ public class ShaderAttributeSet extends NodeComponent {
 	if (attrName == null) {
 	    throw new NullPointerException();
 	}
-
+	
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet1"));
+	
 	((ShaderAttributeSetRetained)this.retained).remove(attrName);
     }
 
@@ -175,6 +188,10 @@ public class ShaderAttributeSet extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet1"));
+
 	((ShaderAttributeSetRetained)this.retained).remove(attr);
     }
 
@@ -186,6 +203,11 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public void clear() {
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet1"));
+
 	((ShaderAttributeSetRetained)this.retained).clear();
     }
 
@@ -198,6 +220,11 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public ShaderAttribute[] getAll() {
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet0"));
+
 	return ((ShaderAttributeSetRetained)this.retained).getAll();
     }
 
@@ -210,6 +237,11 @@ public class ShaderAttributeSet extends NodeComponent {
      * not set and this object is part of live or compiled scene graph
      */
     public int size() {
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_ATTRIBUTES_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeSet0"));
+	
 	return ((ShaderAttributeSetRetained)this.retained).size();
     }
 

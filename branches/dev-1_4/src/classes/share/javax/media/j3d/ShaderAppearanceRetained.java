@@ -32,6 +32,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     protected ShaderAttributeSetRetained shaderAttributeSet = null;
 
     static final int SHADER_PROGRAM = 0x0800;
+    static final int SHADER_ATTRIBUTE_SET = 0x1000;    
 
     /**
      * Set the shader program object to the specified object.
@@ -146,11 +147,14 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
 	mirrorApp.shaderProgram = (ShaderProgramRetained)shaderProgram.mirror;
 
-	/* TODO : Handle ShaderAttributeSet ...
-	   mirrorApp.shaderAttributeSet = 
-	   (ShaderAttributeSetRetained)shaderAttributeSet.mirror;
-	*/
-	mirrorApp.shaderAttributeSet = shaderAttributeSet;
+	if(shaderAttributeSet != null) {
+	    mirrorApp.shaderAttributeSet = 
+		(ShaderAttributeSetRetained)shaderAttributeSet.mirror;
+	}
+	else {
+	    // System.out.println("shaderAttributeSet is null");
+	    mirrorApp.shaderAttributeSet = null;
+	}
 
     }
 
@@ -166,17 +170,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	if ((component & SHADER_PROGRAM) != 0) {
 	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
 	}
-
-	/*
-// TODO: IMPLEMENT THIS
- 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
-	if ((component & SHADER_PROGRAM) != 0) {
-	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
+	else if ((component & SHADER_ATTRIBUTE_SET) != 0) {
+	    mirrorApp.shaderAttributeSet = (ShaderAttributeSetRetained)value;
 	}
-	else if ((component & SHADER_PARAMETERS) != 0) {
-	    mirrorApp.shaderParameters = (ShaderParametersRetained)value;
-	}
-	*/
+	
     }
 
     /**
@@ -191,14 +188,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    shaderProgram.setLive(backgroundGroup, refCount);
 	}
 
-
-	/*
-	// TODO: IMPLEMENT THIS
-
-	if (shaderParameters != null) {
-	    shaderParameters.setLive(backgroundGroup, refCount);
+	if (shaderAttributeSet != null) {
+	    shaderAttributeSet.setLive(backgroundGroup, refCount);
 	}
-	*/
+
 
 	// Increment the reference count and initialize the appearance
 	// mirror object
@@ -217,14 +210,9 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    shaderProgram.clearLive(refCount);
 	}
 
-	/*
-	// TODO: IMPLEMENT THIS
-
-	if (shaderParameters != null) {
-	    shaderParameters.clearLive(refCount);
+	if (shaderAttributeSet != null) {
+	    shaderAttributeSet.clearLive(refCount);
 	}
-
-	*/
     }
 
 

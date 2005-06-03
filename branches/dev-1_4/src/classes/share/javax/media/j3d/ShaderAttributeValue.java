@@ -62,15 +62,30 @@ public class ShaderAttributeValue extends ShaderAttributeObject {
     
     // Implement abstract getValue method
     public Object getValue() {
+        
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject0"));
+
  	return ((ShaderAttributeValueRetained)this.retained).getValue();
     }
 
     // Implement abstract setValue method
     public void setValue(Object value) {
-	if (value == null) {
+
+        if (value == null) {
 	    throw new NullPointerException();
 	}
-        ((ShaderAttributeValueRetained)this.retained).setValue(value);
+        
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject1"));
+
+	if (isLive())
+	    ((ShaderAttributeValueRetained)this.retained).setValue(value);
+	else
+	    ((ShaderAttributeValueRetained)this.retained).initValue(value);
+
     }
 
     /**

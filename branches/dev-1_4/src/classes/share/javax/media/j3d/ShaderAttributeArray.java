@@ -64,6 +64,10 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 
     // Implement abstract getValue method
     public Object getValue() {
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject0"));
+
  	return ((ShaderAttributeArrayRetained)this.retained).getValue();
     }
 
@@ -72,7 +76,16 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	if (value == null) {
 	    throw new NullPointerException();
 	}
-        ((ShaderAttributeArrayRetained)this.retained).setValue(value);
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject1"));
+	
+	if (isLive())
+	    ((ShaderAttributeArrayRetained)this.retained).setValue(value);
+	else
+	    ((ShaderAttributeArrayRetained)this.retained).initValue(value);
+
     }
 
 
@@ -96,7 +109,17 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	if (value == null) {
 	    throw new NullPointerException();
 	}
-	((ShaderAttributeArrayRetained)this.retained).setValue(index, value);
+
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject1"));
+
+	if (isLive())
+	    ((ShaderAttributeArrayRetained)this.retained).setValue(index, value);
+	else {
+	    // TODO : Not sure what to do --- Chien.
+	    // ((ShaderAttributeArrayRetained)this.retained).initValue(index, value);
+	}
     }
 
     /**
@@ -108,6 +131,10 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
      * not set and this object is part of live or compiled scene graph
      */
     public int length() {
+        if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_VALUE_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAttributeObject0"));
+
         return ((ShaderAttributeArrayRetained)this.retained).length();
     }
 

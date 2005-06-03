@@ -46,6 +46,18 @@ class ShaderAttributeValueRetained extends ShaderAttributeObjectRetained {
 
     ShaderAttributeValueRetained() {
     }
+    
+    synchronized void createMirrorObject() {
+	// System.out.println("ShaderAttributeValueRetained : createMirrorObject");
+        // This method should only call by setLive().
+	if (mirror == null) {
+            ShaderAttributeValueRetained mirrorSAV = new ShaderAttributeValueRetained();
+	    mirror = mirrorSAV;
+	    mirror.source = source;
+
+	}
+	initMirrorObject();
+    }
 
     /**
      * Computes the base class from the specified object. A

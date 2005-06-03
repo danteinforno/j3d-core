@@ -59,7 +59,6 @@ class ShaderBin implements ObjectUpdate {
 
     ShaderProgramRetained shaderProgram = null;
     ShaderAttributeSetRetained shaderAttributeSet = null;
-    //    ShaderAttributeSet shaderAttributeSet = null;
     
     // ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
     ShaderBin(ShaderAppearanceRetained sApp,  RenderBin rBin) {

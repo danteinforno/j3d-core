@@ -1626,10 +1626,15 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    // Texture is always in a sole user position
 		    processTextureChanged((NodeComponentRetained) m.args[0],
 					  (GeometryAtom[])m.args[3],
-					  m.args);
-		    
+					  m.args);		    
 		    m.decRefcount();
-		    break;
+		    break;               
+     		case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
+                    System.out.println("RenderBin : Not implemented yet");
+                    // TODO : Create a new method to handle this message. -- Chien
+		    // processAttributeBinNodeComponentChanged(m.args); 
+		    m.decRefcount();
+		    break;                                  
 		case J3dMessage.RENDERINGATTRIBUTES_CHANGED:
 		    processAttributeBinNodeComponentChanged(m.args);
 		    component = ((Integer)m.args[1]).intValue();

@@ -29,8 +29,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     static final int SHADER_PROGRAM_CREATE              = 0x001;
     static final int SHADER_UPDATE                      = 0x002;
     static final int VERTEX_ATTRIBUTE_NAME_UPDATE       = 0x004;
-    static final int SHADER_ATTRIBUTE_UPDATE            = 0x008;
-    static final int SHADER_PROGRAM_DESTROY             = 0x010;
+    static final int SHADER_PROGRAM_DESTROY             = 0x008;
 
     // Each element in the array corresponds to a unique renderer if shared
     // context or a unique canvas otherwise.
@@ -290,16 +289,17 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 
         // Send a message to Rendering Attr stucture to update the resourceMask
 	// via updateMirrorObject().
-	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
-	createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
-	createMessage.type = J3dMessage.SHADER_PROGRAM_CHANGED;
-	createMessage.args[0] = this;
-	createMessage.args[1]= new Integer(SHADER_PROGRAM_CREATE);
- 	createMessage.args[2] = null;
- 	createMessage.args[3] = new Integer(changedFrequent);
-	VirtualUniverse.mc.processMessage(createMessage);
-	
-	super.markAsLive();
+        // TODO : This might not be needed anymore.  --- Chien.
+	/* 
+	   J3dMessage createMessage = VirtualUniverse.mc.getMessage();
+	   createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
+	   createMessage.type = J3dMessage.SHADER_PROGRAM_CHANGED;
+	   createMessage.args[0] = this;
+	   createMessage.args[1]= new Integer(SHADER_PROGRAM_CREATE);
+	   createMessage.args[2] = null;
+	   createMessage.args[3] = new Integer(changedFrequent);
+	   VirtualUniverse.mc.processMessage(createMessage);
+	*/
     }
 
     void clearLive(int refCount) {
@@ -338,7 +338,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Initializes a mirror object.
      */
     synchronized void initMirrorObject() {
-        mirror.source = source;
         
         // Create mirror copy of shaders
         if (this.shaders == null) {
@@ -376,13 +375,14 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      */
     synchronized void updateMirrorObject(int component, Object value) {
 
-	// System.out.println("ShaderProgramRetained : updateMirrorObject");
-
-	ShaderProgramRetained mirrorSp = (ShaderProgramRetained)mirror;
-
-	if ((component & SHADER_PROGRAM_CREATE) != 0) {
-	    // Nothing to do here.
-	}
+	System.out.println("ShaderProgramRetained : updateMirrorObject NOT IMPLEMENTED YET");
+	/*
+	  ShaderProgramRetained mirrorSp = (ShaderProgramRetained)mirror;
+	  
+	  if ((component & SHADER_PROGRAM_CREATE) != 0) {
+	  // Nothing to do here.
+	  }
+	*/
     } 
 
     /**
@@ -917,8 +917,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         
         Iterator attrs = attributeSet.getAttrs().values().iterator();
         while (attrs.hasNext()) {
-            ShaderAttribute sa = (ShaderAttribute)attrs.next();
-	    ShaderAttributeRetained saRetained = (ShaderAttributeRetained) sa.retained;
+            ShaderAttributeRetained saRetained = (ShaderAttributeRetained)attrs.next();
 
             Long attrLocation = spData.getLocation(saRetained.getAttributeName());
             if(attrLocation == null) {
@@ -942,7 +941,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             if (err != null) {
                 err.setShaderProgram((ShaderProgram)this.source);
                 err.setShaderAttributeSet((ShaderAttributeSet)attributeSet.source);
-                err.setShaderAttribute(sa);
+                err.setShaderAttribute((ShaderAttribute)saRetained.source);
                 err.setCanvas3D(cv);
                 notifyErrorListeners(cv, err);
             }

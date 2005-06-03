@@ -38,6 +38,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 	if (mirror == null) {
 	    GLSLShaderProgramRetained  mirrorGLSLSP = new GLSLShaderProgramRetained();	    
 	    mirror = mirrorGLSLSP;
+	    mirror.source = source;
 	}
 	initMirrorObject();
     }
