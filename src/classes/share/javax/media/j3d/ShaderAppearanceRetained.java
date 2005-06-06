@@ -40,9 +40,9 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * and shader program attributes.
      */
     void setShaderProgram(ShaderProgram sp) {
-	// System.out.println("**** ShaderAppearceRetained.setShaderProgram()");
 	synchronized(liveStateLock) {
 	    if (source.isLive()) {
+		System.out.println("**** ShaderAppearceRetained.setShaderProgram()");
 
 		if (this.shaderProgram != null) {
 		    this.shaderProgram.clearLive(refCount);
@@ -56,10 +56,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    	}
 		
 		// TODO : Need to implement RenderBin side of code.
-		//System.out.println(" --   more work needed!");
+		System.out.println(" --   more work needed!");
 		sendMessage(SHADER_PROGRAM_UPDATE,  
 			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null));
-	       
+		
 	    }
 
 	    if (sp == null) {
@@ -87,11 +87,34 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * @param shaderAttributeSet object that specifies the desired shader attributes
      */
     void setShaderAttributeSet(ShaderAttributeSet sas) {
-	//TODO : Mirror object --- Chien
-	if (sas == null) {
-	    this.shaderAttributeSet = null;
-	} else {
-	    this.shaderAttributeSet = (ShaderAttributeSetRetained)sas.retained;
+	synchronized(liveStateLock) {
+	    if (source.isLive()) {
+		System.out.println("**** ShaderAppearceRetained.setShaderAttributeSet()");
+
+		if (this.shaderAttributeSet != null) {
+		    this.shaderAttributeSet.clearLive(refCount);
+		    this.shaderAttributeSet.removeMirrorUsers(this);
+		}
+
+		if (sas != null) {
+		    ((ShaderAttributeSetRetained)sas.retained).setLive(inBackgroundGroup, 
+								       refCount);
+		    ((ShaderAttributeSetRetained)sas.retained).copyMirrorUsers(this);
+	    	}
+		
+		// TODO : Need to implement RenderBin side of code.
+		System.out.println(" --   more work needed!");
+		sendMessage(SHADER_ATTRIBUTE_SET_UPDATE,  
+			    (sas != null ? 
+			     ((ShaderAttributeSetRetained)sas.retained).mirror : null));
+		
+	    }
+	    
+	    if (sas == null) {
+		this.shaderAttributeSet = null;
+	    } else {
+		this.shaderAttributeSet = (ShaderAttributeSetRetained)sas.retained;
+	    }
 	}
     }
 
@@ -232,6 +255,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    shaderAttributeSet.removeAMirrorUser(shape);
     }
     
+    
     final void sendMessage(int attrMask, Object attr) {
 	ArrayList univList = new ArrayList();
 	ArrayList gaList = Shape3DRetained.getGeomAtomsList(mirror.users, univList);  
@@ -248,7 +272,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
 	VirtualUniverse.mc.processMessage(createMessage);
 	    
-	// System.out.println("univList.size is " + univList.size());
+	//System.out.println("univList.size is " + univList.size());
 	for(int i=0; i<univList.size(); i++) {
 	    createMessage = VirtualUniverse.mc.getMessage();
 	    createMessage.threads = J3dThread.UPDATE_RENDER;
@@ -268,6 +292,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	}
     }
 
+    
     boolean isStatic() {
 	if (!super.isStatic()) {
 	    return false;

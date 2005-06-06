@@ -46,6 +46,12 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
     ArrayList aBinUpdateList = new ArrayList();
 
     /**
+     * List of ShaderBin that are soleUser that
+     * needs to have its components updated @updateObject time
+     */
+    ArrayList sBinUpdateList = new ArrayList();
+
+    /**
      * List of TextureBin that are soleUser that
      * needs to have its components updated @updateObject time
      */
@@ -531,15 +537,14 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    }
 	}
 
-
-
-
-	// Maybe need to update ShaderBins here too. ---- Chien.
-
-
-
-
-
+	// TODO : Need to update ShaderBins here too. ---- Chien.
+	if ((size = sBinUpdateList.size()) > 0) {
+	    for (i = 0; i < size; i++) {
+		ShaderBin sbin = (ShaderBin)sBinUpdateList.get(i);
+		sbin.updateNodeComponent();
+		
+	    }
+	}
 
 	// Update the sole user TextureBins.
 	if (tbUpdateList.size() > 0) {
@@ -1135,6 +1140,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	rmUpdateList.clear();
 	ogCIOList.clear();
 	aBinUpdateList.clear();
+	sBinUpdateList.clear();
 	tbUpdateList.clear();
 	removeRenderAtomInRMList.clear();
 	addOpaqueBin = null;
@@ -1629,24 +1635,18 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 					  m.args);		    
 		    m.decRefcount();
 		    break;  
-     		case J3dMessage.SHADER_PROGRAM_CHANGED:
-                    System.out.println("RenderBin : Not implemented yet");
-                    // TODO : Create a new method to handle this message. -- Chien
-		    // processAttributeBinNodeComponentChanged(m.args); 
+     		case J3dMessage.SHADER_APPEARANCE_CHANGED:
+		    processShaderProgramChanged(m.args); 
 		    m.decRefcount();
 		    break;                    
-     		case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
-                    System.out.println("RenderBin : Not implemented yet");
-                    // TODO : Create a new method to handle this message. -- Chien
-		    // processAttributeBinNodeComponentChanged(m.args); 
-		    m.decRefcount();
-		    break;                                  
      		case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:
-                    System.out.println("RenderBin : Not implemented yet");
-                    // TODO : Create a new method to handle this message. -- Chien
-		    // processAttributeBinNodeComponentChanged(m.args); 
+		    processShaderAttributeSetChanged(m.args); 
 		    m.decRefcount();
 		    break;
+     		case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
+		    processShaderAttributeChanged(m.args); 
+		    m.decRefcount();
+		    break;                                  
 		case J3dMessage.RENDERINGATTRIBUTES_CHANGED:
 		    processAttributeBinNodeComponentChanged(m.args);
 		    component = ((Integer)m.args[1]).intValue();
@@ -2427,6 +2427,37 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	}
     }
 
+
+    /**
+     * This processes a rendering attribute change.
+     */
+
+    void processShaderProgramChanged(Object[] args) {
+
+	System.out.println("RenderBin : processShaderProgramChanged NOT IMPLEMENTED YET.");
+
+    }
+
+    /**
+     * This processes a rendering attribute change.
+     */
+
+    void processShaderAttributeSetChanged(Object[] args) {
+
+	System.out.println("RenderBin : processShaderAttributeSetChanged NOT IMPLEMENTED YET.");
+
+
+    }
+
+    /**
+     * This processes a rendering attribute change.
+     */
+
+    void processShaderAttributeChanged(Object[] args) {
+
+	System.out.println("RenderBin : processShaderAttributeChanged NOT IMPLEMENTED YET.");
+
+    }
 
     void processFogChanged(Object[] args) {
 	FogRetained fog = (FogRetained)args[0];

@@ -75,25 +75,6 @@ abstract class ShaderRetained extends NodeComponentRetained {
 	System.out.println("Shader.updateMirrorObject not implemented yet!");
      }
 
-    /*
-     final void sendMessage(int attrMask, Object attr) {
-	System.out.println("Shader.sendMessage not implemented yet!");
-	 
-
-        J3dMessage createMessage = VirtualUniverse.mc.getMessage();
-        createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES |
-				J3dThread.UPDATE_RENDER;
-        createMessage.type = J3dMessage.SHADER_CHANGED;
-        createMessage.universe = null;
-        createMessage.args[0] = this;
-        createMessage.args[1]= new Integer(attrMask);
-        createMessage.args[2] = attr;
-	createMessage.args[3] = new Integer(changedFrequent);
-        VirtualUniverse.mc.processMessage(createMessage);
-     }
-
-    */
-
     void handleFrequencyChange(int bit) {
 	System.out.println("Shader.handleFrequencyChange not implemented yet!");
     }

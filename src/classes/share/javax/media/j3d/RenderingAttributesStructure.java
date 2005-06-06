@@ -45,6 +45,7 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 		// Apperance is always updated immediately, since rBin needs
 		// the most up-to-date values for restructuring
 	    case J3dMessage.APPEARANCE_CHANGED:
+	    case J3dMessage.SHADER_APPEARANCE_CHANGED: // TODO : Got to check this. -- Chien.
 	    case J3dMessage.TEXTURE_UNIT_STATE_CHANGED: // TODO: Is this correct?
 		{
 		    int component = ((Integer)m.args[1]).intValue();
@@ -69,9 +70,8 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 	    case J3dMessage.TRANSPARENCYATTRIBUTES_CHANGED:
 	    case J3dMessage.MATERIAL_CHANGED:
 	    case J3dMessage.TEXCOORDGENERATION_CHANGED:
-	    case J3dMessage.SHADER_PROGRAM_CHANGED:
-	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
-	    case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:                
+	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:    //TODO : Got to check this. -- Chien.
+	    case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED://TODO : Got to check this. -- Chien.
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
 		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
@@ -119,19 +119,6 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 		    }
 		}
 		break;
-		// TODO : Need to rethink how this is done.
-		// Can't it be the same as ShaderAttribute handling ? -- Chien.
-		/*
-		  case J3dMessage.SHADER_PROGRAM_CHANGED: 
-		  {
-		  NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
-		  nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
-		  objList.add(m);
-		  addMirrorObj = true;
-		  nc.mirror.compChanged = 1;
-		  }
-		  break;
-		*/
 	    case J3dMessage.TEXTURE_CHANGED: 
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];

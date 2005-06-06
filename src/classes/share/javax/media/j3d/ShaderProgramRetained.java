@@ -23,13 +23,6 @@ import javax.vecmath.*;
  * CgShaderProgramRetained object.
  */
 abstract class ShaderProgramRetained extends NodeComponentRetained {
-    
-    // A list of pre-defined bits to indicate which component
-    // in this ShaderProgram object changed.
-    static final int SHADER_PROGRAM_CREATE              = 0x001;
-    static final int SHADER_UPDATE                      = 0x002;
-    static final int VERTEX_ATTRIBUTE_NAME_UPDATE       = 0x004;
-    static final int SHADER_PROGRAM_DESTROY             = 0x008;
 
     // Each element in the array corresponds to a unique renderer if shared
     // context or a unique canvas otherwise.
@@ -287,19 +280,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 	
 	super.doSetLive(backgroundGroup, refCount);
 
-        // Send a message to Rendering Attr stucture to update the resourceMask
-	// via updateMirrorObject().
-        // TODO : This might not be needed anymore.  --- Chien.
-	/* 
-	   J3dMessage createMessage = VirtualUniverse.mc.getMessage();
-	   createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
-	   createMessage.type = J3dMessage.SHADER_PROGRAM_CHANGED;
-	   createMessage.args[0] = this;
-	   createMessage.args[1]= new Integer(SHADER_PROGRAM_CREATE);
-	   createMessage.args[2] = null;
-	   createMessage.args[3] = new Integer(changedFrequent);
-	   VirtualUniverse.mc.processMessage(createMessage);
-	*/
     }
 
     void clearLive(int refCount) {
