@@ -65,6 +65,9 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
      */
     void setValue(int index, Object value) {
 	((ArrayWrapper)attrWrapper).set(index, value);
+	// TODO : What to do with the index ?  - Chien
+	// sendMessage(SHADER_ATTRIBUTE_VALUE_UPDATE, value);
+
     }
 
     /**

@@ -31,8 +31,8 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     protected ShaderProgramRetained shaderProgram = null;
     protected ShaderAttributeSetRetained shaderAttributeSet = null;
 
-    static final int SHADER_PROGRAM = 0x0800;
-    static final int SHADER_ATTRIBUTE_SET = 0x1000;    
+    static final int SHADER_PROGRAM_UPDATE       = 0x0800;
+    static final int SHADER_ATTRIBUTE_SET_UPDATE = 0x1000;    
 
     /**
      * Set the shader program object to the specified object.
@@ -40,7 +40,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
      * and shader program attributes.
      */
     void setShaderProgram(ShaderProgram sp) {
-
+	// System.out.println("**** ShaderAppearceRetained.setShaderProgram()");
 	synchronized(liveStateLock) {
 	    if (source.isLive()) {
 
@@ -56,10 +56,9 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    	}
 		
 		// TODO : Need to implement RenderBin side of code.
-		System.out.print("**** ShaderAppearceRetained.setShaderProgram()  more work needed!");
-		sendMessage(SHADER_PROGRAM,  
-			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null), 
-			    true);
+		//System.out.println(" --   more work needed!");
+		sendMessage(SHADER_PROGRAM_UPDATE,  
+			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null));
 	       
 	    }
 
@@ -167,10 +166,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	// System.out.println("ShaderAppearanceRetained : updateMirrorObject()");
 	super.updateMirrorObject(component, value);
  	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
-	if ((component & SHADER_PROGRAM) != 0) {
+	if ((component & SHADER_PROGRAM_UPDATE) != 0) {
 	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
 	}
-	else if ((component & SHADER_ATTRIBUTE_SET) != 0) {
+	else if ((component & SHADER_ATTRIBUTE_SET_UPDATE) != 0) {
 	    mirrorApp.shaderAttributeSet = (ShaderAttributeSetRetained)value;
 	}
 	
@@ -215,6 +214,59 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	}
     }
 
+    synchronized void addAMirrorUser(Shape3DRetained shape) {
+
+	super.addAMirrorUser(shape);
+	if (shaderProgram != null) 
+	    shaderProgram.addAMirrorUser(shape);
+        if (shaderAttributeSet != null) 
+	    shaderAttributeSet.addAMirrorUser(shape);
+    }
+    
+    synchronized void removeAMirrorUser(Shape3DRetained shape) {
+        
+	super.removeAMirrorUser(shape);
+	if (shaderProgram != null) 
+	    shaderProgram.removeAMirrorUser(shape);
+        if (shaderAttributeSet != null) 
+	    shaderAttributeSet.removeAMirrorUser(shape);
+    }
+    
+    final void sendMessage(int attrMask, Object attr) {
+	ArrayList univList = new ArrayList();
+	ArrayList gaList = Shape3DRetained.getGeomAtomsList(mirror.users, univList);  
+	// Send to rendering attribute structure, regardless of
+	// whether there are users or not (alternate appearance case ..)
+	J3dMessage createMessage = VirtualUniverse.mc.getMessage();
+	createMessage.threads = J3dThread.UPDATE_RENDERING_ATTRIBUTES;
+	createMessage.type = J3dMessage.SHADER_APPEARANCE_CHANGED;
+        createMessage.universe = null;
+	createMessage.args[0] = this;
+	createMessage.args[1]= new Integer(attrMask);
+	createMessage.args[2] = attr;
+	createMessage.args[3] = new Integer(changedFrequent);
+
+	VirtualUniverse.mc.processMessage(createMessage);
+	    
+	// System.out.println("univList.size is " + univList.size());
+	for(int i=0; i<univList.size(); i++) {
+	    createMessage = VirtualUniverse.mc.getMessage();
+	    createMessage.threads = J3dThread.UPDATE_RENDER;
+	    createMessage.type = J3dMessage.SHADER_APPEARANCE_CHANGED;
+		
+	    createMessage.universe = (VirtualUniverse) univList.get(i);
+	    createMessage.args[0] = this;
+	    createMessage.args[1]= new Integer(attrMask);
+	    createMessage.args[2] = attr;
+
+	    ArrayList gL = (ArrayList) gaList.get(i);
+	    GeometryAtom[] gaArr = new GeometryAtom[gL.size()];
+	    gL.toArray(gaArr);
+	    createMessage.args[3] = gaArr;
+
+	    VirtualUniverse.mc.processMessage(createMessage);
+	}
+    }
 
     boolean isStatic() {
 	if (!super.isStatic()) {

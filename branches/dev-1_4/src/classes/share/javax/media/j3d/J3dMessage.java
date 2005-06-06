@@ -86,7 +86,9 @@ class J3dMessage extends Object {
     static final int CREATE_OFFSCREENBUFFER	    = 61;
     static final int SHADER_CHANGED         	    = 62;
     static final int SHADER_ATTRIBUTE_CHANGED       = 63;
-    static final int SHADER_PROGRAM_CHANGED    	    = 64;
+    static final int SHADER_ATTRIBUTE_SET_CHANGED   = 64;
+    static final int SHADER_PROGRAM_CHANGED    	    = 65;
+    static final int SHADER_APPEARANCE_CHANGED 	    = 66;    
 
     /**
      * This is the time snapshot at which this change occured
