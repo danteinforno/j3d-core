@@ -100,12 +100,9 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
      *
      */
     void setValue(Object value) {
-	if (value == null) {
-	    throw new NullPointerException();
-	}
-	
-	this.value = value;
+	// this.value = value;
 	attrWrapper.set(value);
+	sendMessage(SHADER_ATTRIBUTE_VALUE_UPDATE, value);
     }
 
     /**
@@ -121,8 +118,6 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
     Class getValueClass() {
 	return baseClass;
     }
-
-
     
    /**
      * Initializes a mirror object.
@@ -137,11 +132,10 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
      */
     synchronized void updateMirrorObject(int component, Object value) {
 
-	System.out.println("ShaderProgramRetained : updateMirrorObject NOT IMPLEMENTED YET");
-
+	System.out.println("ShaderProgramRetained : updateMirrorObject");
 	ShaderAttributeObjectRetained mirrorSAV = (ShaderAttributeObjectRetained)mirror;
-        
         if ((component & SHADER_ATTRIBUTE_VALUE_UPDATE) != 0) {
+	    System.out.println("     -- SHADER_ATTRIBUTE_VALUE_UPDATE");
 	    mirrorSAV.attrWrapper.set(value);
 	}
     }

@@ -69,7 +69,9 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 	    case J3dMessage.TRANSPARENCYATTRIBUTES_CHANGED:
 	    case J3dMessage.MATERIAL_CHANGED:
 	    case J3dMessage.TEXCOORDGENERATION_CHANGED:
-	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:                
+	    case J3dMessage.SHADER_PROGRAM_CHANGED:
+	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
+	    case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:                
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
 		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
@@ -106,8 +108,6 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
 		    nc.mirror.changedFrequent = ((Integer)m.args[4]).intValue();
 
-
-
 		    if (nc.mirror.changedFrequent != 0) {
 			objList.add(m);
 			addMirrorObj = true;
@@ -119,21 +119,22 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 		    }
 		}
 		break;
-	    case J3dMessage.SHADER_PROGRAM_CHANGED: 
-		{
-		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
-		    int attrMask = ((Integer)m.args[1]).intValue();
-		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
-		    
-		    objList.add(m);
-		    nc.mirror.compChanged = 1;
-		    addMirrorObj = true;
-		}
-		break;
+		// TODO : Need to rethink how this is done.
+		// Can't it be the same as ShaderAttribute handling ? -- Chien.
+		/*
+		  case J3dMessage.SHADER_PROGRAM_CHANGED: 
+		  {
+		  NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
+		  nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
+		  objList.add(m);
+		  addMirrorObj = true;
+		  nc.mirror.compChanged = 1;
+		  }
+		  break;
+		*/
 	    case J3dMessage.TEXTURE_CHANGED: 
 		{
 		    NodeComponentRetained nc = (NodeComponentRetained)m.args[0];
-		    int attrMask = ((Integer)m.args[1]).intValue();
 		    nc.mirror.changedFrequent = ((Integer)m.args[3]).intValue();
 		    
 		    objList.add(m);
