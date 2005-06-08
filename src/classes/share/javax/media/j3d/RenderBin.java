@@ -533,7 +533,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    for (i = 0; i < size; i++) {
 		AttributeBin abin = (AttributeBin)aBinUpdateList.get(i);
 		abin.updateNodeComponent();
-		
 	    }
 	}
 
@@ -542,7 +541,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    for (i = 0; i < size; i++) {
 		ShaderBin sbin = (ShaderBin)sBinUpdateList.get(i);
 		sbin.updateNodeComponent();
-		
 	    }
 	}
 
@@ -1636,7 +1634,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    m.decRefcount();
 		    break;  
      		case J3dMessage.SHADER_APPEARANCE_CHANGED:
-		    processShaderProgramChanged(m.args); 
+		    processShaderAppearanceChanged(m.args); 
 		    m.decRefcount();
 		    break;                    
      		case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:
@@ -2431,11 +2429,56 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
     /**
      * This processes a rendering attribute change.
      */
+    void processShaderAppearanceChanged(Object[] args) {
 
-    void processShaderProgramChanged(Object[] args) {
+	// System.out.println("RenderBin : processShaderAppearanceChanged");
 
-	System.out.println("RenderBin : processShaderProgramChanged NOT IMPLEMENTED YET.");
+	int component = ((Integer)args[1]).intValue();
+	int i;
+	GeometryAtom[] gaArr = (GeometryAtom[] )args[3];
+	GeometryAtom  ga;
+	RenderAtom ra = null;
+	ShaderAppearanceRetained sApp = (ShaderAppearanceRetained) args[0];
+        int start = -1;
 
+        // Get the first ra that is visible
+        for (i = 0; (i < gaArr.length && (start < 0)); i++) {
+            ra = gaArr[i].getRenderAtom(view);
+            if (ra== null || !ra.inRenderBin()) {
+                continue;
+            }
+            else {
+                start = i;
+            }
+        }
+
+	if (start >= 0) {
+	    /* For simplicity we will not do bin rearrangement.
+	       Plus we doubt there is much performance benefit for the added
+	       complexity. */		
+		
+	    for (i = start; i < gaArr.length; i++) {
+		ra = gaArr[i].getRenderAtom(view);
+		if (ra== null || !ra.inRenderBin())
+		    continue;
+
+		ShaderBin sBin = ra.renderMolecule.textureBin.shaderBin;		
+
+		if ((component & ShaderAppearanceRetained.SHADER_PROGRAM_UPDATE) != 0) {
+		    if ((sBin.componentDirty & ShaderBin.SHADER_PROGRAM_DIRTY) == 0) {
+			sBinUpdateList.add(sBin);
+			sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
+		    }	
+			
+		} else if ((component & 
+			    ShaderAppearanceRetained.SHADER_ATTRIBUTE_SET_UPDATE) != 0) {
+		    if ((sBin.componentDirty & ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY) == 0) {
+			sBinUpdateList.add(sBin);
+			sBin.componentDirty |= ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY;
+		    }
+		}
+	    }
+	}
     }
 
     /**

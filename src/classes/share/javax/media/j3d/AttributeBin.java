@@ -230,11 +230,14 @@ class AttributeBin extends Object implements ObjectUpdate {
 
 	sb.attributeBin = this;
 
-	// Need to be shader related stuff  - Chien
 	if(sApp != null) {
+	    // ShaderBin should reference to the mirror components. -- Chien.
+	    // System.out.println("AttributeBin : sApp.isMirror = " + sApp.isMirror);
+	    assert(sApp.isMirror);
 	    sb.shaderProgram = sApp.shaderProgram;
 	    sb.shaderAttributeSet = sApp.shaderAttributeSet;
 	}
+	sb.shaderAppearance = sApp;
 
 	addShaderBins.add(sb);
 	if ((onUpdateList & ON_OBJ_UPDATE_LIST) == 0) {

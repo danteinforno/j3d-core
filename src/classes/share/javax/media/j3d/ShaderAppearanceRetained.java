@@ -30,6 +30,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
  
     protected ShaderProgramRetained shaderProgram = null;
     protected ShaderAttributeSetRetained shaderAttributeSet = null;
+    protected boolean isMirror = false; // For Debugging.
 
     static final int SHADER_PROGRAM_UPDATE       = 0x0800;
     static final int SHADER_ATTRIBUTE_SET_UPDATE = 0x1000;    
@@ -42,7 +43,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     void setShaderProgram(ShaderProgram sp) {
 	synchronized(liveStateLock) {
 	    if (source.isLive()) {
-		System.out.println("**** ShaderAppearceRetained.setShaderProgram()");
+		// System.out.println("**** ShaderAppearceRetained.setShaderProgram()");
 
 		if (this.shaderProgram != null) {
 		    this.shaderProgram.clearLive(refCount);
@@ -55,8 +56,6 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 		    ((ShaderProgramRetained)sp.retained).copyMirrorUsers(this);
 	    	}
 		
-		// TODO : Need to implement RenderBin side of code.
-		System.out.println(" --   more work needed!");
 		sendMessage(SHADER_PROGRAM_UPDATE,  
 			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null));
 		
@@ -103,7 +102,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    	}
 		
 		// TODO : Need to implement RenderBin side of code.
-		System.out.println(" --   more work needed!");
+		System.out.println(" --   testing  needed!");
 		sendMessage(SHADER_ATTRIBUTE_SET_UPDATE,  
 			    (sas != null ? 
 			     ((ShaderAttributeSetRetained)sas.retained).mirror : null));
@@ -151,6 +150,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    // new AppearanceRetained() even though isStatic() = true.
 	    // For simplicity, always create a retained side.
 	    mirror = new ShaderAppearanceRetained();
+	    ((ShaderAppearanceRetained)mirror).isMirror = true; // For Debugging.
 	}
 	initMirrorObject();
     }
@@ -167,7 +167,12 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
 	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
 
-	mirrorApp.shaderProgram = (ShaderProgramRetained)shaderProgram.mirror;
+	if(shaderProgram != null) {
+	    mirrorApp.shaderProgram = (ShaderProgramRetained)shaderProgram.mirror;
+	}
+	else {
+	    mirrorApp.shaderProgram = null;	    
+	}
 
 	if(shaderAttributeSet != null) {
 	    mirrorApp.shaderAttributeSet = 
@@ -186,7 +191,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
    */
     synchronized void updateMirrorObject(int component, Object value) {
 
-	// System.out.println("ShaderAppearanceRetained : updateMirrorObject()");
+	// System.out.println("ShaderAppearanceRetained : updateMirrorObject() this " + this);
 	super.updateMirrorObject(component, value);
  	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
 	if ((component & SHADER_PROGRAM_UPDATE) != 0) {
