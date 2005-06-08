@@ -23,6 +23,13 @@ import java.util.ArrayList;
 class ShaderBin implements ObjectUpdate {
 
     /**
+     * Node component dirty mask.
+     */
+    static final int SHADER_PROGRAM_DIRTY               = 0x1;
+    static final int SHADER_ATTRIBUTE_SET_DIRTY         = 0x2;
+
+
+    /**
      * The RenderBin for this object
      */
     RenderBin renderBin = null;
@@ -53,14 +60,11 @@ class ShaderBin implements ObjectUpdate {
 
     int numEditingTextureBins = 0;
 
-    // Should this  be a separate mirror object of ShaderProgram ? 
-
-    // ShaderAppearanceRetained shaderAppearance = null;
-
+    int componentDirty = 0;
+    ShaderAppearanceRetained shaderAppearance = null;
     ShaderProgramRetained shaderProgram = null;
     ShaderAttributeSetRetained shaderAttributeSet = null;
     
-    // ShaderBin(ShaderProgramRetained sp,  RenderBin rBin) {
     ShaderBin(ShaderAppearanceRetained sApp,  RenderBin rBin) {
 	reset(sApp, rBin);
     }
@@ -82,6 +86,7 @@ class ShaderBin implements ObjectUpdate {
 	    shaderProgram = null;
 	    shaderAttributeSet = null;
 	}
+	shaderAppearance = sApp;
     }
     
     void clear() {
@@ -95,6 +100,12 @@ class ShaderBin implements ObjectUpdate {
 	
 	ShaderProgramRetained sp;
 	ShaderAttributeSetRetained ss;
+	
+	System.out.println("ShaderBin : equals() is not fully tested yet.");
+
+	if( shaderAppearance == sApp) {
+	    return true;
+	}
 	
 	if (sApp == null) {
 	    sp = null;
@@ -291,7 +302,7 @@ class ShaderBin implements ObjectUpdate {
 
     void updateAttributes(Canvas3D cv) {
 
-	// System.out.println("ShaderBin.updateAttributes() shaderProgram is " + shaderProgram);
+        // System.out.println("ShaderBin.updateAttributes() shaderProgram is " + shaderProgram);
 	if (shaderProgram != null) {
             // Compile, link, and enable shader program
 	    shaderProgram.updateNative(cv, true);
@@ -309,37 +320,6 @@ class ShaderBin implements ObjectUpdate {
 	}
 
 	cv.shaderProgram = shaderProgram;
-	
-	/*
-
-
-	// KCR hack ....
-
-	if (shaderProgram != null) {
-	    // Update the native shader program attributes. Note that
-	    // the current hack only works when the sole user
-	    // optimization is in effect. The appearance with the
-	    // Shader Program must have a frequently-writable texture
-	    // and it must be the sole user of this texture bin.
-	    shaderProgram.updateNative(cv.ctx);
-	    
-	    ShaderAttributeSet shaderAttributeSet =
-		((ShaderAppearanceRetained)app).shaderAttributeSet;
-	    
-	    if (shaderAttributeSet != null) {
-		shaderAttributeSet.updateNative(cv.ctx, shaderProgram);
-	    }
-	    
-	}
-	else {
-	    // Hack to disable shaders
-	    if (lastShaderProgram != null) {
-		lastShaderProgram.disableNative(cv.ctx);
-	    }
-	}
-
-	*/
-
 
 	/* NOT TESTED YET --- Chien.
 	if ((cv.canvasDirty & Canvas3D.SHADERBIN_DIRTY) != 0) {
@@ -366,8 +346,18 @@ class ShaderBin implements ObjectUpdate {
     }
 
     void updateNodeComponent() {
-	System.out.println("ShaderBin.updateNodeComponent() not implemented yet.");
-    }
+	// System.out.println("ShaderBin.updateNodeComponent() ...");
+	
+	if ((componentDirty & SHADER_PROGRAM_DIRTY) != 0) {
+	    shaderProgram = shaderAppearance.shaderProgram;
+	}
+	
+	if ((componentDirty & SHADER_ATTRIBUTE_SET_DIRTY) != 0) {
+	    shaderAttributeSet = shaderAppearance.shaderAttributeSet;
+	}
+	
+	componentDirty = 0;
+   }
 
     void incrActiveTextureBin() {
 	numEditingTextureBins++;
