@@ -70,6 +70,8 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
 
     private Map attrs = new HashMap();
 
+    // Lock used for synchronization of live state
+    Object liveStateLock = new Object();
 
     /**
      * Constructs an empty ShaderAttributeSetretained object. The attributes set
@@ -92,14 +94,23 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      *
      */
     void put(ShaderAttribute attr) {
-	ShaderAttributeRetained sAttr = (ShaderAttributeRetained)attr.retained;
-	// System.out.println("attr is " + attr );
-	// System.out.println("attrName is " + sAttr.attrName + " attr.Retained is "+ sAttr );
-	assert(sAttr != null);
-	attrs.put(sAttr.attrName, sAttr);
-	if(source.isLive()) {
-	    // Send its retained.
-	    sendMessage(ATTRIBUTE_SET_PUT, sAttr);
+	synchronized(liveStateLock) {
+	    // System.out.println("ShaderAttributeSetRetained : put()");
+	    ShaderAttributeRetained sAttr = (ShaderAttributeRetained)attr.retained;
+	    // System.out.println("attr is " + attr );
+	    // System.out.println("attrName is " + sAttr.attrName + 
+	    // " attr.Retained is "+ sAttr );
+	    assert(sAttr != null);
+	    attrs.put(sAttr.attrName, sAttr);
+	    
+	    if (source.isLive()) {
+		sAttr.setLive(inBackgroundGroup, refCount);
+		sAttr.copyMirrorUsers(this);
+		
+		// System.out.println(" --   testing  needed!");
+		sendMessage(ATTRIBUTE_SET_PUT, sAttr.mirror);
+		
+	    }	    
 	}
     }
 
@@ -125,9 +136,15 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      * @param attrName the name of the shader attribute to be removed
      */
     void remove(String attrName) {
-	attrs.remove(attrName);
-	if(source.isLive()) {
-	    sendMessage(ATTRIBUTE_SET_REMOVE, attrName);
+	synchronized(liveStateLock) {
+	    ShaderAttributeRetained sAttr = (ShaderAttributeRetained)attrs.get(attrName);
+	    attrs.remove(attrName);
+	    if (source.isLive()) {
+		sAttr.clearLive(refCount);
+		sAttr.removeMirrorUsers(this);
+		
+		sendMessage(ATTRIBUTE_SET_REMOVE, attrName);
+	    }
 	}
     }
 
@@ -143,11 +160,16 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      * @param attr the shader attribute to be removed
      */
     void remove(ShaderAttribute attr) {
-	String attrName = attr.getAttributeName();
-	if (attrs.get(attrName) == attr) {
-	    attrs.remove(attrName);
-	    if(source.isLive()) {
-		sendMessage(ATTRIBUTE_SET_REMOVE, attrName);
+	synchronized(liveStateLock) {   
+	    String attrName = attr.getAttributeName();
+	    if (attrs.get(attrName) == attr) {
+		attrs.remove(attrName);
+		if (source.isLive()) {
+		    ((ShaderAttributeRetained)attr.retained).clearLive(refCount);
+		    ((ShaderAttributeRetained)attr.retained).removeMirrorUsers(this);
+		    
+		    sendMessage(ATTRIBUTE_SET_REMOVE, attrName);
+		}
 	    }
 	}
     }
@@ -158,9 +180,17 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      *
      */
     void clear() {
-	attrs.clear();
-	if(source.isLive()) {
-	    sendMessage(ATTRIBUTE_SET_CLEAR, null);
+	synchronized(liveStateLock) {
+	    attrs.clear();
+	    if(source.isLive()) {
+		ShaderAttributeRetained[] sAttrs = new ShaderAttributeRetained[attrs.size()];
+		sAttrs = (ShaderAttributeRetained[])attrs.values().toArray(sAttrs);
+		for (int i = 0; i < sAttrs.length; i++) {
+		    sAttrs[i].clearLive(refCount);
+		    sAttrs[i].removeMirrorUsers(this);
+		}
+		sendMessage(ATTRIBUTE_SET_CLEAR, null);
+	    }
 	}
     }
 
@@ -261,8 +291,7 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
 	
 	if ((component & ATTRIBUTE_SET_PUT) != 0) {
 	    System.out.println("     -- ATTRIBUTE_SET_PUT");
-	    ShaderAttributeRetained sAttr = (ShaderAttributeRetained)value;
-	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained) sAttr.mirror;
+	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained)value;
  	    assert(mirrorSA != null);
 	    ((ShaderAttributeSetRetained)mirror).attrs.put(mirrorSA.attrName, mirrorSA);
 	}

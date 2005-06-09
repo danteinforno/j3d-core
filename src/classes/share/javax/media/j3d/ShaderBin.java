@@ -13,6 +13,8 @@
 package javax.media.j3d;
 
 import javax.vecmath.*;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ArrayList;
 
 
@@ -63,7 +65,7 @@ class ShaderBin implements ObjectUpdate {
     int componentDirty = 0;
     ShaderAppearanceRetained shaderAppearance = null;
     ShaderProgramRetained shaderProgram = null;
-    ShaderAttributeSetRetained shaderAttributeSet = null;
+    ShaderAttributeSetRetained shaderAttributeSet = new ShaderAttributeSetRetained();
     
     ShaderBin(ShaderAppearanceRetained sApp,  RenderBin rBin) {
 	reset(sApp, rBin);
@@ -101,7 +103,7 @@ class ShaderBin implements ObjectUpdate {
 	ShaderProgramRetained sp;
 	ShaderAttributeSetRetained ss;
 	
-	System.out.println("ShaderBin : equals() is not fully tested yet.");
+	// System.out.println("ShaderBin : equals() is not fully tested yet.");
 
 	if( shaderAppearance == sApp) {
 	    return true;
@@ -120,6 +122,7 @@ class ShaderBin implements ObjectUpdate {
 	}
 	
 	return true;
+	
     }
 
     public void updateObject() {
@@ -299,7 +302,6 @@ class ShaderBin implements ObjectUpdate {
 	}
     }
 
-
     void updateAttributes(Canvas3D cv) {
 
         // System.out.println("ShaderBin.updateAttributes() shaderProgram is " + shaderProgram);
@@ -320,40 +322,27 @@ class ShaderBin implements ObjectUpdate {
 	}
 
 	cv.shaderProgram = shaderProgram;
-
-	/* NOT TESTED YET --- Chien.
-	if ((cv.canvasDirty & Canvas3D.SHADERBIN_DIRTY) != 0) {
-
-	    // Update Shader Bundles
-	    shaderProgram.updateNative(cv.ctx);
-	    cv.shaderProgram = shaderProgram;
-	}
-	else if (cv.shaderProgram != shaderProgram && 
-		 cv.shaderBin != this) {
-	    // Update Shader Bundles
-	    if (shaderProgram == null) {
-		// Reset
-	    } else {
-		shaderProgram.updateNative(cv.ctx);
-	    }
-	    cv.shaderProgram = shaderProgram;
-	} 
-	cv.ShaderBin = this;
-	cv.canvasDirty &= ~Canvas3D.SHARDERBIN_DIRTY;
-
-	*/
-
     }
 
     void updateNodeComponent() {
 	// System.out.println("ShaderBin.updateNodeComponent() ...");
 	
+	// We don't need to clone shaderProgram. 	
+	// ShaderProgram object can't be modified once it is live, 
+	// so each update should be a new reference.
 	if ((componentDirty & SHADER_PROGRAM_DIRTY) != 0) {
+	    // System.out.println("  - SHADER_PROGRAM_DIRTY");
+
 	    shaderProgram = shaderAppearance.shaderProgram;
 	}
-	
+
+	// We need to clone the shaderAttributeSet.
 	if ((componentDirty & SHADER_ATTRIBUTE_SET_DIRTY) != 0) {
-	    shaderAttributeSet = shaderAppearance.shaderAttributeSet;
+	    // System.out.println("  - SHADER_ATTRIBUTE_SET_DIRTY");
+
+	    HashMap attrs = (HashMap)shaderAttributeSet.getAttrs();
+	    attrs.clear();
+	    attrs.putAll(shaderAppearance.shaderAttributeSet.getAttrs());
 	}
 	
 	componentDirty = 0;

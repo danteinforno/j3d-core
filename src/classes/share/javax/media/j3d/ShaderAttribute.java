@@ -60,7 +60,7 @@ public abstract class ShaderAttribute extends NodeComponent {
 	    throw new NullPointerException();
 	}
 
-	((ShaderAttributeRetained)this.retained).initAttrName(attrName);
+	((ShaderAttributeRetained)this.retained).initializeAttrName(attrName);
     }
 
     /**

@@ -52,6 +52,7 @@ class ShaderAttributeValueRetained extends ShaderAttributeObjectRetained {
         // This method should only call by setLive().
 	if (mirror == null) {
             ShaderAttributeValueRetained mirrorSAV = new ShaderAttributeValueRetained();
+            mirrorSAV.createObjectData(getValue());
 	    mirror = mirrorSAV;
 	    mirror.source = source;
 
