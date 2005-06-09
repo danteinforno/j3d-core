@@ -132,6 +132,7 @@
 #include "javax_media_j3d_TransparencyAttributes.h"
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
 #include "javax_media_j3d_GLSLShaderProgramRetained.h"
+#include "javax_media_j3d_CgShaderProgramRetained.h"
 #include "javax_media_j3d_Shader.h"
 #include "javax_media_j3d_ShaderError.h"
 
@@ -394,6 +395,9 @@ typedef int (APIENTRY * MYPFNGLXVIDEORESIZESUN) (Display * dpy, GLXDrawable draw
 #endif /* UNIX_ */
 
 
+/* Typedefs for (opaque) CG context info */
+typedef struct CgCtxInfoRec CgCtxInfo;
+
 /* define the structure to hold the properties of graphics context */
 typedef struct {
     jlong context;
@@ -623,6 +627,9 @@ typedef struct {
 #if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
 #endif /* UNIX_ */
+
+    /* Cg shader context information */
+    CgCtxInfo *cgCtxInfo;
 
 } GraphicsContextPropertiesInfo;
 

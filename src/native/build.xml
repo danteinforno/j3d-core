@@ -140,9 +140,6 @@
      	     srcfile="${javahCoreSrc}/Canvas3D.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_Canvas3D.h"/>
 	    <uptodate
-     	     srcfile="${javahCoreSrc}/CgShaderProgram.java"
-    	     targetfile="${javahCoreTarget}/javax_media_j3d_CgShaderProgram.h"/>
-	    <uptodate
      	     srcfile="${javahCoreSrc}/ColoringAttributes.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_ColoringAttributes.h"/>
 	    <uptodate
@@ -296,6 +293,9 @@
      	     srcfile="${javahCoreSrc}/GLSLShaderProgramRetained.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_GLSLShaderProgramRetained.h"/>
 	    <uptodate
+     	     srcfile="${javahCoreSrc}/CgShaderProgramRetained.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_CgShaderProgramRetained.h"/>
+	    <uptodate
      	     srcfile="${javahCoreSrc}/Shader.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_Shader.h"/>
 	    <uptodate
@@ -343,7 +343,6 @@
 	
 	<class name="javax.media.j3d.Background"/>
 	<class name="javax.media.j3d.Canvas3D"/>
-	<class name="javax.media.j3d.CgShaderProgram"/>
 	<class name="javax.media.j3d.ColoringAttributes"/>
 	<class name="javax.media.j3d.ColoringAttributesRetained"/>
 	<class name="javax.media.j3d.CompressedGeometryRetained"/>
@@ -395,6 +394,7 @@
 	<class name="javax.media.j3d.TransparencyAttributes"/>
 	<class name="javax.media.j3d.TransparencyAttributesRetained"/>
 	<class name="javax.media.j3d.GLSLShaderProgramRetained"/>
+	<class name="javax.media.j3d.CgShaderProgramRetained"/>
 	<class name="javax.media.j3d.Shader"/>
 	<class name="javax.media.j3d.ShaderError"/>
 
