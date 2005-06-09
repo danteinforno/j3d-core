@@ -354,15 +354,10 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      * Update the "component" field of the mirror object with the  given "value"
      */
     synchronized void updateMirrorObject(int component, Object value) {
-
+	
+	// ShaderProgram can't be modified once it is live.
+	assert(false);	
 	System.out.println("ShaderProgramRetained : updateMirrorObject NOT IMPLEMENTED YET");
-	/*
-	  ShaderProgramRetained mirrorSp = (ShaderProgramRetained)mirror;
-	  
-	  if ((component & SHADER_PROGRAM_CREATE) != 0) {
-	  // Nothing to do here.
-	  }
-	*/
     } 
 
     /**

@@ -134,8 +134,6 @@ class AttributeBin extends Object implements ObjectUpdate {
 
 	// If the any reference to the appearance components  that is cached renderMolecule
 	// can change frequently, make a separate bin
-	// If the any reference to the appearance components  that is cached renderMolecule
-	// can change frequently, make a separate bin
 	if (soleUser || (ra.geometryAtom.source.appearance != null &&
 			 ((ra.geometryAtom.source.appearance.changedFrequent & 
 			   AppearanceRetained.RENDERING) != 0))) {

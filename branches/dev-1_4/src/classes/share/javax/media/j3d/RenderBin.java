@@ -536,7 +536,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    }
 	}
 
-	// TODO : Need to update ShaderBins here too. ---- Chien.
 	if ((size = sBinUpdateList.size()) > 0) {
 	    for (i = 0; i < size; i++) {
 		ShaderBin sbin = (ShaderBin)sBinUpdateList.get(i);
@@ -1634,17 +1633,11 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    m.decRefcount();
 		    break;  
      		case J3dMessage.SHADER_APPEARANCE_CHANGED:
-		    processShaderAppearanceChanged(m.args); 
-		    m.decRefcount();
-		    break;                    
      		case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:
-		    processShaderAttributeSetChanged(m.args); 
+     		case J3dMessage.SHADER_ATTRIBUTE_CHANGED:	    
+		    processShaderComponentChanged(m.args);
 		    m.decRefcount();
 		    break;
-     		case J3dMessage.SHADER_ATTRIBUTE_CHANGED:
-		    processShaderAttributeChanged(m.args); 
-		    m.decRefcount();
-		    break;                                  
 		case J3dMessage.RENDERINGATTRIBUTES_CHANGED:
 		    processAttributeBinNodeComponentChanged(m.args);
 		    component = ((Integer)m.args[1]).intValue();
@@ -2425,82 +2418,56 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	}
     }
 
-
     /**
-     * This processes a rendering attribute change.
+     * This processes a shader component change.
      */
-    void processShaderAppearanceChanged(Object[] args) {
+    void processShaderComponentChanged(Object[] args) {
 
-	// System.out.println("RenderBin : processShaderAppearanceChanged");
+	// System.out.println("RenderBin : processShaderComponentChanged");
 
 	int component = ((Integer)args[1]).intValue();
 	int i;
 	GeometryAtom[] gaArr = (GeometryAtom[] )args[3];
 	GeometryAtom  ga;
 	RenderAtom ra = null;
-	ShaderAppearanceRetained sApp = (ShaderAppearanceRetained) args[0];
-        int start = -1;
 
-        // Get the first ra that is visible
-        for (i = 0; (i < gaArr.length && (start < 0)); i++) {
-            ra = gaArr[i].getRenderAtom(view);
-            if (ra== null || !ra.inRenderBin()) {
-                continue;
-            }
-            else {
-                start = i;
-            }
-        }
+	/* For simplicity we will not do bin rearrangement and differiate
+	   visible RA from invisible RA. Doubt there is much performance 
+	   benefit for the added complexity in the logic. Note : ShaderBin
+	   is quite high in the bin structure */		
 
-	if (start >= 0) {
-	    /* For simplicity we will not do bin rearrangement.
-	       Plus we doubt there is much performance benefit for the added
-	       complexity. */		
-		
-	    for (i = start; i < gaArr.length; i++) {
-		ra = gaArr[i].getRenderAtom(view);
-		if (ra== null || !ra.inRenderBin())
-		    continue;
+	boolean spUpdate = 
+	    ((component & ShaderAppearanceRetained.SHADER_PROGRAM_UPDATE) != 0);
+	boolean sasUpdate = 
+	    (((component & ShaderAppearanceRetained.SHADER_ATTRIBUTE_SET_UPDATE) != 0) ||
+	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_PUT) != 0) ||
+	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_REMOVE) != 0) ||
+	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_CLEAR) != 0) ||
+	     ((component & ShaderAttributeRetained.SHADER_ATTRIBUTE_VALUE_UPDATE) != 0));
 
-		ShaderBin sBin = ra.renderMolecule.textureBin.shaderBin;		
 
-		if ((component & ShaderAppearanceRetained.SHADER_PROGRAM_UPDATE) != 0) {
-		    if ((sBin.componentDirty & ShaderBin.SHADER_PROGRAM_DIRTY) == 0) {
-			sBinUpdateList.add(sBin);
-			sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
-		    }	
-			
-		} else if ((component & 
-			    ShaderAppearanceRetained.SHADER_ATTRIBUTE_SET_UPDATE) != 0) {
-		    if ((sBin.componentDirty & ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY) == 0) {
-			sBinUpdateList.add(sBin);
-			sBin.componentDirty |= ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY;
-		    }
-		}
+	for (i = 0; i < gaArr.length; i++) {
+	    ra = gaArr[i].getRenderAtom(view);
+	    if (ra== null || !ra.inRenderBin())
+		continue;
+	    
+	    ShaderBin sBin = ra.renderMolecule.textureBin.shaderBin;		
+	    
+	    if (spUpdate && (sBin.componentDirty & ShaderBin.SHADER_PROGRAM_DIRTY) == 0) {
+
+		sBinUpdateList.add(sBin);
+		sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
+
+	    } else if (sasUpdate && 
+		       (sBin.componentDirty & ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY) == 0) {
+
+		sBinUpdateList.add(sBin);
+		sBin.componentDirty |= ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY;
 	    }
+	    
 	}
     }
 
-    /**
-     * This processes a rendering attribute change.
-     */
-
-    void processShaderAttributeSetChanged(Object[] args) {
-
-	System.out.println("RenderBin : processShaderAttributeSetChanged NOT IMPLEMENTED YET.");
-
-
-    }
-
-    /**
-     * This processes a rendering attribute change.
-     */
-
-    void processShaderAttributeChanged(Object[] args) {
-
-	System.out.println("RenderBin : processShaderAttributeChanged NOT IMPLEMENTED YET.");
-
-    }
 
     void processFogChanged(Object[] args) {
 	FogRetained fog = (FogRetained)args[0];

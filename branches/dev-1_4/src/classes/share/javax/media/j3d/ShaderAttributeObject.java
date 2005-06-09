@@ -66,7 +66,7 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
      */
     ShaderAttributeObject(String attrName, Object value) {
 	super(attrName);	
-	((ShaderAttributeObjectRetained)this.retained).initValue(value);
+	((ShaderAttributeObjectRetained)this.retained).createObjectData(value);
     }
 
 
