@@ -819,22 +819,11 @@ class MasterControl {
 
         // Check whether the Cg library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
-            // Attempt to load the CG library
-            Boolean cgLoaded = (Boolean)
-            java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction() {
-                    public Object run() {
-                        final String cgLibName = libraryName + "-cg";
-//                        System.loadLibrary(cgLibName);
-                        System.err.println("Java 3D: unable to load: " + cgLibName);
-                        return Boolean.FALSE;
-                    }
-                });
-
-            if (cgLoaded.booleanValue()) {
+             // TODO: remove the following test when D3D version of CG is available
+            if (libraryName == oglLibraryName) {
                 // TODO: call method in library to verify that the native Cg runtime
                 // is installed
-//                System.err.println("Java 3D: Cg library is available");
+                System.err.println("Java 3D: Cg library is available");
                 cgLibraryAvailable = true;
             }
 //            else {

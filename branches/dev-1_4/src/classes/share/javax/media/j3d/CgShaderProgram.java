@@ -22,9 +22,6 @@ package javax.media.j3d;
  */
 
 public class CgShaderProgram extends ShaderProgram {
-    private SourceCodeShader vertexShader = null;
-    private SourceCodeShader fragmentShader = null;
-
 
     /**
      * Constructs a Cg shader program node component.
@@ -39,7 +36,15 @@ public class CgShaderProgram extends ShaderProgram {
     public void setVertexAttrNames(String[] vertexAttrNames) {
 	checkForLiveOrCompiled();
 
-	throw new RuntimeException("not implemented");
+        if (vertexAttrNames != null) {
+            for (int i = 0; i < vertexAttrNames.length; i++) {
+                if (vertexAttrNames[i] == null) {
+                    throw new NullPointerException();
+                }
+            }
+        }
+
+        ((CgShaderProgramRetained)this.retained).setVertexAttrNames(vertexAttrNames);
     }
 
     // Implement abstract getVertexAttrNames method (inherit javadoc from parent class)
@@ -51,7 +56,15 @@ public class CgShaderProgram extends ShaderProgram {
     public void setShaderAttrNames(String[] shaderAttrNames) {
 	checkForLiveOrCompiled();
 
-	throw new RuntimeException("not implemented");
+        if (shaderAttrNames != null) {
+            for (int i = 0; i < shaderAttrNames.length; i++) {
+                if (shaderAttrNames[i] == null) {
+                    throw new NullPointerException();
+                }
+            }
+        }
+
+        ((CgShaderProgramRetained)this.retained).setShaderAttrNames(shaderAttrNames);
     }
 
     // Implement abstract getShaderAttrNames method (inherit javadoc from parent class)
@@ -89,52 +102,38 @@ public class CgShaderProgram extends ShaderProgram {
     public void setShaders(Shader[] shaders) {
 	checkForLiveOrCompiled();
 
-	// TODO: move the rest of this into a CgShaderProgramRetained class
+	if (shaders != null) {
+            // Check shaders for valid shading language, class type, etc.
+            for (int i = 0; i < shaders.length; i++) {
+                boolean hasVertexShader = false;
+                boolean hasFragmentShader = false;
 
-	if (shaders == null) {
-	    vertexShader = fragmentShader = null;
-	    return;
-	}
+                // Check shading language
+                if (shaders[i].getShadingLanguage() != Shader.SHADING_LANGUAGE_CG) {
+                    throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram2"));
+                }
 
-	// Check shaders for valid shading language, class type, etc.
-	for (int i = 0; i < shaders.length; i++) {
-	    boolean hasVertexShader = false;
-	    boolean hasFragmentShader = false;
+                // Check for more than one vertex shader or fragment shader
+                if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
+                    if (hasVertexShader) {
+                        throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram3"));
+                    }
+                    hasVertexShader = true;
+                }
+                else { // Shader.SHADER_TYPE_FRAGMENT
+                    if (hasFragmentShader) {
+                        throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram4"));
+                    }
+                    hasFragmentShader = true;
+                }
 
-	    // Check shading language
-	    if (shaders[i].getShadingLanguage() != Shader.SHADING_LANGUAGE_CG) {
-		throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram2"));
-	    }
+                // Try to cast shader to SourceCodeShader; it will throw
+                // ClassCastException if it isn't.
+                SourceCodeShader shad = (SourceCodeShader)shaders[i];
+            }
+        }
 
-	    // Check for more than one vertex shader or fragment shader
-	    if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
-		if (hasVertexShader) {
-		    throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram3"));
-		}
-		hasVertexShader = true;
-	    }
-	    else { // Shader.SHADER_TYPE_FRAGMENT
-		if (hasFragmentShader) {
-		    throw new IllegalArgumentException(J3dI18N.getString("CgShaderProgram4"));
-		}
-		hasFragmentShader = true;
-	    }
-
-	    // Try to cast shader to SourceCodeShader; it will throw
-	    // ClassCastException if it isn't.
-	    SourceCodeShader shad = (SourceCodeShader)shaders[i];
-	}
-
-	// Copy vertex and fragment shader
-	vertexShader = fragmentShader = null;
-	for (int i = 0; i < shaders.length; i++) {
-	    if (shaders[i].getShaderType() == Shader.SHADER_TYPE_VERTEX) {
-		vertexShader = (SourceCodeShader)shaders[i];
-	    }
-	    else { // Shader.SHADER_TYPE_FRAGMENT
-		fragmentShader = (SourceCodeShader)shaders[i];
-	    }
-	}
+ 	((CgShaderProgramRetained)this.retained).setShaders(shaders);
     }
 
     // Implement abstract getShaders method (inherit javadoc from parent class)
@@ -145,38 +144,16 @@ public class CgShaderProgram extends ShaderProgram {
 	    }
 	}
 
-	throw new RuntimeException("not implemented");
+ 	return ((CgShaderProgramRetained)this.retained).getShaders();
     }
 
-
-    private native void updateNative(long ctx,
-				     String vtxShader,
-				     String fragShader);
-
-    void disableNative(Canvas3D cv) {
-	updateNative(cv.ctx, null, null);
+    /**
+     * Creates a retained mode CgShaderProgramRetained object that this
+     * CgShaderProgram component object will point to.
+     */
+    void createRetained() {
+	this.retained = new CgShaderProgramRetained();
+	this.retained.setSource(this);
     }
 
-    void updateNative(Canvas3D cv) {
-	/*
-	System.err.println("CgShaderProgram.updateNative(ctx)");
-	*/
-	long ctx = cv.ctx;
-
-	String vertexShaderStr = null;
-	String fragmentShaderStr = null;
-
-	if (vertexShader != null) {
-	    vertexShaderStr = vertexShader.getShaderSource();
-	}
-	if (fragmentShader != null) {
-	    fragmentShaderStr = fragmentShader.getShaderSource();
-	}
-
-	updateNative(ctx, vertexShaderStr, fragmentShaderStr);
-    }
-
-    void setUniformAttrValue(long ctx, ShaderAttributeValue sav) {
-	throw new RuntimeException("not implemented");
-    }
 }
