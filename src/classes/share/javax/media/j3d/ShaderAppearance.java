@@ -169,11 +169,10 @@ public class ShaderAppearance extends Appearance {
      * not set and this object is part of live or compiled scene graph
      */
     public void setShaderAttributeSet(ShaderAttributeSet shaderAttributeSet) {
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	*/
+        if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAppearance2"));
+	}
 
 	((ShaderAppearanceRetained)this.retained).setShaderAttributeSet(shaderAttributeSet);
     }
@@ -187,15 +186,11 @@ public class ShaderAppearance extends Appearance {
      * not set and this object is part of live or compiled scene graph
      */
     public ShaderAttributeSet getShaderAttributeSet() {
-	// TODO: implement this method...
-	/*
-	if (isLiveOrCompiled())
-	    ...
-	*/
-	/*
+        if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("ShaderAppearance3"));
+	}
 	return ((ShaderAppearanceRetained)this.retained).getShaderAttributeSet();
-	*/
-	throw new RuntimeException("not implemented");
     }
 
 

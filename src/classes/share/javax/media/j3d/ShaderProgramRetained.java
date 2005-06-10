@@ -915,21 +915,16 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             throw new RuntimeException("not implemented");
 
         case ShaderAttributeObjectRetained.TYPE_MATRIX3F:
-            throw new RuntimeException("not implemented");
-        /*
-        return setUniformMatrix3f(ctx, shaderProgramId, loc,
-                           (float[])sav.attrWrapper.getRef());
-        
-         */
+	    return setUniformMatrix3f(ctx, shaderProgramId, loc,
+				      (float[])sav.attrWrapper.getRef());
+
         case ShaderAttributeObjectRetained.TYPE_MATRIX3D:
             throw new RuntimeException("not implemented");
-        case ShaderAttributeObjectRetained.TYPE_MATRIX4F:
-            throw new RuntimeException("not implemented");
-        /*
-        return setUniformMatrix4f(ctx, shaderProgramId, loc,
-                           (float[])sav.attrWrapper.getRef());
-        
-         */
+       
+	case ShaderAttributeObjectRetained.TYPE_MATRIX4F: 	    
+	    return setUniformMatrix4f(ctx, shaderProgramId, loc,
+				      (float[])sav.attrWrapper.getRef());
+         
         case ShaderAttributeObjectRetained.TYPE_MATRIX4D:
             throw new RuntimeException("not implemented");
 
