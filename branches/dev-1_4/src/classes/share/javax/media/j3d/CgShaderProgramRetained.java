@@ -42,7 +42,7 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
 	initMirrorObject();
     }
 
-    
+    // ShaderAttributeValue methods    
 
     native ShaderError setUniform1i(long ctx,
 					    long shaderProgramId,
@@ -93,7 +93,70 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
 					   long shaderProgramId,
 			         	   long uniformLocation,
 					   float[] value);
+
+    // ShaderAttributeArray methods
+
+    native ShaderError setUniform1iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
     
+    native ShaderError setUniform1fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);
+    
+    native ShaderError setUniform2iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    native ShaderError setUniform2fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);
+    
+    native ShaderError setUniform3iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    native ShaderError setUniform3fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);    
+    
+    native ShaderError setUniform4iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    native ShaderError setUniform4fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);    
+    
+    native ShaderError setUniformMatrix3fArray(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int numElements,
+					    float[] value);
+
+    native ShaderError setUniformMatrix4fArray(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int numElements,
+					    float[] value);
+
+
     
     /* New native interfaces */
     private native ShaderError createNativeShader(long ctx, int shaderType, long[] shaderId);

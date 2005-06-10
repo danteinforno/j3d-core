@@ -208,6 +208,8 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      */
     abstract ShaderError disableShaderProgram(long ctx);
     
+    // ShaderAttributeValue methods
+
     abstract ShaderError setUniform1i(long ctx,
 					    long shaderProgramId,
 					    long uniformLocation,
@@ -257,9 +259,70 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 					   long shaderProgramId,
 			         	   long uniformLocation,
 					   float[] value);
-    
 
+
+    // ShaderAttributeArray methods
     
+    abstract ShaderError setUniform1iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    abstract ShaderError setUniform1fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);
+    
+    abstract ShaderError setUniform2iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    abstract ShaderError setUniform2fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);
+    
+    abstract ShaderError setUniform3iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    abstract ShaderError setUniform3fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);    
+    
+    abstract ShaderError setUniform4iArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      int[] value);
+    
+    abstract ShaderError setUniform4fArray(long ctx,
+				      long shaderProgramId,
+				      long uniformLocation,
+				      int numElements,
+				      float[] value);    
+    
+    abstract ShaderError setUniformMatrix3fArray(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int numElements,
+					    float[] value);
+
+    abstract ShaderError setUniformMatrix4fArray(long ctx,
+					    long shaderProgramId,
+					    long uniformLocation,
+					    int numElements,
+					    float[] value);
+
     
     /**
      * Method to return a flag indicating whether this
@@ -905,11 +968,14 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 if (saRetained instanceof ShaderAttributeValueRetained) {
                     err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, (ShaderAttributeValueRetained)saRetained);
                 } else if (saRetained instanceof ShaderAttributeArrayRetained) {
+                    //TODO : - Chien.
+//                   err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, (ShaderAttributeArrayRetained)saRetained);
                     throw new RuntimeException("not implemented");
                 } else if (saRetained instanceof ShaderAttributeBindingRetained) {
+                    assert false;
                     throw new RuntimeException("not implemented");
                 } else {
-                    assert(false);
+                    assert false;
                 }
             }
             

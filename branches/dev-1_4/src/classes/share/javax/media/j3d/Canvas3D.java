@@ -635,6 +635,7 @@ public class Canvas3D extends Canvas {
     LightBin lightBin = null;
     EnvironmentSet environmentSet = null;
     AttributeBin attributeBin = null;
+    ShaderBin shaderBin = null;
     RenderMolecule renderMolecule = null;
     PolygonAttributesRetained polygonAttributes = null;
     LineAttributesRetained lineAttributes = null;
@@ -3842,6 +3843,7 @@ public class Canvas3D extends Canvas {
 	lightBin = null;
 	environmentSet = null;
 	attributeBin = null;
+        shaderBin = null;
 	textureBin = null;
 	renderMolecule = null;
 	polygonAttributes = null;

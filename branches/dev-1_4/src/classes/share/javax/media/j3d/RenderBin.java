@@ -5162,9 +5162,9 @@ System.out.println("......tb.soleUser= " +
      */
     void renderOpaque(Canvas3D cv) {
 	LightBin currentBin = opaqueBin;
-	//	System.out.println("========> renderOpaque");
+	//System.out.println("========> renderOpaque");
 	while (currentBin != null) {
-	    //      System.out.println("====> rendering Opaque Bin ");
+	    //System.out.println("====> rendering Opaque Bin ");
 	    currentBin.render(cv);
 	    currentBin = currentBin.next;
 	}
@@ -5177,9 +5177,10 @@ System.out.println("......tb.soleUser= " +
     void renderTransparent(Canvas3D cv) {
         boolean savedDepthBufferWriteEnable = true;
 
+        //System.out.println("====> renderTransparent");
 	TransparentRenderingInfo tinfo = transparentInfo;
 	if (tinfo != null) {
-	    //      System.out.println("====> rendering transparent Bin");
+	    //System.out.println("====> rendering transparent Bin");
 
 	    if (cv.view.depthBufferFreezeTransparent) {
 		cv.setDepthBufferWriteEnableOverride(true);
