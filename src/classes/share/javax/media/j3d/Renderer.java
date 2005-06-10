@@ -96,6 +96,8 @@ class Renderer extends J3dThread {
 
     // an unique bit to identify this renderer
     int rendererBit = 0;
+    // an unique number to identify this renderer : ( rendererBit = 1 << rendererId)
+    int rendererId = 0;
 
     // List of renderMolecules that are dirty due to additions
     // or removal of renderAtoms from their display list set
@@ -178,7 +180,8 @@ class Renderer extends J3dThread {
 	setName("J3D-Renderer-" + getInstanceNum());
 
 	type = J3dThread.RENDER_THREAD;
-        rendererBit = VirtualUniverse.mc.getRendererBit();
+	rendererId = VirtualUniverse.mc.getRendererId();
+        rendererBit = (1 << rendererId);
         renderMessage = new J3dMessage[1];
     }
 
@@ -667,13 +670,7 @@ class Renderer extends J3dThread {
 			    }
 
 			    synchronized (VirtualUniverse.mc.contextCreationLock) {
-				sharedCtx =
-				    canvas.createNewContext(canvas.screen.display,
-							 canvas.window,
-							 canvas.vid,
-							 canvas.fbConfig,
-							 0, true,
-							 canvas.offScreen);
+				sharedCtx = canvas.createNewContext(0, true);
 				if (sharedCtx == 0) {
 				    canvas.drawingSurfaceObject.unLock();
 				    if ((offBufRetained != null) &&
@@ -706,15 +703,9 @@ class Renderer extends J3dThread {
 			}
 
 			synchronized (VirtualUniverse.mc.contextCreationLock) {
-			    canvas.ctx =
-				canvas.createNewContext(canvas.screen.display, 
-						     canvas.window, canvas.vid,
-						     canvas.fbConfig, sharedCtx,
-						     false, canvas.offScreen);
+			    canvas.ctx = canvas.createNewContext(sharedCtx, false);
 
-
-
-			    if (canvas.ctx == 0) {
+                            if (canvas.ctx == 0) {
 				canvas.drawingSurfaceObject.unLock();			    
 				if ((offBufRetained != null) &&
 				    offBufRetained.isByReference()) {

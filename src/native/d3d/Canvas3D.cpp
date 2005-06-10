@@ -55,7 +55,9 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     jlong    fbConfigListPtr,
     jlong    sharedCtx,
     jboolean isSharedCtx,
-    jboolean offScreen)
+    jboolean offScreen,
+    jboolean glslLibraryAvailable,
+    jboolean cgLibraryAvailable)
 {
     HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(window));
 
@@ -109,7 +111,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     jlong fbConfigListPtr,
     jboolean offScreen,
     jint width,
-    jint height)
+    jint height,
+    jboolean glslLibraryAvailable,
+    jboolean cgLibraryAvailable)
 {
     HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(window));
 

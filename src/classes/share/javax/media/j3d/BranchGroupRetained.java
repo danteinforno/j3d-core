@@ -58,11 +58,18 @@ class BranchGroupRetained extends GroupRetained {
 	if (universe != null) {
 	    universe.resetWaitMCFlag();
 	    synchronized (universe.sceneGraphLock) {
-		if (source.isLive()) {
+                boolean isLive = source.isLive();
+		if (isLive) {
 	            notifySceneGraphChanged(true);
 		}
+                GroupRetained oldParent = (GroupRetained)parent;
 	        do_detach();
 		universe.setLiveState.clear();
+                if (isLive)
+                    if (oldParent==null)
+                        universe.notifyStructureChangeListeners(false,locale,(BranchGroup)this.source);
+                    else
+                        universe.notifyStructureChangeListeners(false,oldParent.source, (BranchGroup)this.source);
 	    }
 	    universe.waitForMC();
 	} else { // Not live yet, just do it.

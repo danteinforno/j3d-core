@@ -1143,7 +1143,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 		renderBin.orientedRAs.remove(renderBin.orientedRAs.indexOf(r));
 	    }
 
-	    if ((textureBin.attributeBin.environmentSet.lightBin.geometryBackground == null) &&
+	    if ((textureBin.environmentSet.lightBin.geometryBackground == null) &&
 		!isOpaqueOrInOG && renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) {
 		renderBin.removeTransparentObject(r);
 	    }
@@ -1318,7 +1318,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 
 		}
 		// If transparent and not in bg geometry and is depth sorted transparency
-		if (!isOpaqueOrInOG && (textureBin.attributeBin.environmentSet.lightBin.geometryBackground == null)&&
+		if (!isOpaqueOrInOG && (textureBin.environmentSet.lightBin.geometryBackground == null)&&
 		    (renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY)) {
 		    GeometryRetained geo = null;
 		    int k = 0;
@@ -1498,7 +1498,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	RenderAtomListInfo r;
 	int index;
 
-	renderAtom.envSet = textureBin.attributeBin.environmentSet;
+	renderAtom.envSet = textureBin.environmentSet;
 	renderAtom.renderMolecule = this;
 	renderAtom.dirtyMask &= ~RenderAtom.NEED_SEPARATE_LOCALE_VWC_BOUNDS;
 
@@ -1732,8 +1732,6 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 
     void evalAlphaUsage(RenderingAttributesRetained renderAttrs,
 			TextureUnitStateRetained[] texUnits) {
-        RenderingAttributesRetained ra;
-        TextureAttributesRetained ta;
         boolean alphaBlend, alphaTest, textureBlend = false;
 
         alphaBlend =
@@ -2703,6 +2701,30 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	
     }
 
+    // Issue 129: method to add or remove all rendering atoms in this
+    // RenderMolecule to or from the transparent info list when we are
+    // in depth sorted transparency mode and the RenderMolecule
+    // changes from opaque to transparent or vice versa.
+    void addRemoveTransparentObject(RenderBin renderBin, boolean add) {
+	addRemoveTransparentObject(renderBin, add, primaryRenderAtomList);
+	addRemoveTransparentObject(renderBin, add, separateDlistRenderAtomList);
+	addRemoveTransparentObject(renderBin, add, vertexArrayRenderAtomList);
+    }
+    
+    private void addRemoveTransparentObject(RenderBin renderBin,
+					    boolean add,
+					    RenderAtomListInfo rinfo) {
+	while (rinfo != null) {
+	    if (add) {
+		renderBin.addTransparentObject(rinfo.renderAtom);
+	    }
+	    else {
+		renderBin.removeTransparentObject(rinfo.renderAtom);
+	    }
+	    rinfo = rinfo.next;
+	}
+    }
+
     void evalMaterialCachedState() {
 	if (definingMaterial == null) {
 	    enableLighting = false;;
@@ -3118,7 +3140,3 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	}
     }
 }
-
-
-
-

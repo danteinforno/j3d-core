@@ -16,6 +16,38 @@ package javax.media.j3d;
  * The RenderingAttributes object defines common rendering attributes
  * for all primitive types. The rendering attributes are:<p>
  * <ul>
+ * <li>Depth test function - used to compare the computed depth of current
+ * pixel with depth of pixel in frame buffer. If the test passes, the pixel
+ * is written, otherwise the pixel is not written. The depth test
+ * function is set with the <code>setDepthTestFunction</code>
+ * method. By default, LESS_OR_EQUAL is the function used. The depth test
+ * function is one of the following:</li><p>
+ * <ul>
+ * <li>ALWAYS - pixels are always drawn, irrespective of the actual depth of
+ *  pixels in frame buffer. This effectively disables depth testing.</li><p>
+ *
+ * <li>NEVER - pixels are never drawn, irrespective of any depth
+ * value.</li><p>
+ *
+ * <li>EQUAL - pixels are drawn if the pixel depth is equal
+ * to the actual depth of pixel in frame buffer.</li><p>
+ *
+ * <li>NOT_EQUAL - pixels are drawn if the pixel depth is
+ * not equal to the actual depth of pixel in frame buffer.</li><p>
+ * 
+ * <li>LESS - pixels are drawn if the pixel depth is less
+ * than the actual depth of pixel in frame buffer.</li><p>
+ * 
+ * <li>LESS_OR_EQUAL - pixels are drawn if the pixel depth
+ * is less than or equal to the actual depth of pixel in frame buffer.</li><p>
+ * 
+ * <li>GREATER - pixels are drawn if the pixel depth is greater
+ * than the actual depth of pixel in frame buffer.</li><p>
+ * 
+ * <li>GREATER_OR_EQUAL - pixels are drawn if the pixel depth
+ * is greater than or equal to the actual depth of pixel in frame buffer.</li><p>
+ * </ul>
+ *
  * <li>Alpha test function - used to compare the alpha test value with
  * each per-pixel alpha value. If the test passes, the pixel is
  * written, otherwise the pixel is not written. The alpha test
@@ -48,6 +80,8 @@ package javax.media.j3d;
  * <li>GREATER_OR_EQUAL - pixels are drawn if the pixel alpha
  * value is greater than or equal to the alpha test value.</li><p>
  * </ul>
+ * Note: the alpha and depth functions are the same enums.
+ *
  * <li>Alpha test value - the test value used by the alpha test function.
  * This value is compared to the alpha value of each rendered pixel.
  * The alpha test value is set with the <code>setAlphaTestValue</code>
@@ -59,8 +93,22 @@ package javax.media.j3d;
  * is enabled or disabled with the <code>setRasterOpEnable</code>
  * method. The raster operation is one of the following:</li><p>
  * <ul>
+ * <li>ROP_CLEAR - DST = 0.</li>
+ * <li>ROP_AND DST = SRC & DST.</li>
+ * <li>ROP_AND_REVERSE DST = SRC & ~DST.</li>
  * <li>ROP_COPY - DST = SRC. This is the default operation.</li>
- * <li>ROP_XOR - DST = SRC ^ DST.</li><p>
+ * <li>ROP_AND_INVERTED - DST = ~SRC & DST.</li>
+ * <li>ROP_NOOP - DST = DST.</li>
+ * <li>ROP_XOR - DST = SRC ^ DST.</li>
+ * <li>ROP_OR - DST = DST | SRC.</li>
+ * <li>ROP_NOR - DST = ~( DST | SRC .)</li>
+ * <li>ROP_EQUIV - DST = ~( DST ^ SRC .)</li>
+ * <li>ROP_INVERT - DST = ~DST.</li>
+ * <li>ROP_OR_REVERSE - DST = src | ~DST.</li>
+ * <li>ROP_COPY_INVERTED - DST = ~SRC.</li>
+ * <li>ROP_OR_INVERTED - DST = ~SRC | DST.</li>
+ * <li>ROP_NAND - DST = ~(SRC & DST.)</li>
+ * <li>ROP_SET - DST = 1.</li>
  * </ul>
  * <li>Vertex colors - vertex colors can be ignored for this
  * RenderingAttributes object. This capability is set with the
@@ -126,6 +174,24 @@ public class RenderingAttributes extends NodeComponent {
      */
     public static final int
     ALLOW_ALPHA_TEST_FUNCTION_WRITE = CapabilityBits.RENDERING_ATTRIBUTES_ALLOW_ALPHA_TEST_FUNCTION_WRITE;
+
+     /**
+     * Specifies that this RenderingAttributes object
+     * allows reading its depth test function component information.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+    ALLOW_DEPTH_TEST_FUNCTION_READ = CapabilityBits.RENDERING_ATTRIBUTES_ALLOW_DEPTH_TEST_FUNCTION_READ;
+
+    /**
+     * Specifies that this RenderingAttributes object
+     * allows writing its depth test function component information.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+    ALLOW_DEPTH_TEST_FUNCTION_WRITE = CapabilityBits.RENDERING_ATTRIBUTES_ALLOW_DEPTH_TEST_FUNCTION_WRITE;
 
     /**
      * Specifies that this RenderingAttributes object
@@ -200,83 +266,180 @@ public class RenderingAttributes extends NodeComponent {
     CapabilityBits.RENDERING_ATTRIBUTES_ALLOW_RASTER_OP_WRITE;
 
     /**
-     * Indicates pixels are always drawn irrespective of alpha value.
-     * This effectively disables alpha testing.
+     * Indicates pixels are always drawn irrespective of alpha and/or depth value.
+     * This effectively disables alpha and/or depth testing.
      */
     public static final int ALWAYS = 0;
 
     /**
-     * Indicates pixels are never drawn irrespective of alpha value.
+     * Indicates pixels are never drawn irrespective of alpha and/or depth value (depending on where the value is used).
      */
     public static final int NEVER = 1;
 
     /**
-     * Indicates pixels are  drawn if pixel alpha value is equal 
-     * to alpha test value.
+     * Indicates pixels are drawn if pixel alpha value is equal 
+     * to alpha test value or depth is equal to depth of current pixel in framebuffer.
      */
     public static final int EQUAL = 2;
 
     /**
      * Indicates pixels are  drawn if pixel alpha value is not equal
-     * to alpha test value.
+     * to alpha test value or depth is not equal to depth of current pixel in framebuffer
      */
     public static final int NOT_EQUAL = 3;
 
     /**
      * Indicates pixels are  drawn if pixel alpha value is less 
-     * than alpha test value.
+     * than alpha test value or depth is less than depth of current pixel in framebuffer
      */
     public static final int LESS = 4;
 
     /**
      * Indicates pixels are  drawn if pixel alpha value is less
-     * than or equal to alpha test value.
+     * than or equal to alpha test value or depth is less than or equal to depth of current pixel in framebuffer
      */
     public static final int LESS_OR_EQUAL = 5;
 
     /**
      * Indicates pixels are  drawn if pixel alpha value is greater
-     * than alpha test value.
+     * than alpha test value or depth is greater than depth of current pixel in framebuffer
      */
     public static final int GREATER = 6;
 
     /**
      * Indicates pixels are  drawn if pixel alpha value is greater
-     * than or equal to alpha test value.
+     * than or equal to alpha test value or depth is greater or equal to depth of current pixel in framebuffer
      */
     public static final int GREATER_OR_EQUAL = 7;
 
 
-//    public static final int ROP_CLEAR = 0x0;
-//    public static final int ROP_AND = 0x1;
-//    public static final int ROP_AND_REVERSE = 0x2;
+    /**
+     * Raster operation: <code>DST = 0</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_CLEAR = 0x0;
+
+    /**
+     * Raster operation: <code>DST = SRC & DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND = 0x1;
+
+    /**
+     * Raster operation: <code>DST = SRC & ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND_REVERSE = 0x2;
 
     /**
      * Raster operation: <code>DST = SRC</code>.
      * @see #setRasterOp
+     *
      * @since Java 3D 1.2
      */
     public static final int ROP_COPY = 0x3;
 
-//    public static final int ROP_AND_INVERTED = 0x4;
-//    public static final int ROP_NOOP = 0x5;
+    /**
+     * Raster operation: <code>DST = ~SRC & DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_AND_INVERTED = 0x4;
+		
+    /**
+     * Raster operation: <code>DST = DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NOOP = 0x5;
 
     /**
      * Raster operation: <code>DST = SRC ^ DST</code>.
      * @see #setRasterOp
+     *
      * @since Java 3D 1.2
      */
     public static final int ROP_XOR = 0x6;
 
-//    public static final int ROP_OR = 0x7;
-//    public static final int ROP_NOR = 0x8;
-//    public static final int ROP_EQUIV = 0x9;
-//    public static final int ROP_INVERT = 0xA;
-//    public static final int ROP_OR_REVERSE = 0xB;
-//    public static final int ROP_COPY_INVERTED = 0xC;
-//    public static final int ROP_OR_INVERTED = 0xD;
-//    public static final int ROP_NAND = 0xE;
-//    public static final int ROP_SET = 0xF;
+    /**
+     * Raster operation: <code>DST = DST | SRC</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR = 0x7;
+
+    /**
+     * Raster operation: <code>DST = ~( DST | SRC )</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NOR = 0x8;
+
+    /**
+     * Raster operation: <code>DST = ~( DST ^ SRC )</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_EQUIV = 0x9;
+		
+    /**
+     * Raster operation: <code>DST = ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_INVERT = 0xA;
+		
+    /**
+     * Raster operation: <code>DST = src | ~DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR_REVERSE = 0xB;
+
+    /**
+     * Raster operation: <code>DST = ~SRC</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_COPY_INVERTED = 0xC;
+
+    /**
+     * Raster operation: <code>DST = ~SRC | DST</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_OR_INVERTED = 0xD;
+
+    /**
+     * Raster operation: <code>DST = ~(SRC & DST)</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_NAND = 0xE;
+
+    /**
+     * Raster operation: <code>DST = 1</code>.
+     * @see #setRasterOp
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int ROP_SET = 0xF;
 
 
     /**
@@ -291,6 +454,7 @@ public class RenderingAttributes extends NodeComponent {
      * ignore vertex colors : false<br>
      * raster operation enable : false<br>
      * raster operation : ROP_COPY<br>
+     * depth test: LESS_OR_EQUAL<br>
      * </ul>
      */
     public RenderingAttributes() {
@@ -327,8 +491,10 @@ public class RenderingAttributes extends NodeComponent {
      * @param rasterOpEnable a flag that specifies whether logical
      * raster operations are enabled for this RenderingAttributes object.
      * This disables all alpha blending operations.
-     * @param rasterOp the logical raster operation, one of ROP_COPY or
-     * ROP_XOR.
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET
      *
      * @since Java 3D 1.2
      */
@@ -351,6 +517,47 @@ public class RenderingAttributes extends NodeComponent {
 	((RenderingAttributesRetained)this.retained).initIgnoreVertexColors(ignoreVertexColors);
 	((RenderingAttributesRetained)this.retained).initRasterOpEnable(rasterOpEnable);
 	((RenderingAttributesRetained)this.retained).initRasterOp(rasterOp);
+    }
+
+   /**
+     * Constructs a RenderingAttributes object with specified values
+     * @param depthBufferEnable a flag to turn depth buffer on/off
+     * @param depthBufferWriteEnable a flag to make depth buffer
+     * read/write or read only
+     * @param depthTestFunction the function for comparing depth values
+     * @param alphaTestValue the alpha test reference value
+     * @param alphaTestFunction the function for comparing alpha values
+     * @param visible a flag that specifies whether the object is visible
+     * @param ignoreVertexColors a flag to enable or disable
+     * the ignoring of per-vertex colors
+     * @param rasterOpEnable a flag that specifies whether logical
+     * raster operations are enabled for this RenderingAttributes object.
+     * This disables all alpha blending operations.
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET.
+     *
+     * @since Java 3D 1.4
+     */
+    public RenderingAttributes(boolean depthBufferEnable,
+			       boolean depthBufferWriteEnable,
+			       int depthTestFunction,
+			       float alphaTestValue,
+			       int alphaTestFunction,
+			       boolean visible,
+			       boolean ignoreVertexColors,
+			       boolean rasterOpEnable,
+			       int rasterOp) {
+        this( depthBufferEnable,
+            depthBufferWriteEnable,
+            alphaTestValue,
+            alphaTestFunction,
+            visible,
+            ignoreVertexColors,
+            rasterOpEnable,
+            rasterOp);
+	((RenderingAttributesRetained)this.retained).initDepthTestFunction(rasterOp);
     }
 
     /**
@@ -401,7 +608,6 @@ public class RenderingAttributes extends NodeComponent {
 	if (isLiveOrCompiled())
 	    if (!this.getCapability(ALLOW_DEPTH_ENABLE_WRITE))
 		throw new CapabilityNotSetException(J3dI18N.getString("RenderingAttributes2"));
-
 	if (isLive())
 	    ((RenderingAttributesRetained)this.retained).setDepthBufferWriteEnable(state);
 	else
@@ -639,8 +845,10 @@ public class RenderingAttributes extends NodeComponent {
      * Sets the raster operation function for this RenderingAttributes
      * component object.
      *
-     * @param rasterOp the logical raster operation, one of ROP_COPY or
-     * ROP_XOR
+     * @param rasterOp the logical raster operation, one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET.
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
      *
@@ -660,7 +868,10 @@ public class RenderingAttributes extends NodeComponent {
     /**
      * Retrieves the current raster operation for this RenderingAttributes
      * object.
-     * @return one of ROP_COPY or ROP_XOR.
+     * @return one of:
+     * ROP_CLEAR, ROP_AND, ROP_AND_REVERSE, ROP_COPY, ROP_AND_INVERTED,
+     * ROP_NOOP, ROP_XOR, ROP_OR, ROP_NOR, ROP_EQUIV, ROP_INVERT,
+     * ROP_OR_REVERSE, ROP_COPY_INVERTED, ROP_OR_INVERTED, ROP_NAND or ROP_SET
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
      *
@@ -723,6 +934,7 @@ public class RenderingAttributes extends NodeComponent {
 
 	rt.initDepthBufferEnable(attr.getDepthBufferEnable());
 	rt.initDepthBufferWriteEnable(attr.getDepthBufferWriteEnable());
+	rt.initDepthTestFunction(attr.getDepthTestFunction());
 	rt.initAlphaTestValue(attr.getAlphaTestValue());
 	rt.initAlphaTestFunction(attr.getAlphaTestFunction());
 	rt.initVisible(attr.getVisible());
@@ -730,6 +942,47 @@ public class RenderingAttributes extends NodeComponent {
 	rt.initRasterOpEnable(attr.getRasterOpEnable());
 	rt.initRasterOp(attr.getRasterOp());
 
+    }
+
+    /**
+     * Set depth test function.  This function is used to compare the
+     * depth test value with each per-pixel depth value.  If the test
+     * passes, the pixel is written otherwise the pixel is not
+     * written.
+     * @param function the new depth test function.  One of
+     * ALWAYS, NEVER, EQUAL, NOT_EQUAL, LESS, LESS_OR_EQUAL, GREATER,
+     * GREATER_OR_EQUAL.
+     * Default value is LESS_OR_EQUAL.
+     * @exception CapabilityNotSetException if appropriate capability is 
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @since Java 3D 1.4
+     */
+    public void setDepthTestFunction(int function){
+	if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_DEPTH_TEST_FUNCTION_WRITE))
+		throw new CapabilityNotSetException(J3dI18N.getString("RenderingAttributes14"));
+
+       if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setDepthTestFunction(function);
+	else
+	    ((RenderingAttributesRetained)this.retained).initDepthTestFunction(function);
+    }
+
+    /**
+     * Retrieves current depth test function.
+     * @return the current depth test function
+     * @exception CapabilityNotSetException if appropriate capability is 
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @since Java 3D 1.4
+     */
+    public int getDepthTestFunction(){
+	if (isLiveOrCompiled())
+	    if (!this.getCapability(ALLOW_DEPTH_TEST_FUNCTION_READ))
+		throw new CapabilityNotSetException(J3dI18N.getString("RenderingAttributes15"));
+
+	return ((RenderingAttributesRetained)this.retained).getDepthTestFunction();
     }
 
 }

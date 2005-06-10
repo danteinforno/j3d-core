@@ -34,7 +34,8 @@ class TransparentRenderingInfo extends Object {
 
 	TextureBin textureBin = rm.textureBin;
 	AttributeBin attributeBin = textureBin.attributeBin;
-
+        ShaderBin shaderBin = textureBin.shaderBin;
+        
 	// Get a collection to check if switch is on
 
 	RenderMolecule rm = textureBin.transparentRMList ;
@@ -57,36 +58,40 @@ class TransparentRenderingInfo extends Object {
 	    return false;
 	}
 
-	if (cv.environmentSet != attributeBin.environmentSet) {
-		
-	    boolean visible = (attributeBin.definingRenderingAttributes == null ||
-				   attributeBin.definingRenderingAttributes.visible);
+        // TODO : Code cleanup needed : The following code segment should simply test
+        //        each bin independently and update it if necessary.
+        if (cv.environmentSet != attributeBin.environmentSet) {
+            
+            boolean visible = (attributeBin.definingRenderingAttributes == null ||
+                    attributeBin.definingRenderingAttributes.visible);
+            
+            if ( (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
+                    == View.VISIBILITY_DRAW_VISIBLE && !visible) ||
+                    (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
+                    == View.VISIBILITY_DRAW_INVISIBLE && visible)) {
+                return false;
+            }
+            attributeBin.environmentSet.lightBin.updateAttributes(cv);
+            attributeBin.environmentSet.updateAttributes(cv);
+            attributeBin.updateAttributes(cv);
+            shaderBin.updateAttributes(cv);
+        } else if (cv.attributeBin != attributeBin) {
+            boolean visible = (attributeBin.definingRenderingAttributes == null ||
+                    attributeBin.definingRenderingAttributes.visible);
+            
+            if ( (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
+                    == View.VISIBILITY_DRAW_VISIBLE && !visible) ||
+                    (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
+                    == View.VISIBILITY_DRAW_INVISIBLE && visible)) {
+                return false;
+            }
+            attributeBin.updateAttributes(cv);
+            shaderBin.updateAttributes(cv);
+        } else if (cv.shaderBin != shaderBin) {
+            shaderBin.updateAttributes(cv);
+        }
 
-	    if ( (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
-		  == View.VISIBILITY_DRAW_VISIBLE && !visible) ||
-		 (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
-		  == View.VISIBILITY_DRAW_INVISIBLE && visible)) {
-		return false;
-	    }
-	    attributeBin.environmentSet.lightBin.updateAttributes(cv);
-	    attributeBin.environmentSet.updateAttributes(cv);
-	    attributeBin.updateAttributes(cv);
-	}
-	else {
-	    if (cv.attributeBin != attributeBin) {
-		boolean visible = (attributeBin.definingRenderingAttributes == null ||
-				   attributeBin.definingRenderingAttributes.visible);
-
-		if ( (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
-		      == View.VISIBILITY_DRAW_VISIBLE && !visible) ||
-		     (attributeBin.environmentSet.renderBin.view.viewCache.visibilityPolicy
-		      == View.VISIBILITY_DRAW_INVISIBLE && visible)) {
-		    return false;
-		}
-		attributeBin.updateAttributes(cv);
-	    } 
-	}
-	return true;
+        return true;
     }
 
     void render(Canvas3D cv) {

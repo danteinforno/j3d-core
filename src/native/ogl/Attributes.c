@@ -554,8 +554,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
         glEnable(GL_DEPTH_TEST);
     }
     glAlphaFunc(GL_ALWAYS, 0.0f);
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_COLOR_MATERIAL);
     glDisable(GL_COLOR_LOGIC_OP);
+
 }
 
 JNIEXPORT
@@ -567,6 +569,7 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     jboolean db_enable_override,
     jboolean db_enable,
     jboolean db_write_enable,
+    jint db_func,
     jfloat at_value,
     jint at_func,
     jboolean ignoreVertexColors,
@@ -575,8 +578,37 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 {
     if (db_enable_override == JNI_FALSE) {
         if (db_enable == JNI_TRUE) {
+            int func = GL_LEQUAL;
             glEnable(GL_DEPTH_TEST);
-        } else {
+            switch (db_func) {
+            case javax_media_j3d_RenderingAttributes_ALWAYS:
+                func = GL_ALWAYS;
+                break;
+            case javax_media_j3d_RenderingAttributes_NEVER:
+                func = GL_NEVER;
+                break;
+            case javax_media_j3d_RenderingAttributes_EQUAL:
+                func = GL_EQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_NOT_EQUAL:
+                func = GL_NOTEQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_LESS:
+                func = GL_LESS;
+                break;
+            case javax_media_j3d_RenderingAttributes_LESS_OR_EQUAL:
+                func = GL_LEQUAL;
+                break;
+            case javax_media_j3d_RenderingAttributes_GREATER:
+                func = GL_GREATER;
+                break;
+            case javax_media_j3d_RenderingAttributes_GREATER_OR_EQUAL:
+                func = GL_GEQUAL;
+                break;
+        }
+        glDepthFunc( func );
+
+      } else {
             glDisable(GL_DEPTH_TEST);
         }
     } 
@@ -602,6 +634,10 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 	glEnable(GL_COLOR_MATERIAL);
     }	
 
+    /*
+     * [PEPE] NOTE: shouldn't this switch be moved in 'enable' part of
+     * the at_func test above, just like i did for db_func?
+     */
     switch (at_func) {
 	case javax_media_j3d_RenderingAttributes_ALWAYS:
 	    glAlphaFunc(GL_ALWAYS, at_value);
@@ -632,11 +668,53 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     if (rasterOpEnable == JNI_TRUE) {
 	glEnable(GL_COLOR_LOGIC_OP);
 	switch (rasterOp) {
+	case javax_media_j3d_RenderingAttributes_ROP_CLEAR:
+	    glLogicOp(GL_CLEAR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND:
+	    glLogicOp(GL_AND);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND_REVERSE:
+	    glLogicOp(GL_AND_REVERSE);
+	    break;
 	case javax_media_j3d_RenderingAttributes_ROP_COPY:
 	    glLogicOp(GL_COPY);
 	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_AND_INVERTED:
+	    glLogicOp(GL_AND_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NOOP:
+	    glLogicOp(GL_NOOP);
+	    break;
 	case javax_media_j3d_RenderingAttributes_ROP_XOR:
 	    glLogicOp(GL_XOR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR:
+	    glLogicOp(GL_OR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NOR:
+	    glLogicOp(GL_NOR);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_EQUIV:
+	    glLogicOp(GL_EQUIV);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_INVERT:
+	    glLogicOp(GL_INVERT);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR_REVERSE:
+	    glLogicOp(GL_OR_REVERSE);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_COPY_INVERTED:
+	    glLogicOp(GL_COPY_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_OR_INVERTED:
+	    glLogicOp(GL_OR_INVERTED);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_NAND:
+	    glLogicOp(GL_NAND);
+	    break;
+	case javax_media_j3d_RenderingAttributes_ROP_SET:
+	    glLogicOp(GL_SET);
 	    break;
 	}
     } else
@@ -3409,18 +3487,6 @@ void JNICALL Java_javax_media_j3d_TextureUnitStateRetained_updateTextureUnitStat
      */
 }
 
-JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setDepthFunc(
-    JNIEnv * env, 
-    jobject obj,
-    jlong ctxInfo,    
-    jint func)
-{
-    if (func == javax_media_j3d_RenderingAttributesRetained_LESS) 
-	glDepthFunc(GL_LESS);
-    else if (func == javax_media_j3d_RenderingAttributesRetained_LEQUAL)
-	glDepthFunc(GL_LEQUAL);
-}
 
 JNIEXPORT
 void JNICALL Java_javax_media_j3d_Canvas3D_setBlendColor(
@@ -3502,4 +3568,106 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
      * execute; for display list, texture unit has to match
      * texture unit state.
      */ 
+}
+
+
+/*
+ * strJavaToC
+ *
+ * Returns a copy of the specified Java String object as a new,
+ * null-terminated "C" string. The caller must free this string.
+ */
+char *
+strJavaToC(JNIEnv *env, jstring str)
+{
+    JNIEnv table = *env;
+    jclass oom;
+
+    const char *strUTFBytes;	/* Array of UTF-8 bytes */
+    char *cString = NULL;	/* Null-terminated "C" string */
+
+    if (str == NULL) {
+	return NULL;
+    }
+
+    strUTFBytes = table->GetStringUTFChars(env, str, NULL);
+    if (strUTFBytes == NULL) {
+	/* Just return, since GetStringUTFChars will throw OOM if it returns NULL */
+	return NULL;
+    }
+
+    cString = strdup(strUTFBytes);
+    table->ReleaseStringUTFChars(env, str, strUTFBytes);
+    if (cString == NULL) {
+	if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
+	    table->ThrowNew(env, oom, "strdup");
+	}
+	return NULL;
+    }
+
+    return cString;
+}
+
+
+/*
+ * createShaderError
+ *
+ * Constructs a new ShaderError object from the given error code,
+ * error message, and detail message.
+ */
+jobject
+createShaderError(
+    JNIEnv *env,
+    int errorCode,
+    const char *errorMsg,
+    const char *detailMsg)
+{
+    JNIEnv table = *env;
+    jclass shaderErrorClass;
+    jobject shaderError;
+    jmethodID methodID;
+    jstring errorMsgString = NULL;
+    jstring detailMsgString = NULL;
+
+    if (errorMsg != NULL) {
+	if ((errorMsgString = table->NewStringUTF(env, errorMsg)) == NULL) {
+	    return NULL;
+	}
+    }
+
+    if (detailMsg != NULL) {
+	if ((detailMsgString = table->NewStringUTF(env, detailMsg)) == NULL) {
+	    return NULL;
+	}
+    }
+
+    shaderErrorClass = (*(table->FindClass))(env, "javax/media/j3d/ShaderError");
+    if (shaderErrorClass == NULL) {
+	return NULL;
+    }
+
+    methodID = table->GetMethodID(env, shaderErrorClass,
+				  "<init>",
+				  "(ILjava/lang/String;)V");
+    if (methodID == NULL) {
+	return NULL;
+    }
+
+    shaderError = table->NewObject(env, shaderErrorClass, methodID,
+				   errorCode, errorMsgString);
+    if (shaderError == NULL) {
+	return NULL;
+    }
+
+    methodID = table->GetMethodID(env, shaderErrorClass,
+				  "setDetailMessage",
+				  "(Ljava/lang/String;)V");
+    if (methodID == NULL) {
+	return NULL;
+    }
+
+    table->CallVoidMethod(env, shaderError, methodID,
+			  detailMsgString);
+
+    return shaderError;
 }

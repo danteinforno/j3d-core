@@ -78,7 +78,7 @@ abstract class IndexedGeometryStripArrayRetained extends IndexedGeometryArrayRet
 		newTexCoordIndex = new int[texCoordSetCount];
 		for (i = 0; i < texCoordSetCount; i++) {
 		   newTexCoordIndex[i] =  computeMaxIndex(initialIndexIndex,total,
-								  (int[])indexTexCoord[i]);
+								  indexTexCoord[i]);
 		   doTexCoordCheck(newTexCoordIndex[i], i);
 		}
 	    }
