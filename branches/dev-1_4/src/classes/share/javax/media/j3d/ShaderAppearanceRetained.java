@@ -101,7 +101,6 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 		    ((ShaderAttributeSetRetained)sas.retained).copyMirrorUsers(this);
 	    	}
 		
-		// TODO : Need to implement RenderBin side of code.
 		System.out.println(" --   testing  needed!");
 		sendMessage(SHADER_ATTRIBUTE_SET_UPDATE,  
 			    (sas != null ? 
@@ -127,19 +126,35 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 
     }
 
-    /* TODO : Need to expand from AppearanceRetained 
 
     public boolean equals(Object obj) {
-	return ((obj instanceof AppearanceRetained) &&
-		equals((AppearanceRetained) obj));
+	System.out.println("ShaderAppearanceRetained :  equals() not tested yet!");
+	return ((obj instanceof ShaderAppearanceRetained) &&
+	 	equals((ShaderAppearanceRetained) obj));
     }
 
-    boolean equals(AppearanceRetained app) {
-        boolean flag;
+    boolean equals(ShaderAppearanceRetained sApp) {
+	boolean flag;
+	flag = (sApp == this);
+	
+	// If the reference is the same, we can stop check.
+	if(flag)
+	    return flag;
+
+	// Check each member's reference for equal.
+	flag = ((sApp != null) &&
+		(shaderProgram == sApp.shaderProgram)  &&
+		(shaderAttributeSet == sApp.shaderAttributeSet));
+	
+
+	if (!flag)
+	    return flag;
+	
+	return super.equals(sApp);
 
     }
 
-    */
+    
 
     synchronized void createMirrorObject() {
 	// System.out.println("ShaderAppearanceRetained : createMirrorObject()");
