@@ -1491,6 +1491,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    break;
 	}
     }
+
+    // TODO KCR : implement the following method.
+    //void setupMirrorVertexAttrPointer(...)
 		
 
     void createGeometryArrayData(int vertexCount, int vertexFormat) {
@@ -1525,7 +1528,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    this.texCoordSetMap = (int[])texCoordSetMap.clone();
 	}
 
-	this.vertexAttrCount = vertexAttrCount;
+	// TODO KCR : remove this once vertex attrs are implemented
+	if (vertexAttrCount != 0 || vertexAttrSizes != null) {
+	    System.err.println("GeometryArray: vertex attributes not implemented yet");
+	}
+
+        this.vertexAttrCount = vertexAttrCount;
 	if (vertexAttrSizes == null) {
 	    this.vertexAttrSizes = null;
 	}
@@ -5028,6 +5036,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point2f vertexAttr) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -5043,6 +5052,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point3f vertexAttr) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -5058,6 +5068,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point4f vertexAttr) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -5079,7 +5090,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			float[] vertexAttrs,
 			int start, int length) {
 
-        // @@@ KCR @@@
+        // TODO KCR : remove this print statement
 	System.err.println("GARet.setVertexAttrs(" +
 			   vertexAttrNum + ", " +
 			   vertexAttrs + ", " +
@@ -5131,6 +5142,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point2f[] vertexAttrs,
 			int start, int length) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -5153,6 +5165,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point3f[] vertexAttrs,
 			int start, int length) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -5175,6 +5188,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point4f[] vertexAttrs,
 			int start, int length) {
 
+        // TODO KCR : implement this
 	throw new RuntimeException("not implemented");
     }
 
@@ -8352,7 +8366,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    }
 	}
 
-	//throw new RuntimeException("method not implemeted");
 	// lock the geometry and start to do real work
 	geomLock.getLock();
 	dirtyFlag |= COORDINATE_CHANGED;
@@ -10297,6 +10310,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	return true;
     }
 
+    // THE FOLLOWING METHOD IS NEVER USED
+    /*
     boolean isTextureGeometryMergeable(GeometryArrayRetained srcGeo) {
 
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
@@ -10322,6 +10337,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	return true;
     }
+    */
 
     void compile(CompileState compState) {
         super.compile(compState);
@@ -10723,8 +10739,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    }
 	}
 	return count;
-    }        
-    
+    }
+
+    // NOTE: we don't need a getNumVertexAttrCount method, since getNum*Count
+    // is only called by Morph, which doesn't support vertex attrs
+
+
     // Found the min distance from center to the point/line/tri/quad
     // form by dist[]
     void computeMinDistance(Point3d coordinates[], Point3d center,
