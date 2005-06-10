@@ -404,6 +404,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
     }
 
+    // TODO KCR : implement the following method.
+    //void doVertexAttrCheck(...)
+
 
     /**
      * Sets the coordinate index associated with the vertex at
