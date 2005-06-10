@@ -810,3 +810,89 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     return NULL;
 
 }
+
+
+#if 0
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform1iArray
+ * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1iArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform1fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform2iArray
+ * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform2fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform3iArray
+ * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform3fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform4iArray
+ * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniform4fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniformMatrix3fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniformMatrix4fArray
+ * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+
+#endif

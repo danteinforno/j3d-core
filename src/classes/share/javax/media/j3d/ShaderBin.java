@@ -290,7 +290,9 @@ class ShaderBin implements ObjectUpdate {
      */
     void render(Canvas3D cv) {
 
-	TextureBin tb;	        	
+	TextureBin tb;
+        
+	// System.out.println("ShaderBin.render() shaderProgram = " + shaderProgram);
 
         // include this ShaderBin to the to-be-updated list in canvas
         cv.setStateToUpdate(Canvas3D.SHADERBIN_BIT, this);
@@ -321,6 +323,7 @@ class ShaderBin implements ObjectUpdate {
 	    }
 	}
 
+        cv.shaderBin = this;
 	cv.shaderProgram = shaderProgram;
     }
 

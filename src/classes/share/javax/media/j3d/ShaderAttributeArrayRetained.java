@@ -217,10 +217,14 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Base wrapper class for array attribute types
     static abstract class ArrayWrapper extends AttrWrapper {
+	int length = 0;
+
 	/**
 	 * Returns the length of the array
 	 */
-	abstract int length();
+	int length() {
+	    return length;
+	}
 
 	/**
 	 * Sets the specified array element of the value of this
@@ -231,31 +235,29 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Integer
     static class IntegerArrayWrapper extends ArrayWrapper {
-	private Integer[] value = new Integer[0];
+	private int[] value = new int[0];
 
 	void set(Object value) {
-	    // Since Integer is immutable we can just copy the references
 	    Integer[] arr = (Integer[])value;
-	    if (this.value.length != arr.length) {
-		this.value = new Integer[arr.length];
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new int[this.length];
 	    }
-	    System.arraycopy(arr, 0, this.value, 0, arr.length);
+	    for (int i = 0; i < this.length; i++) {
+		this.value[i] = arr[i].intValue();
+	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Integer is immutable we can just copy the reference
-	    this.value[index] = (Integer)value;
+	    this.value[index] = ((Integer)value).intValue();
 	}
 
 	Object get() {
-	    // Since Integer is immutable we can just return the references
-	    Integer[] arr = new Integer[this.value.length];
-	    System.arraycopy(this.value, 0, arr, 0, this.value.length);
+	    Integer[] arr = new Integer[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		arr[i] = new Integer(this.value[i]);
+	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -265,31 +267,29 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Float
     static class FloatArrayWrapper extends ArrayWrapper {
-	private Float[] value = new Float[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Float is immutable we can just copy the references
 	    Float[] arr = (Float[])value;
-	    if (this.value.length != arr.length) {
-		this.value = new Float[arr.length];
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length];
 	    }
-	    System.arraycopy(arr, 0, this.value, 0, arr.length);
+	    for (int i = 0; i < this.length; i++) {
+		this.value[i] = arr[i].floatValue();
+	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Float is immutable we can just copy the reference
-	    this.value[index] = (Float)value;
+	    this.value[index] = ((Float)value).floatValue();
 	}
 
 	Object get() {
-	    // Since Float is immutable we can just return the references
-	    Float[] arr = new Float[this.value.length];
-	    System.arraycopy(this.value, 0, arr, 0, this.value.length);
+	    Float[] arr = new Float[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		arr[i] = new Float(this.value[i]);
+	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -299,31 +299,29 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Double
     static class DoubleArrayWrapper extends ArrayWrapper {
-	private Double[] value = new Double[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Double is immutable we can just copy the references
 	    Double[] arr = (Double[])value;
-	    if (this.value.length != arr.length) {
-		this.value = new Double[arr.length];
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length];
 	    }
-	    System.arraycopy(arr, 0, this.value, 0, arr.length);
+	    for (int i = 0; i < this.length; i++) {
+		this.value[i] = arr[i].doubleValue();
+	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Double is immutable we can just copy the reference
-	    this.value[index] = (Double)value;
+	    this.value[index] = ((Double)value).doubleValue();
 	}
 
 	Object get() {
-	    // Since Double is immutable we can just return the references
-	    Double[] arr = new Double[this.value.length];
-	    System.arraycopy(this.value, 0, arr, 0, this.value.length);
+	    Double[] arr = new Double[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		arr[i] = new Double(this.value[i]);
+	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -333,39 +331,35 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple2i
     static class Tuple2iArrayWrapper extends ArrayWrapper {
-	private Tuple2i[] value = new Tuple2i[0];
+	private int[] value = new int[0];
 
 	void set(Object value) {
-	    // Since Tuple2i is mutable we must copy the data for each element
 	    Tuple2i[] arr = (Tuple2i[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple2i[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point2i();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new int[this.length*2];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple2i is mutable we must copy the data
-	    this.value[index].set((Tuple2i)value);
+	    int j = index * 2;
+	    this.value[j+0] = ((Tuple2i)value).x;
+	    this.value[j+1] = ((Tuple2i)value).y;
 	}
 
 	Object get() {
-	    // Since Tuple2i is immutable we must return a copy of the data
-	    Tuple2i[] arr = new Tuple2i[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple2i)this.value[i].clone();
+	    Tuple2i[] arr = new Tuple2i[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -375,39 +369,35 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple2f
     static class Tuple2fArrayWrapper extends ArrayWrapper {
-	private Tuple2f[] value = new Tuple2f[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Tuple2f is mutable we must copy the data for each element
 	    Tuple2f[] arr = (Tuple2f[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple2f[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point2f();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length*2];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple2f is mutable we must copy the data
-	    this.value[index].set((Tuple2f)value);
+	    int j = index * 2;
+	    this.value[j+0] = ((Tuple2f)value).x;
+	    this.value[j+1] = ((Tuple2f)value).y;
 	}
 
 	Object get() {
-	    // Since Tuple2f is immutable we must return a copy of the data
-	    Tuple2f[] arr = new Tuple2f[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple2f)this.value[i].clone();
+	    Tuple2f[] arr = new Tuple2f[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -417,39 +407,35 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple2d
     static class Tuple2dArrayWrapper extends ArrayWrapper {
-	private Tuple2d[] value = new Tuple2d[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Tuple2d is mutable we must copy the data for each element
 	    Tuple2d[] arr = (Tuple2d[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple2d[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point2d();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length*2];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple2d is mutable we must copy the data
-	    this.value[index].set((Tuple2d)value);
+	    int j = index * 2;
+	    this.value[j+0] = ((Tuple2d)value).x;
+	    this.value[j+1] = ((Tuple2d)value).y;
 	}
 
 	Object get() {
-	    // Since Tuple2d is immutable we must return a copy of the data
-	    Tuple2d[] arr = new Tuple2d[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple2d)this.value[i].clone();
+	    Tuple2d[] arr = new Tuple2d[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 2;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -459,39 +445,38 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple3i
     static class Tuple3iArrayWrapper extends ArrayWrapper {
-	private Tuple3i[] value = new Tuple3i[0];
+	private int[] value = new int[0];
 
 	void set(Object value) {
-	    // Since Tuple3i is mutable we must copy the data for each element
 	    Tuple3i[] arr = (Tuple3i[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple3i[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point3i();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new int[this.length*3];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple3i is mutable we must copy the data
-	    this.value[index].set((Tuple3i)value);
+	    int j = index * 3;
+	    this.value[j+0] = ((Tuple3i)value).x;
+	    this.value[j+1] = ((Tuple3i)value).y;
+	    this.value[j+2] = ((Tuple3i)value).z;
 	}
 
 	Object get() {
-	    // Since Tuple3i is immutable we must return a copy of the data
-	    Tuple3i[] arr = new Tuple3i[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple3i)this.value[i].clone();
+	    Tuple3i[] arr = new Tuple3i[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -501,39 +486,38 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple3f
     static class Tuple3fArrayWrapper extends ArrayWrapper {
-	private Tuple3f[] value = new Tuple3f[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Tuple3f is mutable we must copy the data for each element
 	    Tuple3f[] arr = (Tuple3f[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple3f[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point3f();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length*3];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple3f is mutable we must copy the data
-	    this.value[index].set((Tuple3f)value);
+	    int j = index * 3;
+	    this.value[j+0] = ((Tuple3f)value).x;
+	    this.value[j+1] = ((Tuple3f)value).y;
+	    this.value[j+2] = ((Tuple3f)value).z;
 	}
 
 	Object get() {
-	    // Since Tuple3f is immutable we must return a copy of the data
-	    Tuple3f[] arr = new Tuple3f[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple3f)this.value[i].clone();
+	    Tuple3f[] arr = new Tuple3f[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -543,39 +527,38 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple3d
     static class Tuple3dArrayWrapper extends ArrayWrapper {
-	private Tuple3d[] value = new Tuple3d[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Tuple3d is mutable we must copy the data for each element
 	    Tuple3d[] arr = (Tuple3d[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple3d[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point3d();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length*3];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple3d is mutable we must copy the data
-	    this.value[index].set((Tuple3d)value);
+	    int j = index * 3;
+	    this.value[j+0] = ((Tuple3d)value).x;
+	    this.value[j+1] = ((Tuple3d)value).y;
+	    this.value[j+2] = ((Tuple3d)value).z;
 	}
 
 	Object get() {
-	    // Since Tuple3d is immutable we must return a copy of the data
-	    Tuple3d[] arr = new Tuple3d[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple3d)this.value[i].clone();
+	    Tuple3d[] arr = new Tuple3d[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 3;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -585,39 +568,41 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple4i
     static class Tuple4iArrayWrapper extends ArrayWrapper {
-	private Tuple4i[] value = new Tuple4i[0];
+	private int[] value = new int[0];
 
 	void set(Object value) {
-	    // Since Tuple4i is mutable we must copy the data for each element
 	    Tuple4i[] arr = (Tuple4i[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple4i[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point4i();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new int[this.length*4];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
+		this.value[j+3] = arr[i].w;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple4i is mutable we must copy the data
-	    this.value[index].set((Tuple4i)value);
+	    int j = index * 4;
+	    this.value[j+0] = ((Tuple4i)value).x;
+	    this.value[j+1] = ((Tuple4i)value).y;
+	    this.value[j+2] = ((Tuple4i)value).z;
+	    this.value[j+3] = ((Tuple4i)value).w;
 	}
 
 	Object get() {
-	    // Since Tuple4i is immutable we must return a copy of the data
-	    Tuple4i[] arr = new Tuple4i[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple4i)this.value[i].clone();
+	    Tuple4i[] arr = new Tuple4i[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
+		arr[i].w = this.value[j+3];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -627,39 +612,41 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple4f
     static class Tuple4fArrayWrapper extends ArrayWrapper {
-	private Tuple4f[] value = new Tuple4f[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Tuple4f is mutable we must copy the data for each element
 	    Tuple4f[] arr = (Tuple4f[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple4f[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point4f();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length*4];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
+		this.value[j+3] = arr[i].w;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple4f is mutable we must copy the data
-	    this.value[index].set((Tuple4f)value);
+	    int j = index * 4;
+	    this.value[j+0] = ((Tuple4f)value).x;
+	    this.value[j+1] = ((Tuple4f)value).y;
+	    this.value[j+2] = ((Tuple4f)value).z;
+	    this.value[j+3] = ((Tuple4f)value).w;
 	}
 
 	Object get() {
-	    // Since Tuple4f is immutable we must return a copy of the data
-	    Tuple4f[] arr = new Tuple4f[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple4f)this.value[i].clone();
+	    Tuple4f[] arr = new Tuple4f[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
+		arr[i].w = this.value[j+3];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -669,39 +656,41 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Tuple4d
     static class Tuple4dArrayWrapper extends ArrayWrapper {
-	private Tuple4d[] value = new Tuple4d[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Tuple4d is mutable we must copy the data for each element
 	    Tuple4d[] arr = (Tuple4d[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Tuple4d[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Point4d();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length*4];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		this.value[j+0] = arr[i].x;
+		this.value[j+1] = arr[i].y;
+		this.value[j+2] = arr[i].z;
+		this.value[j+3] = arr[i].w;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Tuple4d is mutable we must copy the data
-	    this.value[index].set((Tuple4d)value);
+	    int j = index * 4;
+	    this.value[j+0] = ((Tuple4d)value).x;
+	    this.value[j+1] = ((Tuple4d)value).y;
+	    this.value[j+2] = ((Tuple4d)value).z;
+	    this.value[j+3] = ((Tuple4d)value).w;
 	}
 
 	Object get() {
-	    // Since Tuple4d is immutable we must return a copy of the data
-	    Tuple4d[] arr = new Tuple4d[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Tuple4d)this.value[i].clone();
+	    Tuple4d[] arr = new Tuple4d[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 4;
+		arr[i].x = this.value[j+0];
+		arr[i].y = this.value[j+1];
+		arr[i].z = this.value[j+2];
+		arr[i].w = this.value[j+3];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -711,39 +700,58 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Matrix3f
     static class Matrix3fArrayWrapper extends ArrayWrapper {
-	private Matrix3f[] value = new Matrix3f[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Matrix3f is mutable we must copy the data for each element
 	    Matrix3f[] arr = (Matrix3f[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Matrix3f[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Matrix3f();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length * 9];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 9;
+		this.value[j+0] = arr[i].m00;
+		this.value[j+1] = arr[i].m01;
+		this.value[j+2] = arr[i].m02;
+		this.value[j+3] = arr[i].m10;
+		this.value[j+4] = arr[i].m11;
+		this.value[j+5] = arr[i].m12;
+		this.value[j+6] = arr[i].m20;
+		this.value[j+7] = arr[i].m21;
+		this.value[j+8] = arr[i].m22;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Matrix3f is mutable we must copy the data
-	    this.value[index].set((Matrix3f)value);
+	    int j = index * 9;
+	    Matrix3f m = (Matrix3f)value;
+
+	    this.value[j+0] = m.m00;
+	    this.value[j+1] = m.m01;
+	    this.value[j+2] = m.m02;
+	    this.value[j+3] = m.m10;
+	    this.value[j+4] = m.m11;
+	    this.value[j+5] = m.m12;
+	    this.value[j+6] = m.m20;
+	    this.value[j+7] = m.m21;
+	    this.value[j+8] = m.m22;
 	}
 
 	Object get() {
-	    // Since Matrix3f is immutable we must return a copy of the data
-	    Matrix3f[] arr = new Matrix3f[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Matrix3f)this.value[i].clone();
+	    Matrix3f[] arr = new Matrix3f[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 9;
+		arr[i].m00 = this.value[j+0];
+		arr[i].m01 = this.value[j+1];
+		arr[i].m02 = this.value[j+2];
+		arr[i].m10 = this.value[j+3];
+		arr[i].m11 = this.value[j+4];
+		arr[i].m12 = this.value[j+5];
+		arr[i].m20 = this.value[j+6];
+		arr[i].m21 = this.value[j+7];
+		arr[i].m22 = this.value[j+8];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -753,39 +761,58 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Matrix3d
     static class Matrix3dArrayWrapper extends ArrayWrapper {
-	private Matrix3d[] value = new Matrix3d[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Matrix3d is mutable we must copy the data for each element
 	    Matrix3d[] arr = (Matrix3d[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Matrix3d[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Matrix3d();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length * 9];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 9;
+		this.value[j+0] = arr[i].m00;
+		this.value[j+1] = arr[i].m01;
+		this.value[j+2] = arr[i].m02;
+		this.value[j+3] = arr[i].m10;
+		this.value[j+4] = arr[i].m11;
+		this.value[j+5] = arr[i].m12;
+		this.value[j+6] = arr[i].m20;
+		this.value[j+7] = arr[i].m21;
+		this.value[j+8] = arr[i].m22;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Matrix3d is mutable we must copy the data
-	    this.value[index].set((Matrix3d)value);
+	    int j = index * 9;
+	    Matrix3d m = (Matrix3d)value;
+
+	    this.value[j+0] = m.m00;
+	    this.value[j+1] = m.m01;
+	    this.value[j+2] = m.m02;
+	    this.value[j+3] = m.m10;
+	    this.value[j+4] = m.m11;
+	    this.value[j+5] = m.m12;
+	    this.value[j+6] = m.m20;
+	    this.value[j+7] = m.m21;
+	    this.value[j+8] = m.m22;
 	}
 
 	Object get() {
-	    // Since Matrix3d is immutable we must return a copy of the data
-	    Matrix3d[] arr = new Matrix3d[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Matrix3d)this.value[i].clone();
+	    Matrix3d[] arr = new Matrix3d[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 9;
+		arr[i].m00 = this.value[j+0];
+		arr[i].m01 = this.value[j+1];
+		arr[i].m02 = this.value[j+2];
+		arr[i].m10 = this.value[j+3];
+		arr[i].m11 = this.value[j+4];
+		arr[i].m12 = this.value[j+5];
+		arr[i].m20 = this.value[j+6];
+		arr[i].m21 = this.value[j+7];
+		arr[i].m22 = this.value[j+8];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -795,39 +822,79 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Matrix4f
     static class Matrix4fArrayWrapper extends ArrayWrapper {
-	private Matrix4f[] value = new Matrix4f[0];
+	private float[] value = new float[0];
 
 	void set(Object value) {
-	    // Since Matrix4f is mutable we must copy the data for each element
 	    Matrix4f[] arr = (Matrix4f[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Matrix4f[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Matrix4f();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new float[this.length * 16];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 16;
+		this.value[j+0]  = arr[i].m00;
+		this.value[j+1]  = arr[i].m01;
+		this.value[j+2]  = arr[i].m02;
+		this.value[j+3]  = arr[i].m03;
+		this.value[j+4]  = arr[i].m10;
+		this.value[j+5]  = arr[i].m11;
+		this.value[j+6]  = arr[i].m12;
+		this.value[j+7]  = arr[i].m13;
+		this.value[j+8]  = arr[i].m20;
+		this.value[j+9]  = arr[i].m21;
+		this.value[j+10] = arr[i].m22;
+		this.value[j+11] = arr[i].m23;
+		this.value[j+12] = arr[i].m30;
+		this.value[j+13] = arr[i].m31;
+		this.value[j+14] = arr[i].m32;
+		this.value[j+15] = arr[i].m33;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Matrix4f is mutable we must copy the data
-	    this.value[index].set((Matrix4f)value);
+	    int j = index * 16;
+	    Matrix4f m = (Matrix4f)value;
+
+	    this.value[j+0]  = m.m00;
+	    this.value[j+1]  = m.m01;
+	    this.value[j+2]  = m.m02;
+	    this.value[j+3]  = m.m03;
+	    this.value[j+4]  = m.m10;
+	    this.value[j+5]  = m.m11;
+	    this.value[j+6]  = m.m12;
+	    this.value[j+7]  = m.m13;
+	    this.value[j+8]  = m.m20;
+	    this.value[j+9]  = m.m21;
+	    this.value[j+10] = m.m22;
+	    this.value[j+11] = m.m23;
+	    this.value[j+12] = m.m30;
+	    this.value[j+13] = m.m31;
+	    this.value[j+14] = m.m32;
+	    this.value[j+15] = m.m33;
 	}
 
 	Object get() {
-	    // Since Matrix4f is immutable we must return a copy of the data
-	    Matrix4f[] arr = new Matrix4f[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Matrix4f)this.value[i].clone();
+	    Matrix4f[] arr = new Matrix4f[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 16;
+		arr[i].m00 = this.value[j+0];
+		arr[i].m01 = this.value[j+1];
+		arr[i].m02 = this.value[j+2];
+		arr[i].m03 = this.value[j+3];
+		arr[i].m10 = this.value[j+4];
+		arr[i].m11 = this.value[j+5];
+		arr[i].m12 = this.value[j+6];
+		arr[i].m13 = this.value[j+7];
+		arr[i].m20 = this.value[j+8];
+		arr[i].m21 = this.value[j+9];
+		arr[i].m22 = this.value[j+10];
+		arr[i].m23 = this.value[j+11];
+		arr[i].m30 = this.value[j+12];
+		arr[i].m31 = this.value[j+13];
+		arr[i].m32 = this.value[j+14];
+		arr[i].m33 = this.value[j+15];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
@@ -837,44 +904,83 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Wrapper class for Matrix4d
     static class Matrix4dArrayWrapper extends ArrayWrapper {
-	private Matrix4d[] value = new Matrix4d[0];
+	private double[] value = new double[0];
 
 	void set(Object value) {
-	    // Since Matrix4d is mutable we must copy the data for each element
 	    Matrix4d[] arr = (Matrix4d[])value;
-	    int i;
-	    if (this.value.length != arr.length) {
-		this.value = new Matrix4d[arr.length];
-		for (i = 0; i < arr.length; i++) {
-		    this.value[i] = new Matrix4d();
-		}
+	    if (this.length != arr.length) {
+		this.length = arr.length;
+		this.value = new double[this.length * 16];
 	    }
-	    for (i = 0; i < arr.length; i++) {
-		this.value[i].set(arr[i]);
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 16;
+		this.value[j+0]  = arr[i].m00;
+		this.value[j+1]  = arr[i].m01;
+		this.value[j+2]  = arr[i].m02;
+		this.value[j+3]  = arr[i].m03;
+		this.value[j+4]  = arr[i].m10;
+		this.value[j+5]  = arr[i].m11;
+		this.value[j+6]  = arr[i].m12;
+		this.value[j+7]  = arr[i].m13;
+		this.value[j+8]  = arr[i].m20;
+		this.value[j+9]  = arr[i].m21;
+		this.value[j+10] = arr[i].m22;
+		this.value[j+11] = arr[i].m23;
+		this.value[j+12] = arr[i].m30;
+		this.value[j+13] = arr[i].m31;
+		this.value[j+14] = arr[i].m32;
+		this.value[j+15] = arr[i].m33;
 	    }
 	}
 
 	void set(int index, Object value) {
-	    // Since Matrix4d is mutable we must copy the data
-	    this.value[index].set((Matrix4d)value);
+	    int j = index * 16;
+	    Matrix4d m = (Matrix4d)value;
+
+	    this.value[j+0]  = m.m00;
+	    this.value[j+1]  = m.m01;
+	    this.value[j+2]  = m.m02;
+	    this.value[j+3]  = m.m03;
+	    this.value[j+4]  = m.m10;
+	    this.value[j+5]  = m.m11;
+	    this.value[j+6]  = m.m12;
+	    this.value[j+7]  = m.m13;
+	    this.value[j+8]  = m.m20;
+	    this.value[j+9]  = m.m21;
+	    this.value[j+10] = m.m22;
+	    this.value[j+11] = m.m23;
+	    this.value[j+12] = m.m30;
+	    this.value[j+13] = m.m31;
+	    this.value[j+14] = m.m32;
+	    this.value[j+15] = m.m33;
 	}
 
 	Object get() {
-	    // Since Matrix4d is immutable we must return a copy of the data
-	    Matrix4d[] arr = new Matrix4d[this.value.length];
-	    for (int i = 0; i < this.value.length; i++) {
-		arr[i] = (Matrix4d)this.value[i].clone();
+	    Matrix4d[] arr = new Matrix4d[this.length];
+	    for (int i = 0; i < this.length; i++) {
+		int j = i * 16;
+		arr[i].m00 = this.value[j+0];
+		arr[i].m01 = this.value[j+1];
+		arr[i].m02 = this.value[j+2];
+		arr[i].m03 = this.value[j+3];
+		arr[i].m10 = this.value[j+4];
+		arr[i].m11 = this.value[j+5];
+		arr[i].m12 = this.value[j+6];
+		arr[i].m13 = this.value[j+7];
+		arr[i].m20 = this.value[j+8];
+		arr[i].m21 = this.value[j+9];
+		arr[i].m22 = this.value[j+10];
+		arr[i].m23 = this.value[j+11];
+		arr[i].m30 = this.value[j+12];
+		arr[i].m31 = this.value[j+13];
+		arr[i].m32 = this.value[j+14];
+		arr[i].m33 = this.value[j+15];
 	    }
 	    return arr;
-	}
-
-	int length() {
-	    return this.value.length;
 	}
 
 	Object getRef() {
 	    return this.value;
 	}
     }
-
 }
