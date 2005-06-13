@@ -2430,44 +2430,116 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	GeometryAtom[] gaArr = (GeometryAtom[] )args[3];
 	GeometryAtom  ga;
 	RenderAtom ra = null;
-
-	/* For simplicity we will not do bin rearrangement and differiate
-	   visible RA from invisible RA. Doubt there is much performance 
-	   benefit for the added complexity in the logic. Note : ShaderBin
-	   is quite high in the bin structure */		
-
-	boolean spUpdate = 
-	    ((component & ShaderAppearanceRetained.SHADER_PROGRAM_UPDATE) != 0);
-	boolean sasUpdate = 
-	    (((component & ShaderAppearanceRetained.SHADER_ATTRIBUTE_SET_UPDATE) != 0) ||
-	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_PUT) != 0) ||
-	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_REMOVE) != 0) ||
-	     ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_CLEAR) != 0) ||
-	     ((component & ShaderAttributeRetained.SHADER_ATTRIBUTE_VALUE_UPDATE) != 0));
+	ShaderAppearanceRetained sApp = (ShaderAppearanceRetained) args[0];
+	int start = -1;
 
 
-	for (i = 0; i < gaArr.length; i++) {
+	// Get the first ra that is visible
+	for (i = 0; (i < gaArr.length && (start < 0)); i++) {
 	    ra = gaArr[i].getRenderAtom(view);
-	    if (ra== null || !ra.inRenderBin())
+	    if (ra== null || !ra.inRenderBin()) {
 		continue;
-	    
-	    ShaderBin sBin = ra.renderMolecule.textureBin.shaderBin;		
-	    
-	    if (spUpdate && (sBin.componentDirty & ShaderBin.SHADER_PROGRAM_DIRTY) == 0) {
-
-		sBinUpdateList.add(sBin);
-		sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
-
-	    } else if (sasUpdate && 
-		       (sBin.componentDirty & ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY) == 0) {
-
-		sBinUpdateList.add(sBin);
-		sBin.componentDirty |= ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY;
 	    }
-	    
+	    else {
+		start = i;
+	    }
 	}
-    }
+	if (start >= 0) {
 
+	    
+
+	    boolean spUpdate = 
+		((component & ShaderAppearanceRetained.SHADER_PROGRAM) != 0);
+	    boolean sasUpdate = 
+		(((component & ShaderAppearanceRetained.SHADER_ATTRIBUTE_SET) != 0) ||
+		 ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_PUT) != 0) ||
+		 ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_REMOVE) != 0) ||
+		 ((component & ShaderAttributeSetRetained.ATTRIBUTE_SET_CLEAR) != 0) ||
+		 ((component & ShaderAttributeRetained.SHADER_ATTRIBUTE_VALUE_UPDATE) != 0));
+	    
+	    if (spUpdate) {
+		
+		if (false && (sApp.mirror.changedFrequent & component) != 0) {
+		    /*
+		      System.out.println("RenderBin : Shader sole user (SHADER_PROGRAM)" +
+		      ra.renderMolecule.textureBin.shaderBin);
+		    */
+
+		    ShaderBin sBin;
+		
+		    for (i = start; i < gaArr.length; i++) {
+			ra = gaArr[i].getRenderAtom(view);
+			if (ra== null || !ra.inRenderBin())
+			    continue;
+			
+			sBin = ra.renderMolecule.textureBin.shaderBin;
+			
+		    if (sBin.componentDirty == 0) {
+			sBinUpdateList.add(sBin);
+			sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
+		    }
+		    }
+		} else {
+
+		    /*
+		      System.out.println("RenderBin : not soleUser (SHADER_PROGRAM)" +
+		      ra.renderMolecule.textureBin.shaderBin);
+		    */
+
+		    for (i = 0; i < gaArr.length; i++) {
+			ra = gaArr[i].getRenderAtom(view);
+			if (ra== null || !ra.inRenderBin())
+			    continue;
+			
+			AttributeBin attrBin = ra.renderMolecule.textureBin.attributeBin;
+			ra.renderMolecule.removeRenderAtom(ra);
+			reInsertShaderBin(attrBin, ra);
+		    }
+		}
+	    } else if (sasUpdate) {
+		if ((sApp.mirror.changedFrequent & component) != 0) {
+		    
+		    /*
+		      System.out.println("RenderBin : sole user (SHADER_ATTRIBUTE_SET)" +
+		      ra.renderMolecule.textureBin.shaderBin);
+		    */
+
+		    ShaderBin sBin;
+		    
+		    for (i = 0; i < gaArr.length; i++) {
+			ra = gaArr[i].getRenderAtom(view);
+			if (ra== null || !ra.inRenderBin())
+			    continue;
+
+			
+			sBin = ra.renderMolecule.textureBin.shaderBin;
+			
+			if (sBin.componentDirty == 0) {
+			    sBinUpdateList.add(sBin);
+			    sBin.componentDirty |= ShaderBin.SHADER_ATTRIBUTE_SET_DIRTY;
+			}
+		    }
+		} else {
+		    
+		    /* System.out.println("RenderBin :not soleUser (SHADER_ATTRIBUTE_SET) " +
+		       ra.renderMolecule.textureBin.shaderBin);
+		    */
+
+		    for (i = 0; i < gaArr.length; i++) {
+			ra = gaArr[i].getRenderAtom(view);
+			if (ra== null || !ra.inRenderBin())
+			    continue;
+			
+			AttributeBin attrBin = ra.renderMolecule.textureBin.attributeBin;
+			ra.renderMolecule.removeRenderAtom(ra);
+			reInsertShaderBin(attrBin, ra);
+		    }
+		}
+	    }
+	}
+	    
+    }
+    
 
     void processFogChanged(Object[] args) {
 	FogRetained fog = (FogRetained)args[0];
@@ -2532,7 +2604,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    if ((component & TEXTURE_STATE_CHANGED) != 0) {
 
 
-	        if (((app.changedFrequent & TEXTURE_STATE_CHANGED) != 0) &&
+	        if (((app.mirror.changedFrequent & TEXTURE_STATE_CHANGED) != 0) &&
 			((ra.renderMolecule.textureBin.tbFlag & 
 				TextureBin.SOLE_USER) != 0))  {
 
@@ -2569,8 +2641,8 @@ System.out.println("renderbin. texture state changed  tb not sole user " +
 
 System.out.println("......tb.soleUser= " + 
         ((ra.renderMolecule.textureBin.tbFlag & TextureBin.SOLE_USER) != 0) +
-        " app.changedFrequent= " +
-        ((app.changedFrequent & TEXTURE_STATE_CHANGED) != 0));
+        " app.mirror.changedFrequent= " +
+        ((app.mirror.changedFrequent & TEXTURE_STATE_CHANGED) != 0));
 
 */
 
@@ -4254,7 +4326,8 @@ System.out.println("......tb.soleUser= " +
 
     private void reInsertShaderBin(AttributeBin ab, RenderAtom ra) {
 	ShaderBin sb;
-
+	
+	// System.out.println("RenderBin.reInsertShaderBin() ra= " + ra);
 	sb = findShaderBin(ab, ra);
 	reInsertTextureBin(sb, ra);
     }

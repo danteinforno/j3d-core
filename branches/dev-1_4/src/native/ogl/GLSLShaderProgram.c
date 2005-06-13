@@ -843,7 +843,8 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, 1, GL_FALSE, (GLfloat *)values);
+    /*  transpose is GL_TRUE : each matrix is supplied in row major order */
+    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -876,7 +877,8 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
     
     /* Load attribute */
-    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, 1, GL_FALSE, (GLfloat *)values);
+    /*  transpose is GL_TRUE : each matrix is supplied in row major order */
+    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
