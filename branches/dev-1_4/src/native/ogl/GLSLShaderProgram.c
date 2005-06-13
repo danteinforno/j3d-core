@@ -99,6 +99,10 @@ checkGLSLShaderExtensions(
 	    (PFNGLUNIFORM4IARBPROC)dlsym(RTLD_DEFAULT, "glUniform4iARB");
 	ctxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fARB");
+	ctxInfo->pfnglUniformMatrix3fvARB =
+	    (PFNGLUNIFORMMATRIX3FVARBPROC)dlsym(RTLD_DEFAULT, "glUniformMatrix3fvARB");
+	ctxInfo->pfnglUniformMatrix4fvARB =
+	    (PFNGLUNIFORMMATRIX4FVARBPROC)dlsym(RTLD_DEFAULT, "glUniformMatrix4fvARB");
 #endif
 #ifdef WIN32
 	ctxInfo->pfnglAttachObjectARB =
@@ -145,6 +149,10 @@ checkGLSLShaderExtensions(
 	    (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
 	ctxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
+	ctxInfo->pfnglUniformMatrix3fvARB =
+	    (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
+	ctxInfo->pfnglUniformMatrix4fvARB =
+	    (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
 #endif
 	
     }
@@ -811,8 +819,74 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
 
 }
 
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniformMatrix3f
+ * Signature: (JJJ[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3f(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jfloatArray varray)
+{
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
+    jfloat *values;
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Get array values */
+    values = (*env)->GetFloatArrayElements(env, varray, NULL);
+
+    /* Load attribute */
+    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, 1, GL_FALSE, (GLfloat *)values);
+
+    /* Release array values */
+    (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+}
+
+/*
+ * Class:     javax_media_j3d_GLSLShaderProgramRetained
+ * Method:    setUniformMatrix4f
+ * Signature: (JJJ[F)Ljavax/media/j3d/ShaderError;
+ */
+JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4f(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jfloatArray varray)
+{
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
+    jfloat *values;
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Get array values */
+    values = (*env)->GetFloatArrayElements(env, varray, NULL);
+    
+    /* Load attribute */
+    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, 1, GL_FALSE, (GLfloat *)values);
+
+    /* Release array values */
+    (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
+    
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+}
 
 #if 0
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
