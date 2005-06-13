@@ -32,8 +32,8 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     protected ShaderAttributeSetRetained shaderAttributeSet = null;
     protected boolean isMirror = false; // For Debugging.
 
-    static final int SHADER_PROGRAM_UPDATE       = 0x0800;
-    static final int SHADER_ATTRIBUTE_SET_UPDATE = 0x1000;    
+    static final int SHADER_PROGRAM        = 0x0800;
+    static final int SHADER_ATTRIBUTE_SET  = 0x1000;    
 
     /**
      * Set the shader program object to the specified object.
@@ -56,7 +56,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 		    ((ShaderProgramRetained)sp.retained).copyMirrorUsers(this);
 	    	}
 		
-		sendMessage(SHADER_PROGRAM_UPDATE,  
+		sendMessage(SHADER_PROGRAM,  
 			    (sp != null ? ((ShaderProgramRetained)sp.retained).mirror : null));
 		
 	    }
@@ -102,7 +102,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    	}
 		
 		System.out.println(" --   testing  needed!");
-		sendMessage(SHADER_ATTRIBUTE_SET_UPDATE,  
+		sendMessage(SHADER_ATTRIBUTE_SET,  
 			    (sas != null ? 
 			     ((ShaderAttributeSetRetained)sas.retained).mirror : null));
 		
@@ -209,10 +209,10 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	// System.out.println("ShaderAppearanceRetained : updateMirrorObject() this " + this);
 	super.updateMirrorObject(component, value);
  	ShaderAppearanceRetained mirrorApp = (ShaderAppearanceRetained)mirror;
-	if ((component & SHADER_PROGRAM_UPDATE) != 0) {
+	if ((component & SHADER_PROGRAM) != 0) {
 	    mirrorApp.shaderProgram = (ShaderProgramRetained)value;
 	}
-	else if ((component & SHADER_ATTRIBUTE_SET_UPDATE) != 0) {
+	else if ((component & SHADER_ATTRIBUTE_SET) != 0) {
 	    mirrorApp.shaderAttributeSet = (ShaderAttributeSetRetained)value;
 	}
 	
@@ -318,40 +318,39 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 	    return false;
 	}
 
-	/*
-// TODO: IMPLEMENT THIS
 	boolean flag =
 	    source.capabilityBitsEmpty() &&
 	    ((shaderProgram == null) ||
 	     shaderProgram.source.capabilityBitsEmpty()) &&
-	    ((shaderParameters == null) ||
-	     shaderParameters.source.capabilityBitsEmpty());
+	    ((shaderAttributeSet == null) ||
+	     shaderAttributeSet.source.capabilityBitsEmpty());
 
-	return flag;
-	*/
-
-	return false;
+ 	return flag;
     }
 
 
-    /*
-// TODO: IMPLEMENT THIS
-    // TODO: How do we determine whether a ShaderAppearance is opaque???
+    
     boolean isOpaque(int geoType) {
+	
+	if (!super.isOpaque(geoType)) {
+	    return false;
+	}
+	
+	// TODO: IMPLEMENT THIS
+	// TODO: How do we determine whether a ShaderAppearance is opaque???
+	return true;
     }
-    */
 
     void handleFrequencyChange(int bit) {
+	// System.out.println("ShaderAppearanceRetained : handleFrequencyChange()");
 	super.handleFrequencyChange(bit);
 
 	int mask = 0;
-	/*
-// TODO: IMPLEMENT THIS
 	if (bit == ShaderAppearance.ALLOW_SHADER_PROGRAM_WRITE)
 	    mask = SHADER_PROGRAM;
-	else if (bit == ShaderAppearance.ALLOW_SHADER_PARAMETERS_WRITE)
-	    mask = SHADER_PARAMETERS;
-	*/
+	else if (bit == ShaderAppearance.ALLOW_SHADER_ATTRIBUTE_SET_WRITE)
+	    mask = SHADER_ATTRIBUTE_SET;
+	
 
 	if (mask != 0)
 	    setFrequencyChangeMask(bit, mask);
