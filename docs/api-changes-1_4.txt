@@ -36,7 +36,7 @@ I. New/deprecated fields, constructors, methods
 	public String getName()
 
 
-    GeometryArray (incomplete list)
+    GeometryArray
     -------------
     New fields:
 	public static final int ALLOW_VERTEX_ATTR_READ
@@ -107,6 +107,28 @@ I. New/deprecated fields, constructors, methods
 	public float[] getVertexAttrRefFloat(int vertexAttrNum)
 
 
+    PointArray
+    ----------
+    New constructors:
+	public PointArray(int vertexCount,
+			  int vertexFormat,
+			  int texCoordSetCount,
+			  int[] texCoordSetMap,
+			  int vertexAttrCount,
+			  int[] vertexAttrSizes)
+
+
+    LineArray
+    ---------
+    New constructors:
+	public LineArray(int vertexCount,
+			 int vertexFormat,
+			 int texCoordSetCount,
+			 int[] texCoordSetMap,
+			 int vertexAttrCount,
+			 int[] vertexAttrSizes)
+
+
     TriangleArray
     -------------
     New constructors:
@@ -116,6 +138,195 @@ I. New/deprecated fields, constructors, methods
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
 			     int[] vertexAttrSizes)
+
+
+    QuadArray
+    ---------
+    New constructors:
+	public QuadArray(int vertexCount,
+			 int vertexFormat,
+			 int texCoordSetCount,
+			 int[] texCoordSetMap,
+			 int vertexAttrCount,
+			 int[] vertexAttrSizes)
+
+
+    GeometryStripArray
+    ------------------
+    New constructors:
+	public GeometryStripArray(int vertexCount,
+				  int vertexFormat,
+				  int texCoordSetCount,
+				  int[] texCoordSetMap,
+				  int vertexAttrCount,
+				  int[] vertexAttrSizes,
+				  int[] stripVertexCounts)
+
+
+    LineStripArray
+    --------------
+    New constructors:
+	public LineStripArray(int vertexCount,
+			      int vertexFormat,
+			      int texCoordSetCount,
+			      int[] texCoordSetMap,
+			      int vertexAttrCount,
+			      int[] vertexAttrSizes,
+			      int[] stripVertexCounts)
+
+
+    TriangleStripArray
+    ------------------
+    New constructors:
+	public TriangleStripArray(int vertexCount,
+				  int vertexFormat,
+				  int texCoordSetCount,
+				  int[] texCoordSetMap,
+				  int vertexAttrCount,
+				  int[] vertexAttrSizes,
+				  int[] stripVertexCounts)
+
+
+    TriangleFanArray
+    ----------------
+    New constructors:
+	public TriangleFanArray(int vertexCount,
+				int vertexFormat,
+				int texCoordSetCount,
+				int[] texCoordSetMap,
+				int vertexAttrCount,
+				int[] vertexAttrSizes,
+				int[] stripVertexCounts)
+
+
+    IndexedGeometryArray
+    --------------------
+    New constructors:
+	public IndexedGeometryArray(int vertexCount,
+				    int vertexFormat,
+				    int texCoordSetCount,
+				    int[] texCoordSetMap,
+				    int vertexAttrCount,
+				    int[] vertexAttrSizes,
+				    int indexCount)
+
+    New fields:
+	public static final int ALLOW_VERTEX_ATTR_INDEX_READ
+	public static final int ALLOW_VERTEX_ATTR_INDEX_WRITE
+
+    New methods:
+	public void setInitialVertexAttrIndex(int vertexAttrNum,
+					      int initialVertexAttrIndex)
+	public void setVertexAttrIndex(int vertexAttrNum,
+				       int index,
+				       int vertexAttrIndex)
+	public void setVertexAttrIndices(int vertexAttrNum,
+					 int index,
+					 int[] vertexAttrIndices)
+	public int getVertexAttrIndex(int vertexAttrNum, int index)
+	public void getVertexAttrIndices(int vertexAttrNum,
+					 int index,
+					 int[] vertexAttrIndices)
+
+
+    IndexedPointArray
+    ----------------
+    New constructors:
+	public IndexedPointArray(int vertexCount,
+				 int vertexFormat,
+				 int texCoordSetCount,
+				 int[] texCoordSetMap,
+				 int vertexAttrCount,
+				 int[] vertexAttrSizes,
+				 int indexCount)
+
+
+    IndexedLineArray
+    ----------------
+    New constructors:
+	public IndexedLineArray(int vertexCount,
+				int vertexFormat,
+				int texCoordSetCount,
+				int[] texCoordSetMap,
+				int vertexAttrCount,
+				int[] vertexAttrSizes,
+				int indexCount)
+
+
+    IndexedTriangleArray
+    ----------------
+    New constructors:
+	public IndexedTriangleArray(int vertexCount,
+				    int vertexFormat,
+				    int texCoordSetCount,
+				    int[] texCoordSetMap,
+				    int vertexAttrCount,
+				    int[] vertexAttrSizes,
+				    int indexCount)
+
+
+    IndexedQuadArray
+    ----------------
+    New constructors:
+	public IndexedQuadArray(int vertexCount,
+				int vertexFormat,
+				int texCoordSetCount,
+				int[] texCoordSetMap,
+				int vertexAttrCount,
+				int[] vertexAttrSizes,
+				int indexCount)
+
+
+    IndexedGeometryStripArray
+    -------------------------
+    New constructors:
+	public IndexedGeometryStripArray(int vertexCount,
+					 int vertexFormat,
+					 int texCoordSetCount,
+					 int[] texCoordSetMap,
+					 int vertexAttrCount,
+					 int[] vertexAttrSizes,
+					 int indexCount
+					 int[] stripIndexCounts)
+
+
+    IndexedLineStripArray
+    -------------------------
+    New constructors:
+	public IndexedLineStripArray(int vertexCount,
+				     int vertexFormat,
+				     int texCoordSetCount,
+				     int[] texCoordSetMap,
+				     int vertexAttrCount,
+				     int[] vertexAttrSizes,
+				     int indexCount
+				     int[] stripIndexCounts)
+
+
+    IndexedTriangleStripArray
+    -------------------------
+    New constructors:
+	public IndexedTriangleStripArray(int vertexCount,
+					 int vertexFormat,
+					 int texCoordSetCount,
+					 int[] texCoordSetMap,
+					 int vertexAttrCount,
+					 int[] vertexAttrSizes,
+					 int indexCount
+					 int[] stripIndexCounts)
+
+
+    IndexedTriangleFanArray
+    -------------------------
+    New constructors:
+	public IndexedTriangleFanArray(int vertexCount,
+				       int vertexFormat,
+				       int texCoordSetCount,
+				       int[] texCoordSetMap,
+				       int vertexAttrCount,
+				       int[] vertexAttrSizes,
+				       int indexCount
+				       int[] stripIndexCounts)
 
 
     Node

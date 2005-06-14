@@ -388,15 +388,24 @@ public abstract class GeometryArray extends Geometry {
      * <code>USE_COORD_INDEX_ONLY</code>,
      * to indicate that only the coordinate indices are used for indexed
      * geometry arrays.
-     * @exception IllegalArgumentException if vertexCount &lt; 0, if
-     * vertexFormat does NOT include <code>COORDINATES</code>,
-     * if the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
-     * geometry arrays (that is, GeometryArray objects that are not a
-     * subclass of IndexedGeometryArray),
-     * if the <code>INTERLEAVED</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set,
-     * or if the <code>USE_NIO_BUFFER</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set.
+     *
+     * @exception IllegalArgumentException if vertexCount &lt; 0
+     *
+     * @exception IllegalArgumentException if vertexFormat does <b>not</b>
+     * include <code>COORDINATES</code>
+     *
+     * @exception IllegalArgumentException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set for non-indexed geometry arrays (that is, GeometryArray objects
+     * that are not a subclass of IndexedGeometryArray)
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>USE_NIO_BUFFER</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit and the <code>VERTEX_ATTRIBUTES</code> bit are both set
      */
     public GeometryArray(int vertexCount, int vertexFormat) {
 
@@ -409,6 +418,16 @@ public abstract class GeometryArray extends Geometry {
         if ((vertexFormat & INTERLEAVED) != 0 &&
 	    (vertexFormat & BY_REFERENCE) == 0)
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray80"));
+
+        if ((vertexFormat & INTERLEAVED) != 0 &&
+                (vertexFormat & VERTEX_ATTRIBUTES) != 0) {
+            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
+        }
+
+        // TODO KCR: Temporary until vertex attributes are implemented for by-ref geometry
+        if ((vertexFormat & VERTEX_ATTRIBUTES) != 0 && (vertexFormat & BY_REFERENCE) != 0) {
+            throw new RuntimeException("Vertex attributes not implemented for by-ref");
+        }
 
         if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
 	    (vertexFormat & BY_REFERENCE) == 0)
@@ -530,18 +549,29 @@ public abstract class GeometryArray extends Geometry {
      * </ul>
      * <p>
      *
+     * @exception IllegalArgumentException if vertexCount &lt; 0
+     *
+     * @exception IllegalArgumentException if vertexFormat does <b>not</b>
+     * include <code>COORDINATES</code>
+     *
+     * @exception IllegalArgumentException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set for non-indexed geometry arrays (that is, GeometryArray objects
+     * that are not a subclass of IndexedGeometryArray)
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>USE_NIO_BUFFER</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit and the <code>VERTEX_ATTRIBUTES</code> bit are both set
+     *
      * @exception IllegalArgumentException if
-     * <code>vertexCount&nbsp;&lt;&nbsp;0</code>, if vertexFormat does
-     * NOT include <code>COORDINATES</code>, if the
-     * <code>INTERLEAVED</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set, if the
-     * <code>USE_NIO_BUFFER</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set, if
-     * the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
-     * geometry arrays (that is, GeometryArray objects that are not a
-     * subclass of IndexedGeometryArray), if
-     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>, or if any element
-     * in <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>.
+     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>
+     *
+     * @exception IllegalArgumentException if any element in
+     * <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>.
      *
      * @since Java 3D 1.2
      */
@@ -556,8 +586,8 @@ public abstract class GeometryArray extends Geometry {
     /**
      * Constructs an empty GeometryArray object with the specified
      * number of vertices, vertex format, number of texture coordinate
-     * sets, and texture coordinate mapping array.  Defaults are used
-     * for all other parameters.
+     * sets, texture coordinate mapping array, vertex attribute count,
+     * and vertex attribute sizes array.
      *
      * @param vertexCount the number of vertex elements in this
      * GeometryArray<p>
@@ -664,23 +694,42 @@ public abstract class GeometryArray extends Geometry {
      * number of components in the attribute, from 1 to 4. The length
      * of the array must be equal to <code>vertexAttrCount</code>.<p>
      *
+     * @exception IllegalArgumentException if vertexCount &lt; 0
+     *
+     * @exception IllegalArgumentException if vertexFormat does <b>not</b>
+     * include <code>COORDINATES</code>
+     *
+     * @exception IllegalArgumentException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set for non-indexed geometry arrays (that is, GeometryArray objects
+     * that are not a subclass of IndexedGeometryArray)
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>USE_NIO_BUFFER</code>
+     * bit is set without the <code>BY_REFERENCE</code> bit being set
+     *
+     * @exception IllegalArgumentException if the <code>INTERLEAVED</code>
+     * bit and the <code>VERTEX_ATTRIBUTES</code> bit are both set
+     *
      * @exception IllegalArgumentException if
-     * <code>vertexCount&nbsp;&lt;&nbsp;0</code>, if vertexFormat does
-     * NOT include <code>COORDINATES</code>, if the
-     * <code>INTERLEAVED</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set, if the
-     * <code>USE_NIO_BUFFER</code> bit is set without the
-     * <code>BY_REFERENCE</code> bit being set, if
-     * the <code>USE_COORD_INDEX_ONLY</code> bit is set for non-indexed
-     * geometry arrays (that is, GeometryArray objects that are not a
-     * subclass of IndexedGeometryArray), if
-     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>, if any element
-     * in <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>,
-     * if <code>vertexAttrCount&nbsp;&gt;&nbsp;0</code> and the
-     * <code>VERTEX_ATTRIBUTES</code> bit is not set,
-     * if <code>vertexAttrCount&nbsp;&lt;&nbsp;0</code>, if
+     * <code>texCoordSetCount&nbsp;&lt;&nbsp;0</code>
+     *
+     * @exception IllegalArgumentException if any element in
+     * <code>texCoordSetMap[]&nbsp;&gt;=&nbsp;texCoordSetCount</code>.
+     *
+     * @exception IllegalArgumentException if
+     * <code>vertexAttrCount&nbsp;&gt;&nbsp;0</code> and the
+     * <code>VERTEX_ATTRIBUTES</code> bit is not set
+     *
+     * @exception IllegalArgumentException if
+     * <code>vertexAttrCount&nbsp;&lt;&nbsp;0</code>
+     *
+     * @exception IllegalArgumentException if
      * <code>vertexAttrSizes.length&nbsp;!=&nbsp;vertexAttrCount</code>, or
-     * if any element in <code>vertexAttrSizes[]</code> is <code>&lt; 1</code> or
+     *
+     * @exception IllegalArgumentException if any element in
+     * <code>vertexAttrSizes[]</code> is <code>&lt; 1</code> or
      * <code>&gt; 4</code>.
      *
      * @since Java 3D 1.4
@@ -708,6 +757,16 @@ public abstract class GeometryArray extends Geometry {
         if ((vertexFormat & INTERLEAVED) != 0 &&
             (vertexFormat & BY_REFERENCE) == 0)
             throw new IllegalArgumentException(J3dI18N.getString("GeometryArray80"));
+
+        if ((vertexFormat & INTERLEAVED) != 0 &&
+                (vertexFormat & VERTEX_ATTRIBUTES) != 0) {
+            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
+        }
+
+        // TODO KCR: Temporary until vertex attributes are implemented for by-ref geometry
+        if ((vertexFormat & VERTEX_ATTRIBUTES) != 0 && (vertexFormat & BY_REFERENCE) != 0) {
+            throw new RuntimeException("Vertex attributes not implemented for by-ref");
+        }
 
         if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
 	    (vertexFormat & BY_REFERENCE) == 0)
@@ -7081,27 +7140,13 @@ public abstract class GeometryArray extends Geometry {
     }
 
 
-    // -----------------------------------------------------------------
-    // -----------------------------------------------------------------
-    //
-    // TODO KCR: Update javadoc for the interleaved array methods with
-    // one of the following two approaches (once we decide which one
-    // we will do):
-    //
-    // A) include vertex attributes in the description of supported
-    //    interleaved vertex components
-    //
-    // B) document that vertex attributes are not supported in
-    //    interleaved mode, and that an exception will be thrown
-    //
-    // -----------------------------------------------------------------
-    // -----------------------------------------------------------------
-
     /**
      * Sets the interleaved vertex array reference to the specified
      * array.  The vertex components must be stored in a predetermined
      * order in the array.  The order is: texture coordinates, colors,
-     * normals, and positional coordinates.  In the case of texture
+     * normals, and positional coordinates.
+     * Vertex attributes are not supported in interleaved mode.
+     * In the case of texture
      * coordinates, the values for each texture coordinate set
      * are stored in order from 0 through texCoordSetCount-1.  Only those
      * components that are enabled appear in the vertex.  The number
@@ -7206,7 +7251,9 @@ public abstract class GeometryArray extends Geometry {
      * buffer object. The buffer must contain a java.nio.FloatBuffer object.
      * The vertex components must be stored in a predetermined
      * order in the buffer.  The order is: texture coordinates, colors,
-     * normals, and positional coordinates.  In the case of texture
+     * normals, and positional coordinates.
+     * Vertex attributes are not supported in interleaved mode.
+     * In the case of texture
      * coordinates, the values for each texture coordinate set
      * are stored in order from 0 through texCoordSetCount-1.  Only those
      * components that are enabled appear in the vertex.  The number
