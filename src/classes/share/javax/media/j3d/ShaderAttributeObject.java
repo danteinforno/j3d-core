@@ -27,8 +27,8 @@ import javax.vecmath.*;
  * generated. The <code>value</code> must be an instance of one of the
  * allowed classes or an array of one the allowed classes. The allowed
  * classes are: <code>Integer</code>, <code>Float</code>,
- * <code>Double</code>, <code>Tuple{2,3,4}{i,f,d}</code>,
- * <code>Matrix{3,4}{f,d}</code>. A ClassCastException will be thrown
+ * <code>Tuple{2,3,4}{i,f}</code>,
+ * <code>Matrix{3,4}f</code>. A ClassCastException will be thrown
  * if a specified <code>value</code> object is not one of the allowed
  * types. Further, the type of the value is immutable once a
  * ShaderAttributeObject is constructed.  Subsequent setValue
