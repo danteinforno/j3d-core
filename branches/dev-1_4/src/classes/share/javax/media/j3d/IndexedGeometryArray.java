@@ -14,14 +14,11 @@ package javax.media.j3d;
 
 import javax.vecmath.*;
 
-// ***************************************************************************
-// TODO KCR: ADD API FOR VERTEX ATTR INDEX ARRAYS
-// ***************************************************************************
-
 /**
  * The IndexedGeometryArray object contains separate integer arrays
  * that index into the arrays of positional coordinates, colors,
- * normals, and texture coordinates.  These index arrays specify how
+ * normals, texture coordinates, and vertex attributes.
+ * These index arrays specify how
  * vertices are connected to form geometry primitives.  This class is
  * extended to create the various indexed primitive types (e.g.,
  * lines, triangle strips, etc.).
@@ -89,6 +86,24 @@ public abstract class IndexedGeometryArray extends GeometryArray {
     ALLOW_TEXCOORD_INDEX_WRITE = CapabilityBits.INDEXED_GEOMETRY_ARRAY_ALLOW_TEXCOORD_INDEX_WRITE;
 
     /**
+     * Specifies that this IndexedGeometryArray allows reading the array of
+     * vertex attribute indices.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+        ALLOW_VERTEX_ATTR_INDEX_READ = CapabilityBits.INDEXED_GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_INDEX_READ;
+
+    /**
+     * Specifies that this IndexedGeometryArray allows writing the array of
+     * vertex attribute indices.
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int
+        ALLOW_VERTEX_ATTR_INDEX_WRITE = CapabilityBits.INDEXED_GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_INDEX_WRITE;
+
+    /**
      * Constructs an empty IndexedGeometryArray object with the specified
      * number of vertices, vertex format, and number of indices.
      * Defaults are used for all other parameters.  The default values
@@ -100,28 +115,33 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * all index array values : 0<br>
      * </ul>
      *
-     * @param vertexCount the number of vertex elements in this
-     * IndexedGeometryArray
-     * @param vertexFormat a mask indicating which components are
-     * present in each vertex.  This is specified as one or more
-     * individual flags that are bitwise "OR"ed together to describe
-     * the per-vertex data.
-     * The flags include: COORDINATES, to signal the inclusion of
-     * vertex positions--always present; NORMALS, to signal 
-     * the inclusion of per vertex normals; one of COLOR_3,
-     * COLOR_4, to signal the inclusion of per vertex
-     * colors (without or with color information); one of 
-     * TEXTURE_COORDINATE_2, TEXTURE_COORDINATE_3 or
-     * TEXTURE_COORDINATE_4, to signal the
-     * inclusion of per-vertex texture coordinates 2D, 3D or 4D.
+     * @param vertexCount
+     * see {@link GeometryArray#GeometryArray(int,int)}
+     * for a description of this parameter.
+     *
+     * @param vertexFormat
+     * see {@link GeometryArray#GeometryArray(int,int)}
+     * for a description of this parameter.
+     *
      * @param indexCount the number of indices in this object.  This
      * count is the maximum number of vertices that will be rendered.
+     *
+     * @exception IllegalArgumentException if <code>indexCount &lt; 0</code>
+     * ;<br>
+     * See {@link GeometryArray#GeometryArray(int,int)}
+     * for more exceptions that can be thrown
      */
     public IndexedGeometryArray(int vertexCount,
 				int vertexFormat,
 				int indexCount) {
 	super(vertexCount, vertexFormat);
-	((IndexedGeometryArrayRetained)this.retained).createIndexedGeometryArrayData(indexCount);
+
+        // TODO KCR: Temporary until vertex attributes are implemented for indexed geometry
+        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+            throw new RuntimeException("Vertex attributes not implemented");
+        }
+
+        ((IndexedGeometryArrayRetained)this.retained).createIndexedGeometryArrayData(indexCount);
     }
 
     /**
@@ -130,57 +150,29 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * sets, texture coordinate mapping array, and number of indices.
      * Defaults are used for all other parameters.
      *
-     * @param vertexCount the number of vertex elements in this
-     * IndexedGeometryArray<p>
+     * @param vertexCount
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[])}
+     * for a description of this parameter.
      *
-     * @param vertexFormat a mask indicating which components are
-     * present in each vertex.  This is specified as one or more
-     * individual flags that are bitwise "OR"ed together to describe
-     * the per-vertex data.
-     * The flags include: COORDINATES, to signal the inclusion of
-     * vertex positions--always present; NORMALS, to signal 
-     * the inclusion of per vertex normals; one of COLOR_3,
-     * COLOR_4, to signal the inclusion of per vertex
-     * colors (without or with color information); one of 
-     * TEXTURE_COORDINATE_2, TEXTURE_COORDINATE_3 or TEXTURE_COORDINATE_4,
-     * to signal the
-     * inclusion of per-vertex texture coordinates 2D , 3D or 4D.<p>
+     * @param vertexFormat
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[])}
+     * for a description of this parameter.
      *
-     * @param texCoordSetCount the number of texture coordinate sets
-     * in this GeometryArray object.  If <code>vertexFormat</code>
-     * does not include one of <code>TEXTURE_COORDINATE_2</code>,
-     * <code>TEXTURE_COORDINATE_3</code> or
-     * <code>TEXTURE_COORDINATE_4</code>, the
-     * <code>texCoordSetCount</code> parameter is not used.<p>
+     * @param texCoordSetCount
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[])}
+     * for a description of this parameter.
      *
-     * @param texCoordSetMap an array that maps texture coordinate
-     * sets to texture units.  The array is indexed by texture unit
-     * number for each texture unit in the associated Appearance
-     * object.  The values in the array specify the texture coordinate
-     * set within this GeometryArray object that maps to the
-     * corresponding texture
-     * unit.  All elements within the array must be less than
-     * <code>texCoordSetCount</code>.  A negative value specifies that
-     * no texture coordinate set maps to the texture unit
-     * corresponding to the index.  If there are more texture units in
-     * any associated Appearance object than elements in the mapping
-     * array, the extra elements are assumed to be -1.  The same
-     * texture coordinate set may be used for more than one texture
-     * unit.  Each texture unit in every associated Appearance must
-     * have a valid source of texture coordinates: either a
-     * non-negative texture coordinate set must be specified in the
-     * mapping array or texture coordinate generation must be enabled.
-     * Texture coordinate generation will take precedence for those
-     * texture units for which a texture coordinate set is specified
-     * and texture coordinate generation is enabled.  If
-     * <code>vertexFormat</code> does not include one of
-     * <code>TEXTURE_COORDINATE_2</code>,
-     * <code>TEXTURE_COORDINATE_3</code> or
-     * <code>TEXTURE_COORDINATE_4</code>, the
-     * <code>texCoordSetMap</code> array is not used.<p>
+     * @param texCoordSetMap
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[])}
+     * for a description of this parameter.
      *
      * @param indexCount the number of indices in this object.  This
      * count is the maximum number of vertices that will be rendered.
+     *
+     * @exception IllegalArgumentException if <code>indexCount &lt; 0</code>
+     * ;<br>
+     * See {@link GeometryArray#GeometryArray(int,int,int,int[])}
+     * for more exceptions that can be thrown
      *
      * @since Java 3D 1.2
      */
@@ -189,7 +181,63 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 				int texCoordSetCount,
 				int[] texCoordSetMap,
 				int indexCount) {
-	super(vertexCount, vertexFormat, texCoordSetCount, texCoordSetMap);
+	this(vertexCount, vertexFormat, texCoordSetCount, texCoordSetMap, 0, null, indexCount);
+    }
+
+    /**
+     * Constructs an empty IndexedGeometryArray object with the
+     * specified number of vertices, vertex format, number of texture
+     * coordinate sets, texture coordinate mapping array, vertex
+     * attribute count, vertex attribute sizes array, and number of
+     * indices.
+     *
+     * @param vertexCount
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for a description of this parameter.
+     *
+     * @param vertexFormat
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for a description of this parameter.
+     *
+     * @param texCoordSetMap
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for a description of this parameter.
+     *
+     * @param vertexAttrCount
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for a description of this parameter.
+     *
+     * @param vertexAttrSizes
+     * see {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for a description of this parameter.
+     *
+     * @param indexCount the number of indices in this object.  This
+     * count is the maximum number of vertices that will be rendered.
+     *
+     * @exception IllegalArgumentException if <code>indexCount &lt; 0</code>
+     * ;<br>
+     * See {@link GeometryArray#GeometryArray(int,int,int,int[],int,int[])}
+     * for more exceptions that can be thrown
+     *
+     * @since Java 3D 1.4
+     */
+    public IndexedGeometryArray(int vertexCount,
+				int vertexFormat,
+				int texCoordSetCount,
+				int[] texCoordSetMap,
+				int vertexAttrCount,
+				int[] vertexAttrSizes,
+				int indexCount) {
+
+	super(vertexCount, vertexFormat,
+	      texCoordSetCount, texCoordSetMap,
+	      vertexAttrCount, vertexAttrSizes);
+        
+        // TODO KCR: Temporary until vertex attributes are implemented for indexed geometry
+        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+            throw new RuntimeException("Vertex attributes not implemented");
+        }
+
 	((IndexedGeometryArrayRetained)this.retained).createIndexedGeometryArrayData(indexCount);
     }
 
@@ -382,6 +430,20 @@ public abstract class IndexedGeometryArray extends GeometryArray {
     public void setInitialTexCoordIndex(int texCoordSet,
 					int initialTexCoordIndex) {
 	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported for indexed geometry arrays.
+     * Indexed primitives use an array of indices to determine how
+     * to access the vertex array.
+     *
+     * @exception UnsupportedOperationException this method is not supported
+     *
+     * @since Java 3D 1.4
+     */
+    public void setInitialVertexAttrIndex(int vertexAttrNum,
+					  int initialVertexAttrIndex) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -600,7 +662,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 					  int index,
 					  int texCoordIndex) {
 	if (isLiveOrCompiled())
-	    if(!this.getCapability(ALLOW_COORDINATE_INDEX_WRITE))
+	    if(!this.getCapability(ALLOW_TEXCOORD_INDEX_WRITE))
 		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray7"));
   
 	((IndexedGeometryArrayRetained)this.retained).setTextureCoordinateIndex(texCoordSet, index, texCoordIndex);
@@ -644,10 +706,90 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 					    int index,
 					    int texCoordIndices[]) {
 	if (isLiveOrCompiled())
-	    if(!this.getCapability(ALLOW_COORDINATE_INDEX_WRITE))
+	    if(!this.getCapability(ALLOW_TEXCOORD_INDEX_WRITE))
 		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray7"));
   
 	((IndexedGeometryArrayRetained)this.retained).setTextureCoordinateIndices(texCoordSet, index, texCoordIndices);
+    }
+
+    /**
+     * Sets the vertex attribute index associated with the vertex at
+     * the specified index for the specified vertex attribute number
+     * for this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index the vertex index
+     * @param vertexAttrIndex the new vertex attribute index
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception ArrayIndexOutOfBoundsException if the index or
+     * vertexAttrNum is out of range.
+     *
+     * @exception ArrayIndexOutOfBoundsException if index is in the range
+     * <code>[initialIndexIndex, initialIndexIndex+validIndexCount-1]</code>
+     * and the specified vertexAttrIndex is out of range.  The
+     * vertexAttrIndex is out of range if it is less than 0 or is
+     * greater than or equal to the number of vertices actually
+     * defined for the vertex attribute array.
+     *
+     * @since Java 3D 1.4
+     */
+    public void setVertexAttrIndex(int vertexAttrNum,
+                                   int index,
+                                   int vertexAttrIndex) {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_VERTEX_ATTR_INDEX_WRITE)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray28"));
+            }
+        }
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+	/*
+	//((IndexedGeometryArrayRetained)this.retained).setVertexIndex(vertexAttrNum, index, vertexAttrIndex);
+        */
+    }
+
+    /**
+     * Sets the vertex attribute indices associated with the vertices
+     * starting at the specified index for the specified vertex attribute number
+     * for this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index the vertex index
+     * @param vertexAttrIndices an array of vertex attribute indices
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception ArrayIndexOutOfBoundsException if the index or
+     * vertexAttrNum is out of range.
+     *
+     * @exception ArrayIndexOutOfBoundsException if any element of the
+     * vertexAttrIndices array whose destination position is in the range
+     * <code>[initialIndexIndex, initialIndexIndex+validIndexCount-1]</code>
+     * is out of range.  An element is out of range if it is less than 0
+     * or is greater than or equal to the number of vertices actually
+     * defined for the vertex attribute array.
+     *
+     * @since Java 3D 1.4
+     */
+    public void setVertexAttrIndices(int vertexAttrNum,
+                                     int index,
+                                     int[] vertexAttrIndices) {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_VERTEX_ATTR_INDEX_WRITE)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray28"));
+            }
+        }
+  
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+	/*
+	//((IndexedGeometryArrayRetained)this.retained).setVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
+        */
     }
 
   /**
@@ -826,6 +968,74 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray15"));
   
 	((IndexedGeometryArrayRetained)this.retained).getTextureCoordinateIndices(texCoordSet, index, texCoordIndices);
+    }
+
+    /**
+     * Retrieves the vertex attribute index associated with the vertex at
+     * the specified index for the specified vertex attribute number
+     * for this object.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index the vertex index
+     *
+     * @return the vertex attribute index
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception ArrayIndexOutOfBoundsException if the index or
+     * vertexAttrNum is out of range.
+     *
+     * @since Java 3D 1.4
+     */
+    public int getVertexAttrIndex(int vertexAttrNum,
+                                  int index) {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_VERTEX_ATTR_INDEX_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray29"));
+            }
+        }
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+	/*
+	//return ((IndexedGeometryArrayRetained)this.retained).getVertexIndex(vertexAttrNum, index);
+        */
+    }
+
+    /**
+     * Retrieves the vertex attribute indices associated with the vertices
+     * starting at the specified index for the specified vertex attribute number
+     * for this object. The vertex attribute indices
+     * are copied into the specified array. The array
+     * must be large enough to hold all of the indices.
+     *
+     * @param vertexAttrNum vertex attribute number in this geometry array
+     * @param index the vertex index
+     * @param vertexAttrIndices array that will receive the vertex attribute indices
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception ArrayIndexOutOfBoundsException if the index or
+     * vertexAttrNum is out of range.
+     *
+     * @since Java 3D 1.4
+     */
+    public void getVertexAttrIndices(int vertexAttrNum,
+                                     int index,
+                                     int[] vertexAttrIndices) {
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_VERTEX_ATTR_INDEX_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("IndexedGeometryArray29"));
+            }
+        }
+  
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+	/*
+	//((IndexedGeometryArrayRetained)this.retained).getVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
+        */
     }
 
    /**

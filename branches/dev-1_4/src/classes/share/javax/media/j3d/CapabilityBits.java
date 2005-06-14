@@ -475,6 +475,10 @@ class CapabilityBits extends Object {
     static final int GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_READ		= 22;
     static final int GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_WRITE		= 23;
 
+    // Additional GeometryArray bits (must go after IndexedGeometryArray bits)
+    static final int INDEXED_GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_INDEX_READ = 24;
+    static final int INDEXED_GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_INDEX_WRITE = 25;
+
     // CompressedGeometry extends Geometry 
     static final int COMPRESSED_GEOMETRY_ALLOW_COUNT_READ		= 0;
     static final int COMPRESSED_GEOMETRY_ALLOW_HEADER_READ		= 1;
