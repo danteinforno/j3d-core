@@ -28,8 +28,8 @@ import javax.vecmath.*;
  * generated. The <code>value</code> must be an instance of one of the
  * allowed classes or an array of one the allowed classes. The allowed
  * classes are: <code>Integer</code>, <code>Float</code>,
- * <code>Double</code>, <code>Tuple{2,3,4}{i,f,d}</code>,
- * <code>Matrix{3,4}{f,d}</code>. A ClassCastException will be thrown
+ * <code>Tuple{2,3,4}{i,f}</code>,
+ * <code>Matrix{3,4}f</code>. A ClassCastException will be thrown
  * if a specified <code>value</code> object is not one of the allowed
  * types. Further, the type of the value is immutable once a
  * ShaderAttributeObjectRetained is constructed.  Subsequent setValue
@@ -193,57 +193,66 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
     // of the entries in each of the two class tables.
     static final int TYPE_INTEGER  =  0;
     static final int TYPE_FLOAT    =  1;
-    static final int TYPE_DOUBLE   =  2;
-    static final int TYPE_TUPLE2I  =  3;
-    static final int TYPE_TUPLE2F  =  4;
-    static final int TYPE_TUPLE2D  =  5;
-    static final int TYPE_TUPLE3I  =  6;
-    static final int TYPE_TUPLE3F  =  7;
-    static final int TYPE_TUPLE3D  =  8;
-    static final int TYPE_TUPLE4I  =  9;
-    static final int TYPE_TUPLE4F  = 10;
-    static final int TYPE_TUPLE4D  = 11;
-    static final int TYPE_MATRIX3F = 12;
-    static final int TYPE_MATRIX3D = 13;
-    static final int TYPE_MATRIX4F = 14;
-    static final int TYPE_MATRIX4D = 15;
+    static final int TYPE_TUPLE2I  =  2;
+    static final int TYPE_TUPLE2F  =  3;
+    static final int TYPE_TUPLE3I  =  4;
+    static final int TYPE_TUPLE3F  =  5;
+    static final int TYPE_TUPLE4I  =  6;
+    static final int TYPE_TUPLE4F  =  7;
+    static final int TYPE_MATRIX3F =  8;
+    static final int TYPE_MATRIX4F =  9;
+
+    // Double-precision is not supported in the current version. Uncomment the
+    // following if future support is done.
+//    static final int TYPE_DOUBLE   = 10;
+//    static final int TYPE_TUPLE2D  = 11;
+//    static final int TYPE_TUPLE3D  = 12;
+//    static final int TYPE_TUPLE4D  = 13;
+//    static final int TYPE_MATRIX3D = 14;
+//    static final int TYPE_MATRIX4D = 15;
 
     static final Class classTable[] = {
 	Integer.class,
 	Float.class,
-	Double.class,
 	Tuple2i.class,
 	Tuple2f.class,
-	Tuple2d.class,
 	Tuple3i.class,
 	Tuple3f.class,
-	Tuple3d.class,
 	Tuple4i.class,
 	Tuple4f.class,
-	Tuple4d.class,
 	Matrix3f.class,
-	Matrix3d.class,
 	Matrix4f.class,
-	Matrix4d.class,
+
+        // Double-precision is not supported in the current version. Uncomment the
+        // following if future support is done.
+//	Double.class,
+//	Tuple2d.class,
+//	Tuple3d.class,
+//	Tuple4d.class,
+//	Matrix3d.class,
+//	Matrix4d.class,
     };
 
     static final Class classTableArr[] = {
 	Integer[].class,
 	Float[].class,
-	Double[].class,
 	Tuple2i[].class,
 	Tuple2f[].class,
-	Tuple2d[].class,
 	Tuple3i[].class,
 	Tuple3f[].class,
-	Tuple3d[].class,
 	Tuple4i[].class,
 	Tuple4f[].class,
-	Tuple4d[].class,
 	Matrix3f[].class,
-	Matrix3d[].class,
 	Matrix4f[].class,
-	Matrix4d[].class,
+
+        // Double-precision is not supported in the current version. Uncomment the
+        // following if future support is done.
+//	Double[].class,
+//	Tuple2d[].class,
+//	Tuple3d[].class,
+//	Tuple4d[].class,
+//	Matrix3d[].class,
+//	Matrix4d[].class,
     };
 
 

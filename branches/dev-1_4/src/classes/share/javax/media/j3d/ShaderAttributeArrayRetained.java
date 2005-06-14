@@ -23,8 +23,8 @@ import javax.vecmath.*;
  * used. Otherwise, the attribute name will be ignored and a runtime
  * error may be generated. The <code>value</code> must be an array
  * of one of the allowed classes. The allowed classes are:
- * <code>Integer[]</code>, <code>Float[]</code>, <code>Double[]</code>,
- * <code>Tuple{2,3,4}{i,f,d}[]</code>, <code>Matrix{3,4}{f,d}[]</code>. A
+ * <code>Integer[]</code>, <code>Float[]</code>,
+ * <code>Tuple{2,3,4}{i,f}[]</code>, <code>Matrix{3,4}f[]</code>. A
  * ClassCastException will be thrown if a specified <code>value</code>
  * object is not one of the allowed types. Further, the type and length of the
  * value is immutable once a ShaderAttributeArray is constructed.
@@ -138,69 +138,51 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	case TYPE_FLOAT:
 	    attrWrapper = new FloatArrayWrapper();
 	    break;
-	case TYPE_DOUBLE:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new DoubleArrayWrapper();
-	    break;
-	    */
+//	case TYPE_DOUBLE:
+//	    attrWrapper = new DoubleArrayWrapper();
+//	    break;
 	case TYPE_TUPLE2I:
 	    attrWrapper = new Tuple2iArrayWrapper();
 	    break;
 	case TYPE_TUPLE2F:
 	    attrWrapper = new Tuple2fArrayWrapper();
 	    break;
-	case TYPE_TUPLE2D:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new Tuple2dArrayWrapper();
-	    break;
-	    */
+//	case TYPE_TUPLE2D:
+//	    attrWrapper = new Tuple2dArrayWrapper();
+//	    break;
 	case TYPE_TUPLE3I:
 	    attrWrapper = new Tuple3iArrayWrapper();
 	    break;
 	case TYPE_TUPLE3F:
 	    attrWrapper = new Tuple3fArrayWrapper();
 	    break;
-	case TYPE_TUPLE3D:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new Tuple3dArrayWrapper();
-	    break;
-	    */
+//	case TYPE_TUPLE3D:
+//	    attrWrapper = new Tuple3dArrayWrapper();
+//	    break;
 	case TYPE_TUPLE4I:
 	    attrWrapper = new Tuple4iArrayWrapper();
 	    break;
 	case TYPE_TUPLE4F:
 	    attrWrapper = new Tuple4fArrayWrapper();
 	    break;
-	case TYPE_TUPLE4D:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new Tuple4dArrayWrapper();
-	    break;
-	    */
+//	case TYPE_TUPLE4D:
+//	    attrWrapper = new Tuple4dArrayWrapper();
+//	    break;
 	case TYPE_MATRIX3F:
 	    attrWrapper = new Matrix3fArrayWrapper();
 	    break;
-	case TYPE_MATRIX3D:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new Matrix3dArrayWrapper();
-	    break;
-	    */
+//	case TYPE_MATRIX3D:
+//	    attrWrapper = new Matrix3dArrayWrapper();
+//	    break;
 	case TYPE_MATRIX4F:
 	    attrWrapper = new Matrix4fArrayWrapper();
 	    break;
-	case TYPE_MATRIX4D:
-	    throw new RuntimeException("not implemented");
-	    /*
-	    attrWrapper = new Matrix4dArrayWrapper();
-	    break;
-	    */
+//	case TYPE_MATRIX4D:
+//	    attrWrapper = new Matrix4dArrayWrapper();
+//	    break;
 	default:
 	    // Should never get here
-	    assert(false);
+	    assert false;
 	    return null;
 	}
 
@@ -297,6 +279,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Double
     static class DoubleArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -328,6 +311,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 
     // Wrapper class for Tuple2i
     static class Tuple2iArrayWrapper extends ArrayWrapper {
@@ -405,6 +389,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Tuple2d
     static class Tuple2dArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -442,6 +427,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 
     // Wrapper class for Tuple3i
     static class Tuple3iArrayWrapper extends ArrayWrapper {
@@ -525,6 +511,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Tuple3d
     static class Tuple3dArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -565,6 +552,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 
     // Wrapper class for Tuple4i
     static class Tuple4iArrayWrapper extends ArrayWrapper {
@@ -654,6 +642,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Tuple4d
     static class Tuple4dArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -697,6 +686,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 
     // Wrapper class for Matrix3f
     static class Matrix3fArrayWrapper extends ArrayWrapper {
@@ -759,6 +749,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Matrix3d
     static class Matrix3dArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -819,6 +810,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 
     // Wrapper class for Matrix4f
     static class Matrix4fArrayWrapper extends ArrayWrapper {
@@ -902,6 +894,7 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	}
     }
 
+    /*
     // Wrapper class for Matrix4d
     static class Matrix4dArrayWrapper extends ArrayWrapper {
 	private double[] value = new double[0];
@@ -983,4 +976,5 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 	    return this.value;
 	}
     }
+    */
 }
