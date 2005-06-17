@@ -2458,7 +2458,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		 ((component & ShaderAttributeRetained.SHADER_ATTRIBUTE_VALUE_UPDATE) != 0));
 	    
 	    if (spUpdate) {
-		
+		/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */
 		if (false && (sApp.mirror.changedFrequent & component) != 0) {
 		    /*
 		      System.out.println("RenderBin : Shader sole user (SHADER_PROGRAM)" +
@@ -2468,19 +2468,18 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    ShaderBin sBin;
 		
 		    for (i = start; i < gaArr.length; i++) {
-			ra = gaArr[i].getRenderAtom(view);
-			if (ra== null || !ra.inRenderBin())
-			    continue;
-			
-			sBin = ra.renderMolecule.textureBin.shaderBin;
-			
-		    if (sBin.componentDirty == 0) {
-			sBinUpdateList.add(sBin);
-			sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
-		    }
-		    }
+                        ra = gaArr[i].getRenderAtom(view);
+                        if (ra== null || !ra.inRenderBin())
+                            continue;
+                        
+                        sBin = ra.renderMolecule.textureBin.shaderBin;
+                        
+                        if (sBin.componentDirty == 0) {
+                            sBinUpdateList.add(sBin);
+                            sBin.componentDirty |= ShaderBin.SHADER_PROGRAM_DIRTY;
+                        }
+                    }
 		} else {
-
 		    /*
 		      System.out.println("RenderBin : not soleUser (SHADER_PROGRAM)" +
 		      ra.renderMolecule.textureBin.shaderBin);
@@ -2497,9 +2496,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    }
 		}
 	    } else if (sasUpdate) {
-		if ((sApp.mirror.changedFrequent & component) != 0) {
-		    
-		    /*
+		/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */                
+		if (false && (sApp.mirror.changedFrequent & component) != 0) {
+                    /*
 		      System.out.println("RenderBin : sole user (SHADER_ATTRIBUTE_SET)" +
 		      ra.renderMolecule.textureBin.shaderBin);
 		    */
@@ -2520,8 +2519,8 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 			}
 		    }
 		} else {
-		    
-		    /* System.out.println("RenderBin :not soleUser (SHADER_ATTRIBUTE_SET) " +
+		    /*
+		       System.out.println("RenderBin :not soleUser (SHADER_ATTRIBUTE_SET) " +
 		       ra.renderMolecule.textureBin.shaderBin);
 		    */
 
