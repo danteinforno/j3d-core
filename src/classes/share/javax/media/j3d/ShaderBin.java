@@ -347,7 +347,9 @@ class ShaderBin implements ObjectUpdate {
 
 	    HashMap attrs = (HashMap)shaderAttributeSet.getAttrs();
 	    attrs.clear();
-	    attrs.putAll(shaderAppearance.shaderAttributeSet.getAttrs());
+            if(shaderAppearance.shaderAttributeSet != null) {
+                attrs.putAll(shaderAppearance.shaderAttributeSet.getAttrs());
+            }
 	}
 	
 	componentDirty = 0;

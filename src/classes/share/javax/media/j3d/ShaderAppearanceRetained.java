@@ -88,7 +88,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
     void setShaderAttributeSet(ShaderAttributeSet sas) {
 	synchronized(liveStateLock) {
 	    if (source.isLive()) {
-		System.out.println("**** ShaderAppearceRetained.setShaderAttributeSet()");
+		// System.out.println("**** ShaderAppearceRetained.setShaderAttributeSet()");
 
 		if (this.shaderAttributeSet != null) {
 		    this.shaderAttributeSet.clearLive(refCount);
@@ -101,7 +101,7 @@ class ShaderAppearanceRetained extends AppearanceRetained {
 		    ((ShaderAttributeSetRetained)sas.retained).copyMirrorUsers(this);
 	    	}
 		
-		System.out.println(" --   testing  needed!");
+		// System.out.println(" --   testing  needed!");
 		sendMessage(SHADER_ATTRIBUTE_SET,  
 			    (sas != null ? 
 			     ((ShaderAttributeSetRetained)sas.retained).mirror : null));
