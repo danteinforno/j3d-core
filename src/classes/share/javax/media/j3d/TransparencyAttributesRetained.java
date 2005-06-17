@@ -44,6 +44,8 @@ class TransparencyAttributesRetained extends NodeComponentRetained {
     static final int BLEND_SRC_ALPHA           = 2;
     static final int BLEND_ONE_MINUS_SRC_ALPHA = 3;
     static final int BLEND_DST_COLOR           = 4;
+    // TODO KCR : Get these constants from TranspAttr.java,
+    // especially since they are now wrong !!!
     static final int BLEND_SRC_COLOR           = 5;
     static final int BLEND_ONE_MINUS_SRC_COLOR = 6;
     static final int BLEND_CONSTANT_COLOR      = 7;

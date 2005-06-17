@@ -388,6 +388,8 @@ I. New/deprecated fields, constructors, methods
     New fields:
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
 	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
+	public static final int ALLOW_STENCIL_ATTRIBUTES_READ
+	public static final int ALLOW_STENCIL_ATTRIBUTES_WRITE
         public static final int ROP_CLEAR
         public static final int ROP_AND
         public static final int ROP_AND_REVERSE
@@ -402,27 +404,49 @@ I. New/deprecated fields, constructors, methods
         public static final int ROP_OR_INVERTED
         public static final int ROP_NAND
         public static final int ROP_SET
+	public static final int STENCIL_KEEP
+	public static final int STENCIL_ZERO
+	public static final int STENCIL_REPLACE
+	public static final int STENCIL_INCR
+	public static final int STENCIL_DECR
+	public static final int STENCIL_INVERT
 
-    New constructors:
-	public RenderingAttributes(boolean depthBufferEnable,
-				   boolean depthBufferWriteEnable,
-				   int depthTestFunction,
-				   float alphaTestValue,
-				   int alphaTestFunction,
-				   boolean visible,
-				   boolean ignoreVertexColors,
-				   boolean rasterOpEnable,
-				   int rasterOp)
 
     New methods:
 	public void setDepthTestFunction(int function)
 	public int getDepthTestFunction()
+	public void setStencilEnable(boolean enable)
+	public boolean getStencilEnable()
+	public void setStencilOp(int failOp, int zFailOp, int zPassOp)
+	public void setStencilOp(int[] stencilOps)
+	public void getStencilOp(int[] stencilOps)
+	public void setStencilFunction(int function, int refValue, int compareMask)
+	public void setStencilFunction(int[] params)
+	public void getStencilFunction(int[] params)
+	public void setStencilWriteMask(int mask)
+	public int getStencilWriteMask()
 
 
     Font3D
     ------
     New methods:
 	public GeometryArray getGlyphGeometry(char c)
+
+
+    GraphicsConfigTemplate3D
+    ------------------------
+    New methods:
+	public void setStencilSize(int value)
+	public int getStencilSize()
+
+
+    TransparencyAttributes
+    ----------------------
+    New fields:
+	public static final int BLEND_DST_COLOR
+	public static final int BLEND_ONE_MINUS_DST_COLOR
+	public static final int BLEND_SRC_COLOR
+	public static final int BLEND_ONE_MINUS_SRC_COLOR
 
 
 II. Reparented classes
