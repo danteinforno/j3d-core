@@ -516,7 +516,10 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             long[] locArr = new long[1];
             ShaderError err = lookupShaderAttrName(cv.ctx, shaderProgramId, attrName, locArr);
             if (err != null) {
-                return err;
+                // TODO KCR : Remove this and re-enable the error handling
+                System.err.println(err + " -- ignored");
+                locArr[0] = -1;
+                //return err;
             }
             System.err.println(attrName + " : loc = " + locArr[0]);
             shaderProgramData[cvRdrIndex].setLocation(attrName, new Long(locArr[0]));

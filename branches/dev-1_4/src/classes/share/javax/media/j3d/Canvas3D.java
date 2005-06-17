@@ -3142,6 +3142,10 @@ public class Canvas3D extends Canvas {
      * <td>Integer</td>
      * </tr>
      * <tr>
+     * <td><code>stencilSize</code></td>
+     * <td>Integer</td>
+     * </tr>
+     * <tr>
      * <td><code>texture3DAvailable</code></td>
      * <td>Boolean</td>
      * </tr>
@@ -3286,6 +3290,14 @@ public class Canvas3D extends Canvas {
      * If this value is one, multisampling antialiasing is used.
      * Otherwise, the number indicates the number of rendering passes
      * needed. 
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>stencilSize</code>
+     * <ul>
+     * An Integer indicating the number of stencil bits that are available
+     * for this Canvas3D. 
      * </ul>
      * </li>
      *
@@ -3563,8 +3575,12 @@ public class Canvas3D extends Canvas {
 		    1: Renderer.NUM_ACCUMULATION_SAMPLES);
 	}
 	values.add(new Integer(pass));
-	
-	keys.add("compressedGeometry.majorVersionNumber");
+
+        // TODO: finish this when stencil support is added
+	keys.add("stencilSize");
+        values.add(new Integer(0));
+
+        keys.add("compressedGeometry.majorVersionNumber");
 	values.add(new Integer(GeometryDecompressor.majorVersionNumber));
 	keys.add("compressedGeometry.minorVersionNumber");
 	values.add(new Integer(GeometryDecompressor.minorVersionNumber));

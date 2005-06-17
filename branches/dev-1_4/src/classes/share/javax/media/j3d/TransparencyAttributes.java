@@ -61,6 +61,14 @@ package javax.media.j3d;
  * alpha<sub><font size=-1>src</font></sub></code>.</LI>
  * <LI>BLEND_ONE_MINUS_SRC_ALPHA - the blend function is <code>f = 
  * 1 - alpha<sub><font size=-1>src</font></sub></code>.</LI></UL><P>
+ * <LI>BLEND_DST_COLOR - the blend function is <code>f = 
+ * color<sub><font size=-1>dst</font></sub></code>.</LI>
+ * <LI>BLEND_ONE_MINUS_DST_COLOR - the blend function is <code>f = 
+ * 1 - color<sub><font size=-1>dst</font></sub></code>.</LI></UL><P>
+ * <LI>BLEND_SRC_COLOR - the blend function is <code>f = 
+ * color<sub><font size=-1>src</font></sub></code>.</LI>
+ * <LI>BLEND_ONE_MINUS_SRC_COLOR - the blend function is <code>f = 
+ * 1 - color<sub><font size=-1>src</font></sub></code>.</LI></UL><P>
  * <LI>Blend value - the amount of transparency to be applied to this
  * Appearance component object. The transparency values are in the
  * range [0.0, 1.0], with 0.0 being fully opaque and 1.0 being
@@ -173,6 +181,7 @@ public class TransparencyAttributes extends NodeComponent {
      * Blend function: <code>f = 0</code>.
      * @see #setSrcBlendFunction
      * @see #setDstBlendFunction
+     *
      * @since Java 3D 1.2
      */
     public static final int BLEND_ZERO = 0;
@@ -181,6 +190,7 @@ public class TransparencyAttributes extends NodeComponent {
      * Blend function: <code>f = 1</code>.
      * @see #setSrcBlendFunction
      * @see #setDstBlendFunction
+     *
      * @since Java 3D 1.2
      */
     public static final int BLEND_ONE = 1;
@@ -190,6 +200,7 @@ public class TransparencyAttributes extends NodeComponent {
      * <code>f = alpha<sub><font size=-1>src</font></sub></code>.
      * @see #setSrcBlendFunction
      * @see #setDstBlendFunction
+     *
      * @since Java 3D 1.2
      */
     public static final int BLEND_SRC_ALPHA = 2;
@@ -199,9 +210,54 @@ public class TransparencyAttributes extends NodeComponent {
      * <code>f = 1-alpha<sub><font size=-1>src</font></sub></code>.
      * @see #setSrcBlendFunction
      * @see #setDstBlendFunction
+     *
      * @since Java 3D 1.2
      */
     public static final int BLEND_ONE_MINUS_SRC_ALPHA = 3;
+
+    /**
+     * Blend function:
+     * <code>f = color<sub><font size=-1>dst</font></sub></code>.
+     * <p>Note that this function may <b>only</b> be used as a source
+     * blend function.</p>
+     * @see #setSrcBlendFunction
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int BLEND_DST_COLOR = 4;
+
+    /**
+     * Blend function:
+     * <code>f = 1-color<sub><font size=-1>dst</font></sub></code>.
+     * <p>Note that this function may <b>only</b> be used as a source
+     * blend function.</p>
+     * @see #setSrcBlendFunction
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int BLEND_ONE_MINUS_DST_COLOR = 5;
+
+    /**
+     * Blend function:
+     * <code>f = color<sub><font size=-1>src</font></sub></code>.
+     * <p>Note that this function may <b>only</b> be used as a destination
+     * blend function.</p>
+     * @see #setDstBlendFunction
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int BLEND_SRC_COLOR = 6;
+
+    /**
+     * Blend function:
+     * <code>f = 1-color<sub><font size=-1>src</font></sub></code>.
+     * <p>Note that this function may <b>only</b> be used as a destination
+     * blend function.</p>
+     * @see #setDstBlendFunction
+     *
+     * @since Java 3D 1.4
+     */
+    public static final int BLEND_ONE_MINUS_SRC_COLOR = 7;
 
 
     /**
@@ -238,20 +294,20 @@ public class TransparencyAttributes extends NodeComponent {
      * @param tVal the transparency value
      * @param srcBlendFunction the blend function to be used for the source
      * color, one of <code>BLEND_ZERO</code>, <code>BLEND_ONE</code>,
-     * <code>BLEND_SRC_ALPHA</code>, or <code>BLEND_ONE_MINUS_SRC_ALPHA</code>.
+     * <code>BLEND_SRC_ALPHA</code>, <code>BLEND_ONE_MINUS_SRC_ALPHA</code>,
+     * <code>BLEND_DST_COLOR</code>, or <code>BLEND_ONE_MINUS_DST_COLOR</code>.
      * @param dstBlendFunction the blend function to be used for the
      * destination
      * color, one of <code>BLEND_ZERO</code>, <code>BLEND_ONE</code>,
-     * <code>BLEND_SRC_ALPHA</code>, or <code>BLEND_ONE_MINUS_SRC_ALPHA</code>.
+     * <code>BLEND_SRC_ALPHA</code>, or <code>BLEND_ONE_MINUS_SRC_ALPHA</code>,
+     * <code>BLEND_SRC_COLOR</code>, or <code>BLEND_ONE_MINUS_SRC_COLOR</code>.
      * @exception IllegalArgumentException if
      * <code>tMode</code> is a value other than
      * <code>NONE</code>, <code>FASTEST</code>, <code>NICEST</code>, 
      * <code>SCREEN_DOOR</code>, or <code>BLENDED</code>
      * @exception IllegalArgumentException if
      * <code>srcBlendFunction</code> or <code>dstBlendFunction</code>
-     * is a value other than <code>BLEND_ZERO</code>, <code>BLEND_ONE</code>,
-     * <code>BLEND_SRC_ALPHA</code>, or
-     * <code>BLEND_ONE_MINUS_SRC_ALPHA</code>.
+     * is a value other than one of the supported functions listed above.
      *
      * @since Java 3D 1.2
      */
@@ -263,15 +319,31 @@ public class TransparencyAttributes extends NodeComponent {
 	    throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes6"));	    
 	}
 
-	if ((srcBlendFunction < BLEND_ZERO) || 
-	    (srcBlendFunction > BLEND_ONE_MINUS_SRC_ALPHA)) {
-	    throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes7"));	    
-	}
-	
-	if ((dstBlendFunction < BLEND_ZERO) || 
-	    (dstBlendFunction > BLEND_ONE_MINUS_SRC_ALPHA)) {
-	    throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes8"));	    
-	}
+        switch (srcBlendFunction) {
+            case BLEND_ZERO:
+            case BLEND_ONE:
+            case BLEND_SRC_ALPHA:
+            case BLEND_ONE_MINUS_SRC_ALPHA:
+                break;
+            case BLEND_DST_COLOR:
+            case BLEND_ONE_MINUS_DST_COLOR:
+                throw new RuntimeException("srcBlendFunctions DST_COLOR/ONE_MINUS_DST_COLOR not implemented");
+            default:
+                throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes7"));
+        }
+
+        switch (dstBlendFunction) {
+            case BLEND_ZERO:
+            case BLEND_ONE:
+            case BLEND_SRC_ALPHA:
+            case BLEND_ONE_MINUS_SRC_ALPHA:
+                break;
+            case BLEND_SRC_COLOR:
+            case BLEND_ONE_MINUS_SRC_COLOR:
+                throw new RuntimeException("dstBlendFunctions SRC_COLOR/ONE_MINUS_SRC_COLOR not implemented");
+            default:
+                throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes8"));
+        }
 
         ((TransparencyAttributesRetained)this.retained).initTransparencyMode(tMode);
         ((TransparencyAttributesRetained)this.retained).initTransparency(tVal);
