@@ -2430,7 +2430,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	GeometryAtom[] gaArr = (GeometryAtom[] )args[3];
 	GeometryAtom  ga;
 	RenderAtom ra = null;
-	ShaderAppearanceRetained sApp = (ShaderAppearanceRetained) args[0];
+	/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */
+	// Note : args[0] may be a ShaderAppearanceRetained or ShaderAttributeSetRetained
+	//ShaderAppearanceRetained sApp = (ShaderAppearanceRetained) args[0];
 	int start = -1;
 
 
@@ -2459,7 +2461,8 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    
 	    if (spUpdate) {
 		/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */
-		if (false && (sApp.mirror.changedFrequent & component) != 0) {
+		//if (false && (sApp.mirror.changedFrequent & component) != 0) {
+                if(false) {
 		    /*
 		      System.out.println("RenderBin : Shader sole user (SHADER_PROGRAM)" +
 		      ra.renderMolecule.textureBin.shaderBin);
@@ -2496,8 +2499,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    }
 		}
 	    } else if (sasUpdate) {
-		/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */                
-		if (false && (sApp.mirror.changedFrequent & component) != 0) {
+		/* TODO : JADA - Sole user logic is incomplete. Will disable for JavaOne */
+		//if (false && (sApp.mirror.changedFrequent & component) != 0) {
+                  if(false) {
                     /*
 		      System.out.println("RenderBin : sole user (SHADER_ATTRIBUTE_SET)" +
 		      ra.renderMolecule.textureBin.shaderBin);

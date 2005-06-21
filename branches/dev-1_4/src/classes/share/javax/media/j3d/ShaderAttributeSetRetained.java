@@ -98,18 +98,15 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
 	    // System.out.println("ShaderAttributeSetRetained : put()");
 	    ShaderAttributeRetained sAttr = (ShaderAttributeRetained)attr.retained;
 	    // System.out.println("attr is " + attr );
-	    // System.out.println("attrName is " + sAttr.attrName + 
-	    // " attr.Retained is "+ sAttr );
+	    // System.out.println("attrName is " + sAttr.attrName + " attr.Retained is "+ sAttr );
 	    assert(sAttr != null);
 	    attrs.put(sAttr.attrName, sAttr);
 	    
 	    if (source.isLive()) {
 		sAttr.setLive(inBackgroundGroup, refCount);
 		sAttr.copyMirrorUsers(this);
-		
-		// System.out.println(" --   testing  needed!");
+                
 		sendMessage(ATTRIBUTE_SET_PUT, sAttr.mirror);
-		
 	    }	    
 	}
     }
@@ -242,6 +239,49 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
 	}
 	
 	super.doSetLive(backgroundGroup, refCount);
+        super.markAsLive();
+    }
+
+    synchronized void addAMirrorUser(Shape3DRetained shape) {
+
+	super.addAMirrorUser(shape);
+
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].addAMirrorUser(shape); 
+	}
+    }
+
+    synchronized void removeAMirrorUser(Shape3DRetained shape) {
+	super.removeAMirrorUser(shape);
+
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].removeAMirrorUser(shape);
+	}
+    }
+
+
+    synchronized void removeMirrorUsers(NodeComponentRetained node) {
+	super.removeMirrorUsers(node);
+
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].removeMirrorUsers(node);
+	}
+    }
+
+    synchronized void copyMirrorUsers(NodeComponentRetained node) {
+	super.copyMirrorUsers(node);
+
+	ShaderAttributeRetained[] sAttrsRetained = new ShaderAttributeRetained[attrs.size()];
+	sAttrsRetained = (ShaderAttributeRetained[])attrs.values().toArray(sAttrsRetained);
+	for(int i=0; i < sAttrsRetained.length; i++) {
+	    sAttrsRetained[i].copyMirrorUsers(node); 
+	}
     }
 
     void clearLive(int refCount) {
@@ -285,22 +325,22 @@ class ShaderAttributeSetRetained extends NodeComponentRetained {
      */
     synchronized void updateMirrorObject(int component, Object value) {
 
-	System.out.println("ShaderAttributeSetRetained : updateMirrorObject");
+	// System.out.println("ShaderAttributeSetRetained : updateMirrorObject");
         
 	ShaderAttributeSetRetained mirrorSAS = (ShaderAttributeSetRetained)mirror;
 	
 	if ((component & ATTRIBUTE_SET_PUT) != 0) {
-	    System.out.println("     -- ATTRIBUTE_SET_PUT");
+	    // System.out.println("     -- ATTRIBUTE_SET_PUT");
 	    ShaderAttributeRetained mirrorSA = (ShaderAttributeRetained)value;
  	    assert(mirrorSA != null);
 	    ((ShaderAttributeSetRetained)mirror).attrs.put(mirrorSA.attrName, mirrorSA);
 	}
 	else if((component & ATTRIBUTE_SET_REMOVE) != 0) {
-	    System.out.println("     -- ATTRIBUTE_SET_REMOVE");
+	    // System.out.println("     -- ATTRIBUTE_SET_REMOVE");
 	    ((ShaderAttributeSetRetained)mirror).attrs.remove((String)value);
 	}
 	else if((component & ATTRIBUTE_SET_CLEAR) != 0) {
-	    System.out.println("     -- ATTRIBUTE_SET_CLEAR");
+	    // System.out.println("     -- ATTRIBUTE_SET_CLEAR");
 	    ((ShaderAttributeSetRetained)mirror).attrs.clear();
 	}
 	else {
