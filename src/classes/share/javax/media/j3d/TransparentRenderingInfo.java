@@ -74,7 +74,7 @@ class TransparentRenderingInfo extends Object {
             attributeBin.environmentSet.lightBin.updateAttributes(cv);
             attributeBin.environmentSet.updateAttributes(cv);
             attributeBin.updateAttributes(cv);
-            shaderBin.updateAttributes(cv);
+            shaderBin.updateTransparentAttributes(cv);
         } else if (cv.attributeBin != attributeBin) {
             boolean visible = (attributeBin.definingRenderingAttributes == null ||
                     attributeBin.definingRenderingAttributes.visible);
@@ -86,16 +86,16 @@ class TransparentRenderingInfo extends Object {
                 return false;
             }
             attributeBin.updateAttributes(cv);
-            shaderBin.updateAttributes(cv);
+            shaderBin.updateTransparentAttributes(cv);
         } else if (cv.shaderBin != shaderBin) {
-            shaderBin.updateAttributes(cv);
-        }
+            shaderBin.updateTransparentAttributes(cv);
+        } 
 
         return true;
     }
 
     void render(Canvas3D cv) {
-	if (updateState(cv)) {
+	if (updateState(cv)) {      
 	    rm.textureBin.render(cv, rm.textureBin.transparentRMList);
 	}
     }

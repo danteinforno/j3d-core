@@ -342,6 +342,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 	}
 	
 	super.doSetLive(backgroundGroup, refCount);
+        super.markAsLive();
 
     }
 
