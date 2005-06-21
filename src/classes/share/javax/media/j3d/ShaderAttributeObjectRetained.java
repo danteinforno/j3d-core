@@ -73,7 +73,7 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
     
     void initValue(Object value) {
 	/*
-	System.err.println("ShaderAttributeObject: attrName = " + attrName +
+	System.err.println("ShaderAttributeObjectRetained : attrName = " + attrName +
 			   ", value = " + value +
 			   ", value.class = " + value.getClass());
 	*/
@@ -135,17 +135,16 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
      */
     synchronized void updateMirrorObject(int component, Object value) {
 
-	System.out.println("ShaderProgramRetained : updateMirrorObject");
+	//System.out.println("ShaderAttributeObjectRetained : updateMirrorObject");
 	ShaderAttributeObjectRetained mirrorSAV = (ShaderAttributeObjectRetained)mirror;
         if ((component & SHADER_ATTRIBUTE_VALUE_UPDATE) != 0) {
-	    System.out.println("     -- SHADER_ATTRIBUTE_VALUE_UPDATE");
+	    //System.out.println("     -- SHADER_ATTRIBUTE_VALUE_UPDATE");
 	    mirrorSAV.attrWrapper = (AttrWrapper) value;
 	}
     }
     
     final void sendMessage(int attrMask, Object attr) {
 	
-        System.out.println("ShaderAttributeObjectRetained : sendMessage() NOT TESTED YET");
 	ArrayList univList = new ArrayList();
 	ArrayList gaList = Shape3DRetained.getGeomAtomsList(mirror.users, univList);  
 
