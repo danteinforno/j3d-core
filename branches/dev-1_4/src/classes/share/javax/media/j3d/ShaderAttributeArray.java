@@ -117,7 +117,7 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	if (isLive())
 	    ((ShaderAttributeArrayRetained)this.retained).setValue(index, value);
 	else {
-	    // TODO : Not sure what to do --- Chien.
+	    // TODO : JADA - Not Done Yet - After JavaOne05.
 	    // ((ShaderAttributeArrayRetained)this.retained).initValue(index, value);
 	}
     }

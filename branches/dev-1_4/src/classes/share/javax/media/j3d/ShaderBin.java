@@ -102,14 +102,6 @@ class ShaderBin implements ObjectUpdate {
 	
 	ShaderProgramRetained sp;
 	ShaderAttributeSetRetained ss;
-	
-	// System.out.println("ShaderBin : equals() is not fully tested yet.");
-	/*	 
-	  if( shaderAppearance == sApp) {
-	  return true;
-	  }
-	*/
-
 	 
 	if (sApp == null) {
 	    sp = null;

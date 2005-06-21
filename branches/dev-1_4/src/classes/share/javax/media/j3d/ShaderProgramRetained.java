@@ -940,7 +940,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 if (saRetained instanceof ShaderAttributeValueRetained) {
                     err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, (ShaderAttributeValueRetained)saRetained);
                 } else if (saRetained instanceof ShaderAttributeArrayRetained) {
-                    //TODO : - Chien.
+                    //TODO : - JADA.
 //                   err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, (ShaderAttributeArrayRetained)saRetained);
                     throw new RuntimeException("not implemented");
                 } else if (saRetained instanceof ShaderAttributeBindingRetained) {

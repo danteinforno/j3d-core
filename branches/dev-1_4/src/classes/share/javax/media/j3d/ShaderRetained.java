@@ -58,12 +58,7 @@ abstract class ShaderRetained extends NodeComponentRetained {
 
     void clearLive(int refCount) {
 	// System.out.println("SourceCodeShaderRetained.clearLive()");
-
 	super.clearLive(refCount);
-	if (this.refCount <= 0) {
-	    // Should this be done here ? In user thread ? --- Chien
-	    // freeShader();
-	}
     }
 
      /**

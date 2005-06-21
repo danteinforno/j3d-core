@@ -300,7 +300,7 @@ public class Canvas3D extends Canvas {
     static final int FOG_DIRTY                 = 0x2000;
     static final int MODELCLIP_DIRTY           = 0x4000;    
     static final int VIEW_MATRIX_DIRTY         = 0x8000;
-    // static final int SHADER_DIRTY              = 0x10000; Not ready for this yet -- Chien
+    // static final int SHADER_DIRTY              = 0x10000; Not ready for this yet -- JADA
 
     // Use to notify D3D Canvas when window change
     static final int RESIZE = 1;

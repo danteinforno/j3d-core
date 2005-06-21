@@ -229,14 +229,15 @@ class AttributeBin extends Object implements ObjectUpdate {
 	sb.attributeBin = this;
 
 	if(sApp != null) {
-	    // ShaderBin should reference to the mirror components. -- Chien.
+	    // ShaderBin should reference to the mirror components. -- JADA.
 	    // System.out.println("AttributeBin : sApp.isMirror = " + sApp.isMirror);
 	    assert(sApp.isMirror);
 	    sb.shaderProgram = sApp.shaderProgram;
 	    sb.shaderAttributeSet = sApp.shaderAttributeSet;
 	}
 	sb.shaderAppearance = sApp;
-
+	
+	// TODO : JADA - sort by ShaderProgram to avoid state trashing.
 	addShaderBins.add(sb);
 	if ((onUpdateList & ON_OBJ_UPDATE_LIST) == 0) {
 	    onUpdateList |= ON_OBJ_UPDATE_LIST;
@@ -390,8 +391,6 @@ class AttributeBin extends Object implements ObjectUpdate {
     }
 
     void updateFromShaderBin(RenderAtom ra) {
-	
-	/**** TODO: need to understand sole user -- Chien */
 
 	AppearanceRetained raApp = ra.geometryAtom.source.appearance;
 	RenderingAttributesRetained rAttrs = 

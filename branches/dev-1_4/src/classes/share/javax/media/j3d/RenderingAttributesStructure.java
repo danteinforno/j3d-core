@@ -42,11 +42,11 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 	for (int i=0; i < nMsg; i++) {
 	    m = messages[i];
 	    switch (m.type) {
-		// Apperance is always updated immediately, since rBin needs
+		// Appearance is always updated immediately, since rBin needs
 		// the most up-to-date values for restructuring
 	    case J3dMessage.APPEARANCE_CHANGED:
-	    case J3dMessage.SHADER_APPEARANCE_CHANGED: // TODO : Got to check this. -- Chien.
-	    case J3dMessage.TEXTURE_UNIT_STATE_CHANGED: // TODO: Is this correct?
+	    case J3dMessage.SHADER_APPEARANCE_CHANGED:
+	    case J3dMessage.TEXTURE_UNIT_STATE_CHANGED:
 		{
 		    // System.out.println("1 RAS : J3dMessage type : " + m.type);
 		    int component = ((Integer)m.args[1]).intValue();
@@ -71,8 +71,8 @@ class RenderingAttributesStructure extends J3dStructure implements ObjectUpdate 
 	    case J3dMessage.TRANSPARENCYATTRIBUTES_CHANGED:
 	    case J3dMessage.MATERIAL_CHANGED:
 	    case J3dMessage.TEXCOORDGENERATION_CHANGED:
-	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED:    //TODO : Got to check this. -- Chien.
-	    case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED://TODO : Got to check this. -- Chien.
+	    case J3dMessage.SHADER_ATTRIBUTE_CHANGED: 
+	    case J3dMessage.SHADER_ATTRIBUTE_SET_CHANGED:
 		{
 		    // System.out.println("2 RAS : J3dMessage type : " + m.type);
 
