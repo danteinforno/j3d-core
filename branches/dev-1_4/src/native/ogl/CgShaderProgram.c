@@ -10,12 +10,6 @@
  * $State$
  */
 
-/*
- * Comment out the following to disable CG shader compilation.
- * TODO: Figure this out automatically.
- */
-/*#define ENABLE_CG_SHADERS*/    /* Define to compile CG shaders */
-
 #if defined(LINUX)
 #define _GNU_SOURCE 1
 #endif
@@ -27,97 +21,147 @@
 #include <jni.h>
 
 #include "gldefs.h"
+#include "CgWrapper.h"
 
 #if defined(UNIX)
 #include <dlfcn.h>
 #endif
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
+extern void throwAssert(JNIEnv *env, char *str);
 extern jobject createShaderError(JNIEnv *env,
 				 int errorCode,
 				 const char *errorMsg,
 				 const char *detailMsg);
 
-#if defined(ENABLE_CG_SHADERS)
-#define COMPILE_CG_SHADERS 1
-#else
-#undef COMPILE_CG_SHADERS
-#endif
 
+/* Global CG wrapper info struct, created by MasterControl during initialization */
+static CgWrapperInfo *globalCgWrapperInfo = NULL;
 
-#ifdef COMPILE_CG_SHADERS
-#include <Cg/cgGL.h>
-#endif /* COMPILE_CG_SHADERS */
-
-
-/* Structure used to hold CG context information; stored in ctxInfo */
-struct CgCtxInfoRec {
-#ifdef COMPILE_CG_SHADERS
-    CGcontext cgCtx;
-    CGprofile vProfile;
-    CGprofile fProfile;
-#else /* COMPILE_CG_SHADERS */
-    int dummy;
-#endif /* COMPILE_CG_SHADERS */
-};
-
-
-/* Structure used to hold CG shader information; passed back to Java as cgShaderId */
-typedef struct CgShaderInfoRec CgShaderInfo;
-struct CgShaderInfoRec {
-#ifdef COMPILE_CG_SHADERS
-    CGprogram cgShader;
-    jint shaderType;
-    CGprofile shaderProfile;
-#else /* COMPILE_CG_SHADERS */
-    int dummy;
-#endif /* COMPILE_CG_SHADERS */
-};
 
 /*
- * Structure used to hold CG shader program information; passed back
- * to Java as cgShaderProgramId
+ * Class:     javax_media_j3d_MasterControl
+ * Method:    loadNativeCgLibrary
+ * Signature: ()Z
  */
-typedef struct CgShaderProgramInfoRec CgShaderProgramInfo;
-struct CgShaderProgramInfoRec {
-#ifdef COMPILE_CG_SHADERS
-    int numShaders;
-    CgShaderInfo **shaders;
-#else /* COMPILE_CG_SHADERS */
-    int dummy;
-#endif /* COMPILE_CG_SHADERS */
-};
-
-
-#ifdef COMPILE_CG_SHADERS
-#if 0
-static void
-cgErrorCallback(void)
+JNIEXPORT jboolean JNICALL
+Java_javax_media_j3d_MasterControl_loadNativeCgLibrary(
+    JNIEnv *env,
+    jclass clazz)
 {
-    CGerror LastError = cgGetError();
+    CgWrapperInfo *cgWrapperInfo;
 
-    if(LastError) {
-        const char *Listing = cgGetLastListing(vContext);
-	fprintf(stderr, "\n---------------------------------------------------\n");
-        fprintf(stderr, "%s\n\n", cgGetErrorString(LastError));
-        fprintf(stderr, "%s\n", Listing);
-        fprintf(stderr, "---------------------------------------------------\n");
-        fprintf(stderr, "Cg error, exiting...\n");
-        exit(1);
+#ifdef WIN32
+    DWORD err;
+    LPTSTR errString;
+    UINT origErrorMode;
+#endif /* WIN32 */
+
+    /*
+    fprintf(stderr, "MasterControl.loadNativeCgLibrary()\n");
+    */
+
+    /*
+     * This method is called exactly once to load and initialize the
+     * CG wrapper library.
+     */
+
+    /* Assertion check that we don't get called more than once */
+    if (globalCgWrapperInfo != NULL) {
+	throwAssert(env, "MasterControl.loadNativeCgLibrary called more than once");
+	return JNI_FALSE;
     }
-}
-#endif /* 0 */
 
+    cgWrapperInfo = (CgWrapperInfo*)malloc(sizeof(CgWrapperInfo));
+    cgWrapperInfo->loaded = JNI_FALSE;
+    cgWrapperInfo->cgLibraryHandle = NULL;
+
+#ifdef COMPILE_CG_SHADERS
+
+#ifdef UNIX
+    cgWrapperInfo->cgLibraryHandle = dlopen("libj3dcore-ogl-cg.so", RTLD_LAZY);
+    if (cgWrapperInfo->cgLibraryHandle == NULL) {
+	perror("JAVA 3D ERROR : Unable to load library: j3dcore-ogl-cg");
+	return JNI_FALSE;
+    }
+
+    /* Get pointer to library function to setup function pointers */
+    cgWrapperInfo->j3dLoadCgFunctionPointers =
+	(PFNJ3DLOADCGFUNCTIONPOINTERS)dlsym(cgWrapperInfo->cgLibraryHandle,
+					    "j3dLoadCgFunctionPointers");
+
+#endif /* UNIX */
+
+#ifdef WIN32
+    /* Load the library, suppressing any dialog boxes that may occur */
+    origErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX |
+				 SEM_FAILCRITICALERRORS);
+    cgWrapperInfo->cgLibraryHandle = LoadLibrary("j3dcore-ogl-cg.dll");
+    SetErrorMode(origErrorMode);
+
+    if (cgWrapperInfo->cgLibraryHandle == NULL) {
+	err = GetLastError();
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		      FORMAT_MESSAGE_FROM_SYSTEM,
+		      NULL, err, 0, (LPTSTR)&errString, 0, NULL);
+
+	fprintf(stderr,
+		"JAVA 3D ERROR : Unable to load library: j3dcore-ogl-cg: %s\n",
+		errString);
+	return JNI_FALSE;
+    }
+
+    cgWrapperInfo->j3dLoadCgFunctionPointers =
+	(PFNJ3DLOADCGFUNCTIONPOINTERS)GetProcAddress(
+		(HMODULE)cgWrapperInfo->cgLibraryHandle,
+		"j3dLoadCgFunctionPointers");
+
+    if (cgWrapperInfo->j3dLoadCgFunctionPointers == NULL) {
+	err = GetLastError();
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		      FORMAT_MESSAGE_FROM_SYSTEM,
+		      NULL, err, 0, (LPTSTR)&errString, 0, NULL);
+
+	fprintf(stderr,
+		"JAVA 3D ERROR : Unable to find: j3dLoadCgFunctionPointers: %s\n",
+		errString);
+	return JNI_FALSE;
+    }
+
+#endif /* WIN32 */
+
+    if (cgWrapperInfo->j3dLoadCgFunctionPointers) {
+	cgWrapperInfo->j3dLoadCgFunctionPointers(cgWrapperInfo);
+	cgWrapperInfo->loaded = JNI_TRUE;
+    }
+
+#else /* COMPILE_CG_SHADERS */
+
+    fprintf(stderr, "Java 3D: CgShaderProgram code not compiled\n");
+
+#endif /* COMPILE_CG_SHADERS */
+
+    /* Save pointer in global variable */
+    globalCgWrapperInfo = cgWrapperInfo;
+
+    return cgWrapperInfo->loaded;
+}
+
+
+#ifdef COMPILE_CG_SHADERS
 
 static char *
 getErrorLog(
     GraphicsContextPropertiesInfo* ctxProperties,
     CGerror lastError)
 {
+    CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
+
     if (lastError != 0) {
-	const char *errString = cgGetErrorString(lastError);
+	const char *errString = cgWrapperInfo->cgGetErrorString(lastError);
 	const char *delimeter1 = "\n";
-        const char *listing = cgGetLastListing(ctxProperties->cgCtxInfo->cgCtx);
+        const char *listing = cgWrapperInfo->cgGetLastListing(cgCtxInfo->cgCtx);
 
 	char *errMsg = (char *)
 	    malloc(strlen(errString) + strlen(delimeter1) + strlen(listing) + 1);
@@ -134,7 +178,7 @@ getErrorLog(
 	return errMsg;
     }
 
-    fprintf(stderr, "Assertion Error: assert(lastError != 0) failed\n");
+    fprintf(stderr, "Assertion error: assert(lastError != 0) failed\n");
     return NULL;
 }
 
@@ -147,6 +191,18 @@ createCgShaderContext(
     jclass oom;
     CGerror lastError;
     CgCtxInfo *cgCtxInfo = NULL;
+    CgWrapperInfo *cgWrapperInfo;
+
+    /* Assertion check that we don't get here unless the library is loaded */
+    if (globalCgWrapperInfo == NULL) {
+	throwAssert(env, "createCgShaderContext: cgWrapperInfo is NULL");
+	return NULL;
+    }
+
+    if (!globalCgWrapperInfo->loaded) {
+	throwAssert(env, "createCgShaderContext: cgWrapper library not loaded");
+	return NULL;
+    }
 
     cgCtxInfo = (CgCtxInfo*)malloc(sizeof(CgCtxInfo));
     if (cgCtxInfo == NULL) {
@@ -156,12 +212,15 @@ createCgShaderContext(
 	return NULL;
     }
 
-    /* Create CG context */
-    cgCtxInfo->cgCtx = cgCreateContext();
+    /* Point to the global CG wrapper info */
+    cgWrapperInfo = cgCtxInfo->cgWrapperInfo = globalCgWrapperInfo;
 
-    if ((lastError = cgGetError()) != 0) {
+    /* Create CG context */
+    cgCtxInfo->cgCtx = cgWrapperInfo->cgCreateContext();
+
+    if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	fprintf(stderr, "Fatal error in creating Cg context:\n");
-	fprintf(stderr, "\t%s\n", cgGetErrorString(lastError));
+	fprintf(stderr, "\t%s\n", cgWrapperInfo->cgGetErrorString(lastError));
 	free(cgCtxInfo);
 	return NULL;
     }
@@ -173,11 +232,11 @@ createCgShaderContext(
     }
 
     /* Use GL_ARB_vertex_program extension if supported by video card */
-    if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1)) {
+    if (cgWrapperInfo->cgGLIsProfileSupported(CG_PROFILE_ARBVP1)) {
 	fprintf(stderr, "Using CG_PROFILE_ARBVP1\n");
 	cgCtxInfo->vProfile = CG_PROFILE_ARBVP1;
     }
-    else if (cgGLIsProfileSupported(CG_PROFILE_VP20)) {
+    else if (cgWrapperInfo->cgGLIsProfileSupported(CG_PROFILE_VP20)) {
 	fprintf(stderr, "Using CG_PROFILE_VP20\n");
 	cgCtxInfo->vProfile = CG_PROFILE_VP20;
     }
@@ -189,19 +248,19 @@ createCgShaderContext(
 	return NULL;
     }
 
-    if ((lastError = cgGetError()) != 0) {
+    if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	fprintf(stderr, "FATAL ERROR IN CREATING VERTEX SHADER PROFILE:\n");
-	fprintf(stderr, "\t%s\n", cgGetErrorString(lastError));
+	fprintf(stderr, "\t%s\n", cgWrapperInfo->cgGetErrorString(lastError));
 	free(cgCtxInfo);
 	return NULL;
     }
 
     /* Use GL_ARB_fragment_program extension if supported by video card */
-    if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1)) {
+    if (cgWrapperInfo->cgGLIsProfileSupported(CG_PROFILE_ARBFP1)) {
 	fprintf(stderr, "Using CG_PROFILE_ARBFP1\n");
 	cgCtxInfo->fProfile = CG_PROFILE_ARBFP1;
     }
-    else if (cgGLIsProfileSupported(CG_PROFILE_FP20)) {
+    else if (cgWrapperInfo->cgGLIsProfileSupported(CG_PROFILE_FP20)) {
 	fprintf(stderr, "Using CG_PROFILE_FP20\n");
 	cgCtxInfo->fProfile = CG_PROFILE_FP20;
     }
@@ -213,17 +272,19 @@ createCgShaderContext(
 	return NULL;
     }
 
-    if ((lastError = cgGetError()) != 0) {
+    if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	fprintf(stderr, "FATAL ERROR IN CREATING FRAGMENT SHADER PROFILE:\n");
-	fprintf(stderr, "\t%s\n", cgGetErrorString(lastError));
+	fprintf(stderr, "\t%s\n", cgWrapperInfo->cgGetErrorString(lastError));
 	free(cgCtxInfo);
 	return NULL;
     }
 
+    /*
     fprintf(stderr, "createCgShaderContext: SUCCESS\n");
     fprintf(stderr, "    cgCtx = 0x%x\n", cgCtxInfo->cgCtx);
     fprintf(stderr, "    vProfile = 0x%x\n", cgCtxInfo->vProfile);
     fprintf(stderr, "    fProfile = 0x%x\n", cgCtxInfo->fProfile);
+    */
 
     return cgCtxInfo;
 }
@@ -252,11 +313,15 @@ checkCgShaderExtensions(
 	ctxInfo->cgCtxInfo = createCgShaderContext(env, ctxInfo);
 	if (ctxInfo->cgCtxInfo != NULL) {
 	    ctxInfo->shadingLanguageCg = JNI_TRUE;
+	    /*
 	    fprintf(stderr, "Cg ctx is available\n");
+	    */
 	}
+	/*
 	else {
 	    fprintf(stderr, "ERROR: Cg ctx *not* available\n");
 	}
+	*/
     }
 #endif /* COMPILE_CG_SHADERS */
 
@@ -306,9 +371,9 @@ Java_javax_media_j3d_CgShaderProgramRetained_createNativeShader(
     }
     else {
 	cgShaderInfo->shaderProfile = 0;
-	fprintf(stderr,
-		"Assertion error: unrecognized shaderType (%d)\n",
-		shaderType);
+	fprintf(stderr, "shaderType = %d\n", shaderType);
+	throwAssert(env, "unrecognized shaderType");
+	return NULL;
     }
 
     shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
@@ -344,13 +409,17 @@ Java_javax_media_j3d_CgShaderProgramRetained_destroyNativeShader(
 
 #ifdef COMPILE_CG_SHADERS
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
+
     CgShaderInfo *cgShaderInfo = (CgShaderInfo *)shaderId;
 
     fprintf(stderr, "CgShaderProgramRetained.destroyNativeShader\n");
 
     if (cgShaderInfo != NULL) {
 	if (cgShaderInfo->cgShader != 0) {
-	    cgDestroyProgram(cgShaderInfo->cgShader);
+	    cgWrapperInfo->cgDestroyProgram(cgShaderInfo->cgShader);
 	}
 
 	free(cgShaderInfo);
@@ -390,6 +459,8 @@ Java_javax_media_j3d_CgShaderProgramRetained_compileNativeShader(
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
+
     CgShaderInfo *cgShaderInfo = (CgShaderInfo *)shaderId;
     CGerror lastError;
     GLcharARB *shaderString = NULL;
@@ -398,20 +469,14 @@ Java_javax_media_j3d_CgShaderProgramRetained_compileNativeShader(
 
     /* Assertion check the cgShaderInfo pointer */
     if (cgShaderInfo == NULL) {
-	shaderError = createShaderError(env,
-					javax_media_j3d_ShaderError_COMPILE_ERROR,
-					"Assertion error: cgShaderInfo is NULL",
-					NULL);
-	return shaderError;
+	throwAssert(env, "cgShaderInfo is NULL");
+	return NULL;
     }
 
     /* Assertion check the program string */
     if (program == NULL) {
-	shaderError = createShaderError(env,
-					javax_media_j3d_ShaderError_COMPILE_ERROR,
-					"Assertion error: program string is NULL",
-					NULL);
-	return shaderError;
+	throwAssert(env, "shader program string is NULL");
+	return NULL;
     }
 
     shaderString = strJavaToC(env, program);
@@ -429,9 +494,9 @@ Java_javax_media_j3d_CgShaderProgramRetained_compileNativeShader(
     }
     fprintf(stderr, "cgCtx = 0x%x\n", cgCtxInfo->cgCtx);
     fprintf(stderr, "shaderProfile = 0x%x\n", cgShaderInfo->shaderProfile);
-    cgShaderInfo->cgShader = cgCreateProgram(cgCtxInfo->cgCtx,
-					     CG_SOURCE, shaderString,
-					     cgShaderInfo->shaderProfile, NULL, NULL);
+    cgShaderInfo->cgShader = cgWrapperInfo->cgCreateProgram(cgCtxInfo->cgCtx,
+	    CG_SOURCE, shaderString,
+	    cgShaderInfo->shaderProfile, NULL, NULL);
     fprintf(stderr, "    cgShader = 0x%x\n", cgShaderInfo->cgShader);
 
     free(shaderString);
@@ -444,7 +509,7 @@ Java_javax_media_j3d_CgShaderProgramRetained_compileNativeShader(
 				    "NOT YET IMPLEMENTED...");
 #endif /* OUT__XXX__OUT */
 
-    if ((lastError = cgGetError()) != 0) {
+    if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	char *detailMsg = getErrorLog(ctxProperties, lastError);
 	shaderError = createShaderError(env,
 					javax_media_j3d_ShaderError_COMPILE_ERROR,
@@ -563,6 +628,7 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
 
     jsize shaderIdArrayLength = (*env)->GetArrayLength(env,  shaderIdArray);
     jlong *shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
@@ -581,9 +647,9 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
     for (i = 0; i < shaderIdArrayLength; i++) {
 	shaderProgramInfo->shaders[i] = (CgShaderInfo*)shaderIdPtr[i];
 
-	cgGLLoadProgram(shaderProgramInfo->shaders[i]->cgShader);
+	cgWrapperInfo->cgGLLoadProgram(shaderProgramInfo->shaders[i]->cgShader);
 
-	if ((lastError = cgGetError()) != 0) {
+	if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	    char *detailMsg = getErrorLog(ctxProperties, lastError);
 	    shaderError = createShaderError(env,
 					    javax_media_j3d_ShaderError_LINK_ERROR,
@@ -594,9 +660,9 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
 	    }
 	}
 
-	cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
+	cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
 
-	if ((lastError = cgGetError()) != 0) {
+	if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	    char *detailMsg = getErrorLog(ctxProperties, lastError);
 	    shaderError = createShaderError(env,
 					    javax_media_j3d_ShaderError_LINK_ERROR,
@@ -709,19 +775,19 @@ Java_javax_media_j3d_CgShaderProgramRetained_useShaderProgram(
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
-    CGerror lastError;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
 
     int i;
 
     CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
 
-    cgGLDisableProfile(cgCtxInfo->vProfile);
-    cgGLDisableProfile(cgCtxInfo->fProfile);
+    cgWrapperInfo->cgGLDisableProfile(cgCtxInfo->vProfile);
+    cgWrapperInfo->cgGLDisableProfile(cgCtxInfo->fProfile);
 
     if (shaderProgramId != 0) {
 	for (i = 0; i < shaderProgramInfo->numShaders; i++) {
-	    cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
-	    cgGLEnableProfile(shaderProgramInfo->shaders[i]->shaderProfile);
+	    cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
+	    cgWrapperInfo->cgGLEnableProfile(shaderProgramInfo->shaders[i]->shaderProfile);
 	}
     }
 
@@ -1157,35 +1223,6 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_CgShaderProgramRetained_setUnifor
 
 
 #if 0
-#ifdef COMPILE_CG_SHADERS
-/* KCR: BEGIN CG SHADER HACK */
-/* TODO: these need to be instance variables in the Java class */
-static CGcontext vContext = 0;
-static CGprogram vShader = 0;
-static CGprofile vProfile = 0;
-static CGcontext fContext = 0;
-static CGprogram fShader = 0;
-static CGprofile fProfile = 0;
-
-
-static void
-cgErrorCallback(void)
-{
-    CGerror LastError = cgGetError();
-
-    if(LastError) {
-        const char *Listing = cgGetLastListing(vContext);
-	fprintf(stderr, "\n---------------------------------------------------\n");
-        fprintf(stderr, "%s\n\n", cgGetErrorString(LastError));
-        fprintf(stderr, "%s\n", Listing);
-        fprintf(stderr, "---------------------------------------------------\n");
-        fprintf(stderr, "Cg error, exiting...\n");
-        exit(1);
-    }
-}
-#endif /* COMPILE_CG_SHADERS */
-
-
 /*
  * Class:     javax_media_j3d_CgShaderProgram
  * Method:    updateNative

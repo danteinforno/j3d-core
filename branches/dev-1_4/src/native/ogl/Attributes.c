@@ -3671,3 +3671,13 @@ createShaderError(
 
     return shaderError;
 }
+
+
+void
+throwAssert(JNIEnv *env, char *str)
+{
+    jclass rte;
+    if ((rte = (*env)->FindClass(env, "java/lang/AssertionError")) != NULL) {
+	(*env)->ThrowNew(env, rte, str);
+    }
+}
