@@ -441,6 +441,9 @@ class MasterControl {
     // Method to initialize the native J3D library
     private native boolean initializeJ3D(boolean disableXinerama);
 
+    // Method to verify whether the native Cg library is available
+    private static native boolean loadNativeCgLibrary();
+
     // Method to get number of procesor
     private native int getNumberOfProcessor();
 
@@ -819,28 +822,18 @@ class MasterControl {
 
         // Check whether the Cg library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
-             // TODO: remove the following test when D3D version of CG is available
-            if (libraryName == oglLibraryName) {
-                // TODO: call method in library to verify that the native Cg runtime
-                // is installed
-                System.err.println("Java 3D: Cg library is available");
+            if (loadNativeCgLibrary()) {
                 cgLibraryAvailable = true;
             }
-//            else {
-//                System.err.println("Java 3D: Cg library is *not* available");
-//            }
         }
         
         // Check whether the GLSL library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_GLSL) {
             if (libraryName == oglLibraryName) {
-                // No need to load a separate library, since GLSL is part of OpenGL
-//                System.err.println("Java 3D: GLSL library is available");
+                // No need to verify that GLSL is available, since GLSL is part
+                // of OpenGL as an extension (or part of core in 2.0)
                 glslLibraryAvailable = true;
             }
-//            else {
-//                System.err.println("Java 3D: GLSL library is *not* available");
-//            }
         }
     }
 
