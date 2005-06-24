@@ -23,6 +23,12 @@
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
   </target>
 
+  <target name="nativeSetup-debug-solaris-x86" if="isSolarisOnX86">
+	<property name="bldFlag" value="g"/>
+	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
+  </target>
+
   <target name="nativeSetup-debug-linux" if="isLinuxOnX86">
 	<property name="bldFlag" value="g"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
@@ -40,6 +46,12 @@
 	<property name="coreLibDependency" value="lib/ia64/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/ia64/libj3dutils.so"/>
   </target>
+  
+  <target name="nativeSetup-debug-linux-ppc" if="isLinuxOnPPC">
+	<property name="bldFlag" value="g"/>
+	<property name="coreLibDependency" value="lib/ppc/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/ppc/libj3dutils.so"/>
+  </target>
 
   <target name="nativeSetup-debug-win32" if="isWindowsOnX86">
 	<property name="bldFlag" 
@@ -49,7 +61,7 @@
   </target>
 
 
-  <target name="nativeSetup-debug" depends="nativeSetup-debug-solaris, nativeSetup-debug-linux, nativeSetup-debug-linux-amd64, nativeSetup-debug-linux-ia64, nativeSetup-debug-win32">
+  <target name="nativeSetup-debug" depends="nativeSetup-debug-solaris, nativeSetup-debug-solaris-x86, nativeSetup-debug-linux, nativeSetup-debug-linux-amd64, nativeSetup-debug-linux-ia64, nativeSetup-debug-linux-ppc, nativeSetup-debug-win32">
 	<property name="bldType" value="debug"/>
 	<property name="javahCoreSrc"     
 	 location="${src}/classes/share/javax/media/j3d"/>
@@ -65,6 +77,12 @@
 	<property name="bldFlag" value="O"/>
 	<property name="coreLibDependency" value="lib/sparc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
+  </target>
+
+  <target name="nativeSetup-opt-solaris-x86" if="isSolarisOnX86">
+	<property name="bldFlag" value="O"/>
+	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux" if="isLinuxOnX86">
@@ -85,6 +103,12 @@
 	<property name="coreUtilsLibDependency" value="lib/ia64/libj3dutils.so"/>
   </target>
 
+  <target name="nativeSetup-opt-linux-ppc" if="isLinuxOnPPC">
+	<property name="bldFlag" value="O"/>
+	<property name="coreLibDependency" value="lib/ppc/libj3dcore-ogl.so"/>
+	<property name="coreUtilsLibDependency" value="lib/ppc/libj3dutils.so"/>
+  </target>
+  
   <target name="nativeSetup-opt-win32" if="isWindowsOnX86">
 	<property name="bldFlag" 
 	         value="-DWIN32 -DNDEBUG -D_WINDOWS"/>
@@ -92,7 +116,7 @@
 	<property name="coreUtilsLibDependency" value="bin/j3dutils.dll"/>
   </target>
 
-  <target name="nativeSetup-opt" depends="nativeSetup-opt-solaris, nativeSetup-opt-linux, nativeSetup-opt-linux-amd64, nativeSetup-opt-linux-ia64, nativeSetup-opt-win32">
+  <target name="nativeSetup-opt" depends="nativeSetup-opt-solaris, nativeSetup-opt-solaris-x86, nativeSetup-opt-linux, nativeSetup-opt-linux-amd64, nativeSetup-opt-linux-ia64, nativeSetup-opt-linux-ppc, nativeSetup-opt-win32">
 	<property name="bldType" value="opt"/>
 	<property name="javahCoreSrc"     
 	 location="${src}/classes/share/javax/media/j3d"/>
@@ -266,6 +290,18 @@
      	     srcfile="${javahCoreSrc}/TransparencyAttributesRetained.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_TransparencyAttributesRetained.h"/>
 	    <uptodate
+     	     srcfile="${javahCoreSrc}/GLSLShaderProgramRetained.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_GLSLShaderProgramRetained.h"/>
+	    <uptodate
+     	     srcfile="${javahCoreSrc}/CgShaderProgramRetained.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_CgShaderProgramRetained.h"/>
+	    <uptodate
+     	     srcfile="${javahCoreSrc}/Shader.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_Shader.h"/>
+	    <uptodate
+     	     srcfile="${javahCoreSrc}/ShaderError.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_ShaderError.h"/>
+	    <uptodate
      	     srcfile="${javahUtilsSrc}/J3DTimer.java"
     	     targetfile="${javahUtilsTarget}/com_sun_j3d_utils_timer_J3DTimer.h"/>
 	  </and>
@@ -357,6 +393,10 @@
 	<class name="javax.media.j3d.TextureUnitStateRetained"/>
 	<class name="javax.media.j3d.TransparencyAttributes"/>
 	<class name="javax.media.j3d.TransparencyAttributesRetained"/>
+	<class name="javax.media.j3d.GLSLShaderProgramRetained"/>
+	<class name="javax.media.j3d.CgShaderProgramRetained"/>
+	<class name="javax.media.j3d.Shader"/>
+	<class name="javax.media.j3d.ShaderError"/>
 
     </javah>
 

@@ -23,15 +23,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(SOLARIS) || defined(LINUX)
 #define GLX_GLEXT_PROTOTYPES
 #define GLX_GLXEXT_PROTOTYPES
+#define UNIX
+
 #include <limits.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 
@@ -73,7 +74,6 @@
 #ifndef D3D
 #include <GL/gl.h>
 #include "wglext.h"
-#include "gl_1_2.h"
 #include "glext.h"
 #endif
 
@@ -84,7 +84,6 @@
 #include "javax_media_j3d_Canvas3D.h"
 #include "javax_media_j3d_ColoringAttributes.h"
 #include "javax_media_j3d_ColoringAttributesRetained.h"
-#include "javax_media_j3d_CompressedGeometryRetained.h"
 #include "javax_media_j3d_DepthComponentRetained.h"
 #include "javax_media_j3d_DetailTextureImage.h"
 #include "javax_media_j3d_DirectionalLightRetained.h"
@@ -132,10 +131,10 @@
 #include "javax_media_j3d_TextureUnitStateRetained.h"
 #include "javax_media_j3d_TransparencyAttributes.h"
 #include "javax_media_j3d_TransparencyAttributesRetained.h"
-
-#ifndef GL_SUNX_geometry_compression
-#define GL_COMPRESSED_GEOM_ACCELERATED_SUNX   0x81D0
-#endif /* GL_SUNX_geometry_compression */
+#include "javax_media_j3d_GLSLShaderProgramRetained.h"
+#include "javax_media_j3d_CgShaderProgramRetained.h"
+#include "javax_media_j3d_Shader.h"
+#include "javax_media_j3d_ShaderError.h"
 
 /*
  * Define these constants here as a workaround for conflicting
@@ -259,6 +258,7 @@
 #define GA_TEXTURE_COORDINATE_3  javax_media_j3d_GeometryArray_TEXTURE_COORDINATE_3	
 #define GA_TEXTURE_COORDINATE_4  javax_media_j3d_GeometryArray_TEXTURE_COORDINATE_4	
 #define GA_TEXTURE_COORDINATE    javax_media_j3d_GeometryArray_TEXTURE_COORDINATE
+#define GA_VERTEX_ATTRIBUTES     javax_media_j3d_GeometryArray_VERTEX_ATTRIBUTES
 #define GA_BY_REFERENCE          javax_media_j3d_GeometryArray_BY_REFERENCE
 				
 				
@@ -303,7 +303,7 @@
 #define J3D_RGBA         javax_media_j3d_Texture_RGBA
 
 #ifndef D3D
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 extern void APIENTRY glBlendColor (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glBlendColorEXT (GLclampf, GLclampf, GLclampf, GLclampf);
 extern void APIENTRY glColorTable (GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid *);
@@ -347,7 +347,7 @@ extern void APIENTRY glTexSubImage3DEXT (GLenum, GLint, GLint, GLint, GLint, GLs
 extern int glXVideoResizeSUN( Display *, GLXDrawable, float);
 #endif
 
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
 #ifndef APIENTRY
 #define APIENTRY
@@ -389,11 +389,14 @@ typedef void (APIENTRY * MYPFNGLSHARPENTEXFUNCSGI) (GLenum target, GLsizei n, co
 typedef void (APIENTRY * MYPFNGLDETAILTEXFUNCSGI) (GLenum target, GLsizei n, const GLfloat *points);
 typedef void (APIENTRY * MYPFNGLTEXFILTERFUNCSGI) (GLenum target, GLenum filter, GLsizei n, const GLfloat *points);
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 typedef GLXFBConfig * (APIENTRY * MYPFNGLXCHOOSEFBCONFIG) (Display *dpy, int screen, const int *attrib_list, int *nelements);
 typedef int (APIENTRY * MYPFNGLXVIDEORESIZESUN) (Display * dpy, GLXDrawable draw, float factor);
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
 
+
+/* Typedefs for (opaque) CG context info */
+typedef struct CgCtxInfoRec CgCtxInfo;
 
 /* define the structure to hold the properties of graphics context */
 typedef struct {
@@ -461,8 +464,6 @@ typedef struct {
     jboolean global_alpha_sun;
     /* GL_SUNX_constant_data */
     jboolean constant_data_sun;
-    /* GL_SUNX_geometry_compression */
-    jboolean geometry_compression_sunx;
 	 
     /* GL_EXT_abgr */
     jboolean abgr_ext;
@@ -557,16 +558,15 @@ typedef struct {
 
     /* GL_SGIX_texture_lod_bias */
     jboolean textureLodBiasAvailable;
-    
-    jboolean geometry_compression_accelerated;
-    int geometry_compression_accelerated_major_version;
-    int geometry_compression_accelerated_minor_version;
-    int geometry_compression_accelerated_subminor_version;
-	 
+
     /* extension mask */
     jint extMask;
     jint textureExtMask;
-	 
+
+    /* shader language  support */
+    jboolean  shadingLanguageGLSL;
+    jboolean  shadingLanguageCg;
+    
     /* function pointers */
     MYPFNGLBLENDCOLORPROC glBlendColor;
     MYPFNGLBLENDCOLOREXTPROC glBlendColorEXT;
@@ -599,9 +599,38 @@ typedef struct {
     MYPFNGLDETAILTEXFUNCSGI glDetailTexFuncSGIS;
     MYPFNGLTEXFILTERFUNCSGI glTexFilterFuncSGIS;
 
-#if defined(SOLARIS) || defined(__linux__)
+    /* Programmable Shader */
+    PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB;
+    PFNGLCOMPILESHADERARBPROC pfnglCompileShaderARB;
+    PFNGLCREATEPROGRAMOBJECTARBPROC pfnglCreateProgramObjectARB;
+    PFNGLCREATESHADEROBJECTARBPROC pfnglCreateShaderObjectARB;
+    PFNGLDELETEOBJECTARBPROC pfnglglDeleteObjectARB;
+    PFNGLGETINFOLOGARBPROC pfnglGetInfoLogARB;
+    PFNGLGETOBJECTPARAMETERIVARBPROC pfnglGetObjectParameterivARB;
+    PFNGLLINKPROGRAMARBPROC pfnglLinkProgramARB;
+    PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB;
+    PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB;
+    PFNGLGETUNIFORMLOCATIONARBPROC pfnglGetUniformLocationARB;
+    PFNGLGETATTRIBLOCATIONARBPROC pfnglGetAttribLocationARB;
+    PFNGLBINDATTRIBLOCATIONARBPROC pfnglBindAttribLocationARB;
+    PFNGLVERTEXATTRIB3FVARBPROC pfnglVertexAttrib3fvARB;
+    PFNGLUNIFORM1IARBPROC pfnglUniform1iARB;
+    PFNGLUNIFORM1FARBPROC pfnglUniform1fARB;
+    PFNGLUNIFORM2IARBPROC pfnglUniform2iARB;
+    PFNGLUNIFORM2FARBPROC pfnglUniform2fARB;
+    PFNGLUNIFORM3IARBPROC pfnglUniform3iARB;
+    PFNGLUNIFORM3FARBPROC pfnglUniform3fARB;
+    PFNGLUNIFORM4IARBPROC pfnglUniform4iARB;
+    PFNGLUNIFORM4FARBPROC pfnglUniform4fARB;
+    PFNGLUNIFORMMATRIX3FVARBPROC pfnglUniformMatrix3fvARB;
+    PFNGLUNIFORMMATRIX4FVARBPROC pfnglUniformMatrix4fvARB;
+    
+#if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
-#endif /* SOLARIS || __linux__ */
+#endif /* UNIX_ */
+
+    /* Cg shader context information */
+    CgCtxInfo *cgCtxInfo;
 
 } GraphicsContextPropertiesInfo;
 
@@ -652,7 +681,7 @@ typedef struct OffScreenBufferInfoRec OffScreenBufferInfo;
 struct OffScreenBufferInfoRec {
     GLboolean isPbuffer; /* GL_TRUE if Pbuffer is used. */
 
-#if defined(SOLARIS) || defined(__linux__)
+#if defined(UNIX)
 #endif
     
 #ifdef WIN32

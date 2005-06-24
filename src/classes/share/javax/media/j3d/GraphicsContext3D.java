@@ -1594,13 +1594,7 @@ public class GraphicsContext3D extends Object   {
 		
 		if (canvas3d.ctx == 0) {
 		    synchronized (VirtualUniverse.mc.contextCreationLock) {
-			canvas3d.ctx =
-			    canvas3d.createNewContext(canvas3d.screen.display, 
-						   canvas3d.window,
-						   canvas3d.vid,
-						   canvas3d.fbConfig,
-						   0, false,
-						   canvas3d.offScreen);
+			canvas3d.ctx = canvas3d.createNewContext(0, false);
 			if (canvas3d.ctx == 0) {
 			    canvas3d.drawingSurfaceObject.unLock();
 			    return;

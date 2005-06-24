@@ -315,7 +315,8 @@ public class ColoringAttributes extends NodeComponent {
      * Capability read bit set will be displayed.
      */
     public String toString() {
-        StringBuffer str=new StringBuffer("ColoringAttributes:");
+        StringBuffer str = new StringBuffer(getNamePrefix());
+        str.append("javax.media.j3d.ColoringAttributes: ");
         String shadingModes[] = { "FASTEST", "NICEST", "SHADE_FLAT",
                                                      "SHADE_GOURAUD" };
 
