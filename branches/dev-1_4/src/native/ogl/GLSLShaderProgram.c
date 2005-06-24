@@ -517,9 +517,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
 	free(errMsg);
     }
 
+    /*
     fprintf(stderr,
 	    "str = %s, loc = %d\n",
 	    attrNameString, loc);
+    */
 
     locPtr[0] = loc;
     

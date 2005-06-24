@@ -522,7 +522,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 locArr[0] = -1;
                 //return err;
             }
-            System.err.println(attrName + " : loc = " + locArr[0]);
+//            System.err.println(attrName + " : loc = " + locArr[0]);
             shaderProgramData[cvRdrIndex].setLocation(attrName, new Long(locArr[0]));
         }
         return null;
