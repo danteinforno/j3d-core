@@ -47,7 +47,7 @@ char *D3dErrorMessage[] = {
     "Graphics card did not support Hardware acceleration",
     "Graphics card did not support Transform and light hardware acceleration",
     "No Stencil buffer found in current display mode. DecalGroup may not work correctly.",
-    "Can't found a valid texture format, please try to use reference mode",
+    "Can't found a valid texture format, please try to use reference mode. DirectX SDK must be installed to use reference mode",
     "Fail to create offscreen image for background",
     "Fail to create Vertex Buffer",
     "Fail to Reset() D3D device, try Recreate device again.",
