@@ -19,7 +19,7 @@ D3dDisplayList::D3dDisplayList()
 
 D3dDisplayList::~D3dDisplayList()
 {
-    for (D3dVertexBuffer **p = vBufferVec.begin(); 
+    for (D3dVertexBuffer **p = vBufferVec.begin();
 	 p != vBufferVec.end(); p++) {
 	 SafeDelete(*p);
     }
@@ -28,7 +28,7 @@ D3dDisplayList::~D3dDisplayList()
 
 VOID D3dDisplayList::render(D3dCtx *d3dCtx)
 {
-    for (D3dVertexBuffer **p = vBufferVec.begin(); 
+    for (D3dVertexBuffer **p = vBufferVec.begin();
 	 p != vBufferVec.end(); p++) {
 	(*p)->render(d3dCtx);
     }
@@ -50,7 +50,7 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 
     D3dVertexBufferVector vCloneBufferVec;
     D3dVertexBuffer **r = vBufferVec.begin();
-    
+
     for (; r != vBufferVec.end(); r++) {
 	vCloneBufferVec.push_back(*r);
 
@@ -58,7 +58,7 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 
     vBufferVec.erase(vBufferVec.begin(),  vBufferVec.end());
 
-    D3dVertexBuffer **vbegin = vCloneBufferVec.begin(); 
+    D3dVertexBuffer **vbegin = vCloneBufferVec.begin();
     D3dVertexBuffer **vend = vCloneBufferVec.end();
     D3dVertexBuffer **q = vbegin;
     D3dVertexBuffer **p;
@@ -92,7 +92,7 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 		((*p)->isIndexPrimitive == isIndexPrimitive) &&
 		(isQuad(*p) == quadFlag) &&
 		((*p)->isPointFlagUsed == isPointFlagUsed) &&
-		// This means Mutliple VBs already use 
+		// This means Mutliple VBs already use
 		((*p)->totalVertexCount == (*p)->vcount)) {
 		vcounts += (*p)->totalVertexCount;
 		if ((*p)->indexBuffer != NULL) {
@@ -106,7 +106,7 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 	    } else {
 		break;
 	    }
-	}    
+	}
 
 	if (merge) {
 	    mergedVB = createMergedVB(d3dCtx, q, p, vcounts, indexCounts);
@@ -119,8 +119,8 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 		for (r = q; r != p; r++) {
 		    vBufferVec.push_back(*r);
 		}
-	    } 
-	} else {	    
+	    }
+	} else {
 	    vBufferVec.push_back(*q);
 	}
 	q = p;
@@ -137,7 +137,7 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 						 DWORD vcount,
 						 DWORD indexCount)
 {
-    LPDIRECT3DDEVICE9 device = d3dCtx->pDevice; 
+    LPDIRECT3DDEVICE9 device = d3dCtx->pDevice;
     D3dVertexBuffer **r;
     UINT i;
     HRESULT hr;
@@ -166,14 +166,14 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 					vb->vertexFormat,
 					D3DPOOL_DEFAULT,
 					&vb->buffer,
-					NULL);	    
+					NULL);
     }
 
     if (FAILED(hr)) {
 	return NULL;
     }
-   	BYTE *bdst = NULL;    
-	WORD *wdst = NULL;    
+   	BYTE *bdst = NULL;
+	WORD *wdst = NULL;
 	UINT *idst = NULL;
 
     hr = vb->buffer->Lock(0, 0,(VOID**) &bdst , 0);
@@ -182,15 +182,15 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	return NULL;
     }
 
-    if (indexCount > 0) { 
-	if (indexCount <= 0xffff) {
+    if (indexCount > 0) {
+	if (indexCount < 0xffff) {
 	    hr = device->CreateIndexBuffer(indexCount*sizeof(WORD),
 					   D3DUSAGE_WRITEONLY,
 					   D3DFMT_INDEX16,
 					   D3DPOOL_DEFAULT,
 					   &vb->indexBuffer,
 					   NULL);
-	    
+
 	} else {
 	    hr = device->CreateIndexBuffer(indexCount*sizeof(UINT),
 					   D3DUSAGE_WRITEONLY,
@@ -217,9 +217,9 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	}
     }
 
-   	BYTE *bsrc = NULL;   
-	WORD *wsrc = NULL;   
-	UINT *isrc = NULL;    
+   	BYTE *bsrc = NULL;
+	WORD *wsrc = NULL;
+	UINT *isrc = NULL;
 	UINT offset = 0;
     DWORD len;
     BOOL stripType = true;
@@ -236,7 +236,7 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	vb->numVerticesLen = 1;
 	vb->stripLen = 1;
 	stripType = false;
-    } 
+    }
 
     for (r = vstart; r != vend; r++) {
 	hr = (*r)->buffer->Lock(0, 0,(VOID**) &bsrc, 0);
@@ -245,7 +245,7 @@ LPD3DVERTEXBUFFER D3dDisplayList::createMergedVB(D3dCtx *d3dCtx,
 	    vb->buffer->Unlock();
 	    if (indexCount > 0) {
 		vb->indexBuffer->Unlock();
-	    }	    
+	    }
 	    SafeRelease(vb->buffer);
 	    SafeRelease(vb->indexBuffer);
 	    return NULL;
