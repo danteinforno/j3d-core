@@ -118,6 +118,9 @@ extern vector<void *> freePointerList0;
 extern vector<void *> freePointerList1;
 extern BOOL useFreePointerList0;
 
+//ISSUE 135 a iterator to void *
+typedef vector<void *>::iterator ITER_VOID;
+
 extern HANDLE hSema; // handle to semaphore
 extern BOOL firstError;
 extern BOOL debug;

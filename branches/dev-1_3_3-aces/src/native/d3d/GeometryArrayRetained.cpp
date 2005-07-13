@@ -2009,9 +2009,8 @@ void renderGeometry(JNIEnv *env,
 
 	} else {
 	    // Found the vb in the list of vbVector
-	    for (LPD3DVERTEXBUFFER *s = vbVector->begin(); 
-		      s != vbVector->end(); ++s) 
-		{
+	    for (ITER_LPD3DVERTEXBUFFER s = vbVector->begin(); 
+		 s != vbVector->end(); ++s) {
 		 if ((*s)->ctx == d3dCtx) {
 		    vb = *s;
 		    break;
@@ -2652,8 +2651,8 @@ void renderIndexGeometry(JNIEnv *env,
 	    env->SetLongField(geo, fieldID, reinterpret_cast<long>(vbVector));	    
 	} else {
 	    // Found the vb in the list of vbVector
-	    for (LPD3DVERTEXBUFFER *s = vbVector->begin(); 
-		 s != vbVector->end(); ++s) {
+	     for (ITER_LPD3DVERTEXBUFFER s = vbVector->begin(); 
+		      s != vbVector->end(); ++s) {
 		if ((*s)->ctx == d3dCtx) {
 		    vb = *s;
 		    break;
@@ -2945,7 +2944,10 @@ void renderIndexGeometry(JNIEnv *env,
 		    renderTypeSet = true;
 		    expandQuadIndex = true;
 		    // fall through
-		} else { // polygon line mode
+		} 
+		// start quad WireFrame
+		else { 
+			// polygon line mode
 		    // we don't want to see extra line appear in the
 		    // diagonal of quads if it splits into two
 		    // triangles. This is REALLY SLOW !!!
@@ -3055,6 +3057,9 @@ void renderIndexGeometry(JNIEnv *env,
 		    // Don't call vb->Renderer() at the end
 		    return;
 		}
+		
+		//end Quad WireFrame
+
 		// fall through
         case GEO_TYPE_INDEXED_TRI_SET:
 	    if (renderTypeSet == false) {
@@ -4278,13 +4283,13 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_freeD3DArray
 
     if (vbVector != NULL) {
 	// clearLive() invoke this in Renderer thread
-	for (LPD3DVERTEXBUFFER *s = vbVector->begin(); 
+		for (ITER_LPD3DVERTEXBUFFER s = vbVector->begin(); 
 	     s != vbVector->end(); ++s) {
 	    // This notify vb that parent vector is already free
 	    // so there is no need  to remove itself from vbVector
 	    (*s)->vbVector = NULL;
 	    (*s)->ctx->freeVB(*s);
-	}
+	    }
 	env->SetLongField(geo, fieldID, 0);
 	vbVector->clear();
 	delete vbVector;

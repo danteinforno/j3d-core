@@ -628,7 +628,7 @@ D3dCtx* findCtx(HWND hwnd)
 {
     D3dCtx *ctx = NULL;
 
-    for (D3dCtx **p = d3dCtxList.begin(); p != d3dCtxList.end(); p++) {
+   	for (ITER_D3dCtxVector p = d3dCtxList.begin(); p != d3dCtxList.end(); p++) {
 	if ((*p)->hwnd == hwnd) {
 	    ctx = *p;
 	    break;

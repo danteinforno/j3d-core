@@ -323,6 +323,8 @@ private:
 };
 
 typedef vector<D3dCtx *> D3dCtxVector;
+//issue 135 added iterator for D3dCtxVector
+typedef vector<D3dCtx *>::iterator ITER_D3dCtxVector;
 extern D3dCtxVector d3dCtxList;
 const extern D3DXMATRIX identityMatrix;
 #endif

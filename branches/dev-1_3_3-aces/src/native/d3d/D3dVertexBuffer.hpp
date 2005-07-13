@@ -22,6 +22,8 @@ class D3dVertexBuffer;
 typedef D3dVertexBuffer* LPD3DVERTEXBUFFER;
 typedef vector<LPD3DVERTEXBUFFER> D3dVertexBufferVector;
 
+//ISSUE 135 iterator for D3dVertexBuffer
+typedef vector<LPD3DVERTEXBUFFER>::iterator ITER_LPD3DVERTEXBUFFER;
 
 class D3dVertexBuffer {
 public:
