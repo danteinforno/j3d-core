@@ -1813,7 +1813,7 @@ VOID D3dCtx::freeVBList(D3dVertexBufferVector *v)
 
 VOID D3dCtx::freeResourceList(LPDIRECT3DRESOURCE9Vector *v)
 {
-    LPDIRECT3DRESOURCE9 *s;
+    ITER_LPDIRECT3DRESOURCE9 s;
 
     lockSurfaceList();
     for (s = v->begin(); s != v->end(); ++s) {
