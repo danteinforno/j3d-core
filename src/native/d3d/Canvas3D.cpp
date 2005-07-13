@@ -551,7 +551,7 @@ VOID freePointerList()
    if (useFreePointerList0) {
 	if (freePointerList1.size() > 0) {
 	    lockSurfaceList();
-	    for (void **p = freePointerList1.begin(); 
+	    for (ITER_VOID p = freePointerList1.begin();  
 		 p != freePointerList1.end(); ++p) {
 		delete (*p);
 	    }
@@ -563,7 +563,7 @@ VOID freePointerList()
     } else {
 	if (freePointerList0.size() > 0) {
 	    lockSurfaceList();
-	    for (void **p = freePointerList0.begin(); 
+	    for (ITER_VOID p = freePointerList0.begin();  
 		 p != freePointerList0.end(); ++p) {
 		delete (*p);
 	    }
