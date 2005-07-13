@@ -19,7 +19,7 @@ D3dDisplayList::D3dDisplayList()
 
 D3dDisplayList::~D3dDisplayList()
 {
-    for (D3dVertexBuffer **p = vBufferVec.begin();
+	for (ITER_LPD3DVERTEXBUFFER p = vBufferVec.begin();
 	 p != vBufferVec.end(); p++) {
 	 SafeDelete(*p);
     }
@@ -28,7 +28,7 @@ D3dDisplayList::~D3dDisplayList()
 
 VOID D3dDisplayList::render(D3dCtx *d3dCtx)
 {
-    for (D3dVertexBuffer **p = vBufferVec.begin();
+    for (ITER_LPD3DVERTEXBUFFER p = vBufferVec.begin();
 	 p != vBufferVec.end(); p++) {
 	(*p)->render(d3dCtx);
     }
@@ -49,19 +49,32 @@ VOID D3dDisplayList::optimize(D3dCtx *d3dCtx)
 {
 
     D3dVertexBufferVector vCloneBufferVec;
-    D3dVertexBuffer **r = vBufferVec.begin();
+    ITER_LPD3DVERTEXBUFFER rb = vBufferVec.begin();
 
-    for (; r != vBufferVec.end(); r++) {
-	vCloneBufferVec.push_back(*r);
-
+    for (; rb != vBufferVec.end(); rb++) {
+	vCloneBufferVec.push_back(*rb);
     }
+
+    D3dVertexBuffer **r;
+	   *r = *rb;
 
     vBufferVec.erase(vBufferVec.begin(),  vBufferVec.end());
 
-    D3dVertexBuffer **vbegin = vCloneBufferVec.begin();
-    D3dVertexBuffer **vend = vCloneBufferVec.end();
-    D3dVertexBuffer **q = vbegin;
+    //D3dVertexBuffer **vbegin = vCloneBufferVec.begin(); 
+    //D3dVertexBuffer **vend = vCloneBufferVec.end();
+
+	ITER_LPD3DVERTEXBUFFER vbegin = vCloneBufferVec.begin(); 
+    ITER_LPD3DVERTEXBUFFER vend_te = vCloneBufferVec.end();
+    D3dVertexBuffer **vend;
+	  (*vend) =  *vend_te;
+
+    //D3dVertexBuffer **q = vbegin;
+
+    D3dVertexBuffer **q;
     D3dVertexBuffer **p;
+
+     (*q) = *vbegin;
+
     int primitiveType, vcounts, climit;
     int indexCounts = 0;
     BOOL merge;
