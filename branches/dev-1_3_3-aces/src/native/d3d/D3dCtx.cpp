@@ -314,7 +314,8 @@ VOID D3dCtx::releaseVB()
     while (p != NULL) {
 	vbVector = p->vbVector;
 	if (vbVector != NULL) {
-	    for (r = vbVector->begin(); r != vbVector->end(); ++r) {
+	   for (ITER_LPD3DVERTEXBUFFER r = vbVector->begin(); 
+			  r != vbVector->end(); ++r) {
 		if (*r == p) {
 		    vbVector->erase(r);
 		    found = true;
@@ -712,7 +713,7 @@ INT D3dCtx::toggleMode(BOOL _bFullScreen, JNIEnv *env, jobject obj)
 
     int onScreenCount = 0;
 
-    for (D3dCtx **p = d3dCtxList.begin(); p != d3dCtxList.end(); p++) {
+    for (ITER_D3dCtxVector p = d3dCtxList.begin(); p != d3dCtxList.end(); p++) {
 	if (!(*p)->offScreen &&
 	    //	    (monitor == (*p)->monitor) &&
 	    (++onScreenCount > 1)) {
@@ -1790,11 +1791,12 @@ VOID D3dCtx::restoreDefaultLightMaterial()
 
 VOID D3dCtx::freeVBList(D3dVertexBufferVector *v)
 {
-    LPD3DVERTEXBUFFER *p, r;
+    //LPD3DVERTEXBUFFER *p;
+	LPD3DVERTEXBUFFER r;
 
     lockGeometry();
 
-    for (p = v->begin(); p != v->end(); ++p) {
+   for (ITER_LPD3DVERTEXBUFFER p = v->begin(); p != v->end(); ++p) {
 	// Remove itself from current ctx  vertexBufferTable list
 	r = (*p)->next;
 	if (r != NULL) {
