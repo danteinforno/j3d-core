@@ -218,7 +218,7 @@ VOID buildDriverList(LPDIRECT3D9 pD3D)
 		if (SUCCEEDED(pD3D->CheckDeviceMultiSampleType(i, deviceTypes[j],
 							       pDriver->desktopMode.Format,
 							       TRUE,
-							       (D3DMULTISAMPLE_TYPE) mtype,NULL),
+							       (D3DMULTISAMPLE_TYPE) mtype,NULL)
 								   )) {
 		    pDevice->multiSampleSupport |= bitmask;
 		}
