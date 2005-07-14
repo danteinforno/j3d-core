@@ -359,7 +359,7 @@ void copyVertexToVB(D3dCtx *d3dCtx,
 		    // buildGA() & modeulateAlpha
 		    // Currently buildGA() will not use byte color
 		    // so this code should never execute.
-		    jbyte alpha = (jbyte) 255*strideData->alpha;
+		    jbyte alpha = (jbyte)(255*strideData->alpha);
 		    if (strideData->useAlpha) {
 			srcStride = strideData->diffuseStride - 3;
 			while (wdst < wendptr) {

@@ -57,7 +57,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     jboolean isSharedCtx,
     jboolean offScreen)
 {
-    HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(window));
+    HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(jlong(window)));
 
     lock();
     D3dCtx* ctx = new D3dCtx(env, obj, hwnd, offScreen, vid);
@@ -111,7 +111,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     jint width,
     jint height)
 {
-    HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(window));
+    HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(jlong(window)));
 
     lock();
     // always use offscreen for property since it
@@ -420,11 +420,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	    sw = winWidth/(float) width;
 	    sh = winHeight/(float) height;
 	    if (sw >= sh) {
-		scaleWidth = width*sh;
+		scaleWidth = int(width*sh);
 		scaleHeight = winHeight;
 	    } else {
 		scaleWidth = winWidth;
-		scaleHeight = height*sw;		
+		scaleHeight = int(height*sw);		
 	    }
 	    texModeRepeat = FALSE;	    
 	    break;
@@ -435,9 +435,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 	    sh = winHeight/(float) height;
 	    if (sw >= sh) {
 		scaleWidth = winWidth;
-		scaleHeight = height*sw;		
+		scaleHeight = int(height*sw);		
 	    } else {
-		scaleWidth = width*sh;
+		scaleWidth = int(width*sh);
 		scaleHeight = winHeight;		
 	    }
 	    texModeRepeat = FALSE;	    

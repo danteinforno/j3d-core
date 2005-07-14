@@ -9539,7 +9539,7 @@ void copyDepthFromSurface(jint xoffset, jint yoffset,
 	(yoffset*lockedRect.Pitch);
 
     int zshift = firstBit(ddpf.dwZBitMask);
-    float maxdepth = 1 << ddpf.dwZBufferBitDepth;
+    float maxdepth = float( 1 << ddpf.dwZBufferBitDepth);
 
     destRow += (subHeight-1)*subWidth;
 
@@ -9805,7 +9805,7 @@ void copyDepthToSurfaceAlways(jint dst_xoffset, jint dst_yoffset,
     int zshift = firstBit(ddpf.dwZBitMask);
     DWORD mask;
     int maxValue = ddpf.dwZBitMask >> zshift;
-    float maxdepth = 1 << ddpf.dwZBufferBitDepth;
+    float maxdepth = float( 1 << ddpf.dwZBufferBitDepth);
 
     if ((ddpf.dwZBufferBitDepth <= 32) &&
 	(ddpf.dwZBufferBitDepth > 24)) {
@@ -9814,7 +9814,7 @@ void copyDepthToSurfaceAlways(jint dst_xoffset, jint dst_yoffset,
 	    src = srcRow;
 	    dst = destRow;
 	    for (int j=dst_xoffset; j < xlimit; j++) {
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < maxValue) {
 		    mask = mask << zshift;
 		} else {
@@ -9835,7 +9835,7 @@ void copyDepthToSurfaceAlways(jint dst_xoffset, jint dst_yoffset,
 	    src = srcRow;
 	    dst = destRow;
 	    for (int j=dst_xoffset; j < xlimit; j++) {
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < maxValue) {
 		    mask = mask << zshift;
 		} else {
@@ -9855,7 +9855,7 @@ void copyDepthToSurfaceAlways(jint dst_xoffset, jint dst_yoffset,
 	    src = srcRow;
 	    dst = destRow;
 	    for (int j=dst_xoffset; j < xlimit; j++) {
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < maxValue) {
 		    mask = mask << zshift;
 		} else {
@@ -9873,7 +9873,7 @@ void copyDepthToSurfaceAlways(jint dst_xoffset, jint dst_yoffset,
 	    src = srcRow;
 	    dst = destRow;
 	    for (int j=dst_xoffset; j < xlimit; j++) {
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < maxValue) {
 		    *dst++ = (byte) ((mask << zshift) & 0xff);
 		} else {
@@ -10118,7 +10118,7 @@ void copyDepthToSurfaceCmp(jint dst_xoffset, jint dst_yoffset,
     DWORD b1, b2, b3, b4;
     DWORD zmask;
     int maxValue = ddpf.dwZBitMask >> zshift;
-    float maxdepth = 1 << ddpf.dwZBufferBitDepth;
+    float maxdepth = float(1 << ddpf.dwZBufferBitDepth);
 
     if ((ddpf.dwZBufferBitDepth <= 32) &&
 	(ddpf.dwZBufferBitDepth > 24)) {
@@ -10134,7 +10134,7 @@ void copyDepthToSurfaceCmp(jint dst_xoffset, jint dst_yoffset,
 		zmask = (b4 << 24) | (b3 << 16) |
 		       (b2 << 8) | b1;
 		zmask =  (zmask & ddpf.dwZBitMask) >> zshift;
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < zmask) {
 		    // z depth test pass
 		    if (mask < maxValue) {
@@ -10164,7 +10164,7 @@ void copyDepthToSurfaceCmp(jint dst_xoffset, jint dst_yoffset,
 		b3 = *dst++;
 		zmask = (b3 << 16) | (b2 << 8) | b1;
 		zmask =  (zmask & ddpf.dwZBitMask) >> zshift;
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < zmask) {
 		    if (mask < maxValue) {
 			mask = mask << zshift;
@@ -10191,7 +10191,7 @@ void copyDepthToSurfaceCmp(jint dst_xoffset, jint dst_yoffset,
 		b2 = *dst++;
 		zmask = (b2 << 8) | b1;
 		zmask =  (zmask & ddpf.dwZBitMask) >> zshift;
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < zmask) {
 		    if (mask < maxValue) {
 			mask = mask << zshift;
@@ -10213,7 +10213,7 @@ void copyDepthToSurfaceCmp(jint dst_xoffset, jint dst_yoffset,
 	    dst = destRow;
 	    for (int j=dst_xoffset; j < xlimit; j++) {
 		zmask =  (*dst++ & ddpf.dwZBitMask) >> zshift;
-		mask = (DWORD) (*src++)*maxdepth;
+		mask = DWORD((*src++)*maxdepth);
 		if (mask < zmask) {
 		    dst--;
 		    if (mask < maxValue) {
@@ -10378,13 +10378,13 @@ void compositeDataToSurface(jint px, jint py,
 			*dst++ = 0xff;
 		    } else {
 			a2 = 255-a;
-			*dst++ = (*dst * a2 + b * a)*inv;
-			*dst++ = (*dst * a2 + g * a)*inv;
-			*dst++ = (*dst * a2 + r * a)*inv;
+			*dst++ = (unsigned char)((*dst * a2 + b * a)*inv);
+			*dst++ = (unsigned char)((*dst * a2 + g * a)*inv);
+			*dst++ = (unsigned char)((*dst * a2 + r * a)*inv);
 			if (ddpf.noAlpha) {
 			    *dst++ = a;
 			} else {
-			    *dst++ = (*dst * a2 + a * a)*inv;
+			    *dst++ = (unsigned char)((*dst * a2 + a * a)*inv);
 			}
 		    }
 		 } else {
@@ -10454,12 +10454,12 @@ void compositeDataToSurface(jint px, jint py,
 				    da = (byte) ((dmask & ddpf.dwRGBAlphaBitMask) <<
 						 -ashift);
 				}
-				a = (da * a2 + a * a)*inv;
+				a = DWORD((da * a2 + a * a)*inv);
 			    }
 
-			    g = (dg * a2 + g * a)*inv;
-			    b = (db * a2 + b * a)*inv;
-			    r = (dr * a2 + r * a)*inv;
+			    g = DWORD((dg * a2 + g * a)*inv);
+			    b = DWORD((db * a2 + b * a)*inv);
+			    r = DWORD((dr * a2 + r * a)*inv);
 			}
 			if (rshift >= 0) {
 			    mask = (r << rshift) & ddpf.dwRBitMask;
@@ -10539,11 +10539,11 @@ void compositeDataToSurface(jint px, jint py,
 				    da = (byte) ((dmask & ddpf.dwRGBAlphaBitMask) <<
 						 -ashift);
 				}
-				a = (da * a2 + a * a)*inv;
+				a = DWORD((da * a2 + a * a)*inv);
 			    }
-			    g = (dg * a2 + g * a)*inv;
-			    b = (db * a2 + b * a)*inv;
-			    r = (dr * a2 + r * a)*inv;
+			    g = DWORD((dg * a2 + g * a)*inv);
+			    b = DWORD((db * a2 + b * a)*inv);
+			    r = DWORD((dr * a2 + r * a)*inv);
 			}
 			if (rshift >= 0) {
 			    mask = (r << rshift) & ddpf.dwRBitMask;
@@ -10624,12 +10624,12 @@ void compositeDataToSurface(jint px, jint py,
 				    da = (byte) ((dmask & ddpf.dwRGBAlphaBitMask) <<
 						 -ashift);
 				}
-				a = (da * a2 + a * a)*inv;
+				a = DWORD( (da * a2 + a * a)*inv);
 			    }
 
-			    g = (dg * a2 + g * a)*inv;
-			    b = (db * a2 + b * a)*inv;
-			    r = (dr * a2 + r * a)*inv;
+			    g = DWORD((dg * a2 + g * a)*inv);
+			    b = DWORD((db * a2 + b * a)*inv);
+			    r = DWORD((dr * a2 + r * a)*inv);
 			}
 
 			if (rshift >= 0) {
@@ -10706,12 +10706,12 @@ void compositeDataToSurface(jint px, jint py,
 				    da = (byte) ((dmask & ddpf.dwRGBAlphaBitMask) <<
 						 -ashift);
 				}
-				a = (da * a2 + a * a)*inv;
+				a = DWORD((da * a2 + a * a)*inv);
 			    }
 
-			    g = (dg * a2 + g * a)*inv;
-			    b = (db * a2 + b * a)*inv;
-			    r = (dr * a2 + r * a)*inv;
+			    g = DWORD((dg * a2 + g * a)*inv);
+			    b = DWORD((db * a2 + b * a)*inv);
+			    r = DWORD((dr * a2 + r * a)*inv);
 			}
 			if (rshift >= 0) {
 			    mask = (r << rshift) & ddpf.dwRBitMask;

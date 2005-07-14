@@ -255,7 +255,7 @@ VOID printInfo()
 	printf("Windows 95/98");
 	break;
     case VER_PLATFORM_WIN32_NT:
-	printf("Windows NT");
+	printf("Windows NT/2000/XP");
 	break;
     }
 
@@ -272,8 +272,9 @@ VOID printInfo()
 	printf("                 Version %d.%d, Build %d, VendorId %d\n",
 	       LOWORD(id->DriverVersion.HighPart),	       
 	       HIWORD(id->DriverVersion.LowPart),	       
-	       LOWORD(id->DriverVersion.LowPart));
-	printf("                 DeviceId 0x%x, SubSysId 0x%x, Revision 0x%d\n",
+	       LOWORD(id->DriverVersion.LowPart),		   
+		   id->VendorId);
+	printf("                 DeviceId %d, SubSysId %d, Revision %d\n",
 	       id->VendorId, id->DeviceId,
 	       id->SubSysId, id->Revision);
 	printf("  [Desktop Mode] %dx%d ", 
