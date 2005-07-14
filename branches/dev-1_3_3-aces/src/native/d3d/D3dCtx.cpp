@@ -1343,7 +1343,7 @@ VOID D3dCtx::setCanvasProperty(JNIEnv *env, jobject obj)
     char *version = "DirectX 9.0 or above";
     env->SetObjectField(obj, id, env->NewStringUTF(version));
 
-    float degree = deviceInfo->maxAnisotropy;
+    float degree = float(deviceInfo->maxAnisotropy);
     id = env->GetFieldID(canvasCls, "anisotropicDegreeMax", "F");
     env->SetFloatField(obj, id, degree);
 

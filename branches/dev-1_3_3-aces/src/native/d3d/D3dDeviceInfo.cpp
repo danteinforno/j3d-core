@@ -49,13 +49,13 @@ VOID D3dDeviceInfo::setCaps(D3DCAPS9 *d3dCaps)
 
     textureSquareOnly = ((d3dCaps->TextureCaps &   D3DPTEXTURECAPS_SQUAREONLY) != 0);
 
-    linePatternSupport = (1==0); //((d3dCaps->PrimitiveMiscCaps &   D3DPMISCCAPS_LINEPATTERNREP) != 0);
+    linePatternSupport = false; //((d3dCaps->PrimitiveMiscCaps &   D3DPMISCCAPS_LINEPATTERNREP) != 0);
 
     texBorderModeSupport = ((d3dCaps->TextureAddressCaps & D3DPTADDRESSCAPS_BORDER) != 0);
 
     texLerpSupport = ((d3dCaps->TextureOpCaps &    D3DTEXOPCAPS_LERP) != 0);
 
-    canRenderWindowed = (0==0);//((d3dCaps->Caps2 &  D3DCAPS2_CANRENDERWINDOWED) != 0);
+    canRenderWindowed = true;//((d3dCaps->Caps2 &  D3DCAPS2_CANRENDERWINDOWED) != 0);
 
     maxPrimitiveCount = d3dCaps->MaxPrimitiveCount;
     maxVertexIndex = min(vertexBufferMaxVertexLimit, d3dCaps->MaxVertexIndex);
@@ -65,7 +65,7 @@ VOID D3dDeviceInfo::setCaps(D3DCAPS9 *d3dCaps)
     maxTextureDepth =  d3dCaps->MaxVolumeExtent;
 
     maxActiveLights = d3dCaps->MaxActiveLights;
-    maxPointSize = d3dCaps->MaxPointSize;
+    maxPointSize = DWORD(d3dCaps->MaxPointSize);
     maxAnisotropy = d3dCaps->MaxAnisotropy;
 
     maxVertexCount[GEO_TYPE_QUAD_SET] = min(vertexBufferMaxVertexLimit,
