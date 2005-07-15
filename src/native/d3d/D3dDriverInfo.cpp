@@ -213,7 +213,7 @@ VOID buildDriverList(LPDIRECT3D9 pD3D)
 	    DWORD bitmask = 1 << 2;
 	    pDevice->multiSampleSupport = 0;
 	    for (int mtype = D3DMULTISAMPLE_2_SAMPLES; 
-		 mtype <= D3DMULTISAMPLE_16_SAMPLES; mtype++) {
+		      mtype <= D3DMULTISAMPLE_16_SAMPLES; mtype++) {
 		// consider desktop mode only for multisampling
 		if (SUCCEEDED(pD3D->CheckDeviceMultiSampleType(i, deviceTypes[j],
 							       pDriver->desktopMode.Format,
