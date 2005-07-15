@@ -11673,3 +11673,4 @@ void drawTextureRect(D3dCtx *d3dCtx,
 	device->SetRenderState(D3DRS_CULLMODE, d3dCtx->cullMode);
 	device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
 }
+

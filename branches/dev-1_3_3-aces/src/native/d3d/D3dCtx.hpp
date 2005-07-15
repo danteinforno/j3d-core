@@ -75,6 +75,12 @@ public:
     // Parameters use for CreateDevice()
     D3DPRESENT_PARAMETERS d3dPresent;
     DWORD          dwBehavior;
+	BOOL           bForceHwdVertexProcess; // true if j3d.d3dVertexProcess is hardware
+	BOOL           bForceMixVertexProcess; // true if j3d.d3dVertexProcess is mixed
+	BOOL           bForceSWVertexProcess;  // true if j3d.d3dVertexProcess is software
+
+	BOOL           bUseNvPerfHUD; // true if j3d.useNvPerfHUD is true
+	                              // it also makes  bForceHwdVertexProcess true
 
     BOOL           offScreen; // true if it is offScreen rendering
                               // in this case only backSurface is used
@@ -299,15 +305,20 @@ public:
 					   BOOL *bFullScreen,
 					   int minZDepth);
     static VOID setDeviceFromProperty(JNIEnv *env);
+	static BOOL getSystemProperty(JNIEnv *env, char *strName, char *strValue);
     static VOID setDebugProperty(JNIEnv *env);
     static VOID setVBLimitProperty(JNIEnv *env);
     static VOID setImplicitMultisamplingProperty(JNIEnv *env);
+	
+
 
 private:
 
     RECT savedTopRect;        // for toggle between fullscreen mode
     RECT savedClientRect;
     DWORD winStyle;
+	// a private reference for JNIEnv
+	JNIEnv* jniEnv;
 
     VOID createVertexBuffer();
 
@@ -320,6 +331,7 @@ private:
     VOID setDefaultAttributes();
     VOID printInfo(D3DPRESENT_PARAMETERS *d3dPresent);
     VOID setWindowMode();
+	jboolean getJavaBoolEnv(JNIEnv *env, char* envStr);
 };
 
 typedef vector<D3dCtx *> D3dCtxVector;

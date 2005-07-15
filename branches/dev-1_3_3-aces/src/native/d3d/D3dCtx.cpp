@@ -37,7 +37,7 @@ D3dCtx::D3dCtx(JNIEnv* env, jobject obj, HWND _hwnd, BOOL _offScreen,
 	       jint vid)
 {
     int i;
-
+    jniEnv = env; 
     monitor = NULL;
     hwnd = _hwnd;
     pD3D = NULL;
@@ -416,11 +416,9 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 	getScreenRect(hwnd, &savedClientRect);
 	CopyMemory(&screenRect, &savedClientRect, sizeof (RECT));
     }
-
-	//issue 135 debugging
+	
     dwBehavior = findBehavior();
-    //dwBehavior = D3DCREATE_HARDWARE_VERTEXPROCESSING;
-
+    
     if (debug) {
 	printf("Use %s, ", driverInfo->adapterIdentifier.Description);
 
@@ -452,10 +450,10 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 	return false;
     }
 
-#if NVIDIA_DEBUG
-   // using NVIDIA NvPerfHUD
-   // Set default settings
-   printf("\n NVIDIA NvPerfHUD debug mode.");
+if(bUseNvPerfHUD)
+{   
+   // using NVIDIA NvPerfHUD profiler  
+	printf("\n NVIDIA NvPerfHUD mode:");
    UINT adapterToUse=driverInfo->iAdapter;
    D3DDEVTYPE deviceType=deviceInfo->deviceType;
    DWORD behaviorFlags = dwBehavior;
@@ -463,11 +461,13 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 
    // Look for 'NVIDIA NVPerfHUD' adapter
    // If it is present, override default settings
-   for (UINT adapter=0;adapter<pD3D->GetAdapterCount(); adapter++){
+   for (UINT adapter=0;adapter<pD3D->GetAdapterCount(); adapter++)
+   {
     D3DADAPTER_IDENTIFIER9 identifier;
     HRESULT Res=pD3D->GetAdapterIdentifier(adapter,0,&identifier);
     printf("\n Adapter identifier : %s",identifier.Description);
-    if (strcmp(identifier.Description,"NVIDIA NVPerfHUD")==0){
+    if (strcmp(identifier.Description,"NVIDIA NVPerfHUD")==0)
+	{
 	     adapterToUse=adapter;
 		 deviceType=D3DDEVTYPE_REF;
 		 behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING;
@@ -490,8 +490,9 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
    {
 	    printf("\n No suitable device found for NVIDIA NvPerfHUD ! \n");
    }
-
-#else
+}
+else
+{
    // NORMAL Mode
      hr = pD3D->CreateDevice(driverInfo->iAdapter,
 			    deviceInfo->deviceType,
@@ -499,7 +500,7 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 			    dwBehavior,
 			    &d3dPresent,
 			    &pDevice);
-#endif
+}
 
 
     if (FAILED(hr) && (requiredDeviceID < 0))
@@ -790,7 +791,7 @@ VOID D3dCtx::setPresentParams(JNIEnv *env, jobject obj)
 	d3dPresent.BackBufferHeight = driverInfo->desktopMode.Height;
 	d3dPresent.BackBufferFormat = driverInfo->desktopMode.Format;
 	d3dPresent.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;//D3DPRESENT_INTERVAL_ONE;
 
     } else {
 	d3dPresent.Windowed = true;
@@ -806,7 +807,7 @@ VOID D3dCtx::setPresentParams(JNIEnv *env, jobject obj)
 	d3dPresent.BackBufferHeight = getHeight();
 	d3dPresent.BackBufferFormat = driverInfo->desktopMode.Format;
 	d3dPresent.FullScreen_RefreshRateInHz = 0;
-	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 
     }
 
@@ -1268,6 +1269,41 @@ VOID D3dCtx::setDebugProperty(JNIEnv *env)
     }
 }
 
+BOOL D3dCtx::getSystemProperty(JNIEnv *env, char *strName, char *strValue)
+{
+    jclass systemClass = env->FindClass( "javax/media/j3d/MasterControl" );
+
+    if ( systemClass != NULL )
+    {
+        jmethodID method = env->GetStaticMethodID(
+            systemClass, "getProperty",
+            "(Ljava/lang/String;)Ljava/lang/String;" );
+        if ( method != NULL )
+        {
+            jstring name = env->NewStringUTF( strName );
+            jstring property = reinterpret_cast<jstring>(
+                env->CallStaticObjectMethod(
+                    systemClass, method, name ));
+            if ( property != NULL )
+            {
+                jboolean isCopy;
+                const char * chars = env->GetStringUTFChars(property, &isCopy );
+                if ( chars != 0 && stricmp( chars, strValue ) == 0 ) 
+					{
+						env->ReleaseStringUTFChars( property, chars );
+                        return true;
+                    } 
+					else 
+					{
+                       env->ReleaseStringUTFChars( property, chars );
+			           return false;
+		            } 
+            }
+	    }
+    }
+	return false;
+}
+
 VOID D3dCtx::setImplicitMultisamplingProperty(JNIEnv *env)
 {
     jclass cls = env->FindClass("javax/media/j3d/VirtualUniverse");
@@ -1403,13 +1439,16 @@ VOID D3dCtx::createVertexBuffer()
 	DWORD usage_D3DTLVERTEX= D3DUSAGE_DONOTCLIP|
 		                     D3DUSAGE_SOFTWAREPROCESSING;
 
-#if NVIDIA_DEBUG
+//# if NVIDIA_DEBUG
+	if(deviceInfo->isHardwareTnL)
+    {
 	// remove SoftwareProcessing
     usage_D3DVERTEX = D3DUSAGE_DONOTCLIP|
 				      D3DUSAGE_WRITEONLY;
 
 	usage_D3DTLVERTEX = D3DUSAGE_DONOTCLIP;
-#endif
+   }
+// # endif
 
     HRESULT hr =
 	pDevice->CreateVertexBuffer(sizeof(D3DVERTEX),
@@ -1702,17 +1741,57 @@ VOID D3dCtx::enumDisplayMode(DEVMODE* dmode)
 	EnumDisplaySettings( mi.szDevice, ENUM_CURRENT_SETTINGS, dmode);
     }
 }
-
+// check what kind of Vertex processing will be used
 DWORD D3dCtx::findBehavior()
 {
-    if (deviceInfo->isHardwareTnL &&
-	((requiredDeviceID < 0) || (requiredDeviceID == DEVICE_HAL_TnL))) {
-	softwareVertexProcessing = FALSE;
-	return D3DCREATE_MIXED_VERTEXPROCESSING;
-    } else {
-	softwareVertexProcessing = TRUE;
-	return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-    }
+	bForceHwdVertexProcess = getSystemProperty(jniEnv,"j3d.d3dVertexProcess","hardware");
+	bForceMixVertexProcess = getSystemProperty(jniEnv,"j3d.d3dVertexProcess","mixed");
+	bForceSWVertexProcess = getSystemProperty(jniEnv,"j3d.d3dVertexProcess","software");
+
+	bUseNvPerfHUD = getSystemProperty(jniEnv,"j3d.useNvPerfHUD","true");
+     
+	if (bUseNvPerfHUD) // must have bForceHwdVertexProcess as true
+	{
+     printf("\nUsing j3d.useNvPerfHUD=true\n");
+     bForceHwdVertexProcess = true;
+	 bForceMixVertexProcess =  false;
+	 bForceSWVertexProcess = false;
+	}
+
+    if (bForceHwdVertexProcess)
+	{
+      softwareVertexProcessing = FALSE;
+	  printf("\nUsing d3dVertexProcess=hardware\n");
+	  return D3DCREATE_HARDWARE_VERTEXPROCESSING;
+	}
+
+	if (bForceMixVertexProcess)
+	{
+      printf("\nUsing d3dVertexProcess=mixed\n");
+      softwareVertexProcessing = FALSE;
+	  return D3DCREATE_MIXED_VERTEXPROCESSING;
+	}
+
+	if (bForceSWVertexProcess)
+	{
+      printf("\nUsing d3dVertexProcess=software\n");
+      softwareVertexProcessing = TRUE;
+	  return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+	}
+	
+	if (deviceInfo->isHardwareTnL && deviceInfo->supportShaders11 &&
+	     ((requiredDeviceID < 0) || (requiredDeviceID == DEVICE_HAL_TnL))) 
+	   {
+        if (debug){printf("\nUsing hardware Vertex Processing.\n");}
+	    softwareVertexProcessing = FALSE;
+	    return D3DCREATE_HARDWARE_VERTEXPROCESSING;
+       } 
+	 else // use Software Vertex Processing
+	  {
+		if (debug){printf("\nUsing software Vertex Processing.\n");}
+        softwareVertexProcessing = TRUE;
+	    return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+      }
 }
 
 VOID D3dCtx::printInfo(D3DPRESENT_PARAMETERS *d3dPresent)
@@ -1893,6 +1972,48 @@ BOOL D3dCtx::createFrontBuffer()
     }
     return true;
 }
+
+jboolean  D3dCtx::getJavaBoolEnv(JNIEnv *env, char* envStr)
+{
+   jclass systemClass = env->FindClass( "javax/media/j3d/MasterControl" );
+   
+   if ( systemClass != NULL )
+    {
+        jmethodID method = env->GetStaticMethodID(
+            systemClass, "getProperty",
+            "(Ljava/lang/String;)Ljava/lang/String;" );
+        if ( method != NULL )
+        {
+            jstring name = env->NewStringUTF( envStr );
+            jstring property = reinterpret_cast<jstring>(
+                env->CallStaticObjectMethod(
+                    systemClass, method, name ));
+            if ( property != NULL )
+            {
+                jboolean isCopy;
+                const char * chars = env->GetStringUTFChars(
+                    property, &isCopy );
+                if ( chars != 0 )
+                {
+                    if ( stricmp( chars, "true" ) == 0 ) 
+					{
+                        env->ReleaseStringUTFChars( property, chars );
+						return true;
+                    } 
+					else 
+					{
+					  env->ReleaseStringUTFChars( property, chars );
+			          return false;
+		            }
+                    env->ReleaseStringUTFChars( property, chars );
+                }
+            }
+	    }
+    }
+	return false;
+}
+
+
 
 /**
 // this routine is not safe using current D3D routines
