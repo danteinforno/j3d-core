@@ -24,18 +24,38 @@ D3dDeviceInfo::~D3dDeviceInfo()
 
 VOID D3dDeviceInfo::setCaps(D3DCAPS9 *d3dCaps)
 {
-
-
-    if (deviceType == D3DDEVTYPE_HAL)
+    if (deviceType == D3DDEVTYPE_HAL )
     {
-    	isHardware = true;
+    	isHardware = true;		
     	isHardwareTnL = (d3dCaps->DevCaps &  D3DDEVCAPS_HWTRANSFORMANDLIGHT);
     }
-    else
+    else // D3DDEVTYPE_REF
     {
     	 isHardware = false;
     	 isHardwareTnL = false;
     }
+
+	// check if it supports at least vertex shader 1.1
+    if(d3dCaps->VertexShaderVersion < D3DVS_VERSION(1,1))
+	{
+	  supportShaders11 = false;
+	}
+	else
+	{
+     supportShaders11 = true;
+	}
+	DWORD vsVersion = d3dCaps->VertexShaderVersion;
+    if (debug)
+	   {
+	      printf("[Debug]Supported Shaders = %d.%d\n", 
+		          HIBYTE(LOWORD(vsVersion)),
+                  LOBYTE(LOWORD(vsVersion)));
+	   }
+
+    printf("Supported Shaders = %d.%d\n", 
+		         HIBYTE(LOWORD(vsVersion)),
+                 LOBYTE(LOWORD(vsVersion)));
+	
 	//supportStreamOffset = 
 
     maxTextureBlendStages = d3dCaps->MaxTextureBlendStages;
