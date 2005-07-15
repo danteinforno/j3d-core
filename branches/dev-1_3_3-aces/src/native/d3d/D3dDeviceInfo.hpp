@@ -50,6 +50,7 @@ public:
     // Max vetex count support for each primitive
     DWORD maxVertexCount[GEO_TYPE_INDEXED_LINE_STRIP_SET+1];
 
+	BOOL supportShaders11;
     BOOL isHardware;
     BOOL isHardwareTnL;
     BOOL canRenderWindowed;
