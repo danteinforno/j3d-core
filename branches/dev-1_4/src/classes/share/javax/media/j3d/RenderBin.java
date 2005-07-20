@@ -174,6 +174,8 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
      */
     View view = null;
     
+    private Comparator transparencySortComparator = null;
+    
     ArrayList toBeAddedTextureResourceFreeList = new ArrayList(5);
     ArrayList displayListResourceFreeList = new ArrayList(5);
     boolean resourceToFree = false;
@@ -835,7 +837,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 			continue;
 		    zVal = renderAtom.geometryAtom.centroid[k].distanceSquared(eyeInVworld);
 		    renderAtom.parentTInfo[k].zVal = zVal;
-		    
+		    renderAtom.parentTInfo[k].geometryAtom = renderAtom.geometryAtom;	    
 		}
 	    }
 	    
@@ -6461,7 +6463,16 @@ System.out.println("......tb.soleUser= " +
 	    zval1 = input1.zVal;
 	    zval2 = input2.zVal;
 	    // Put the newList before the current one
-	    if (zval2 > zval1) {
+            
+//            System.out.print("Code path 1 ");
+//            if (transparencySortComparator!=null) 
+//                if (zval2 > zval1 && (transparencySortComparator.compare(input2, input1)>0))
+//                    System.out.println("PASS");
+//                else
+//                    System.out.println("FAIL");
+        
+            if ((transparencySortComparator==null && zval2 > zval1) ||
+                (transparencySortComparator!=null && (transparencySortComparator.compare(input2, input1)>0))){
 		//		System.out.println("===> path1");
 		if (input1.prev == null) {
 		    input1.prev = input2;
@@ -6497,38 +6508,48 @@ System.out.println("......tb.soleUser= " +
 	return oldList;
     }
 
-    void insertDepthSort(RenderAtom r) {
-	TransparentRenderingInfo tinfo = null;
-	//	System.out.println("&&&&&&&&insertDepthSort");
-	for (int i = 0; i < r.rListInfo.length; i++) {
-	    if (r.parentTInfo[i] == null)
-		continue;
-	    
-	    if (transparentInfo == null) {
-		transparentInfo = r.parentTInfo[i];
-		transparentInfo.prev = null;
-		transparentInfo.next = null;
-	    }
-	    else {
-		tinfo = transparentInfo;
-		TransparentRenderingInfo prevInfo = transparentInfo;
-		while (tinfo != null&& r.parentTInfo[i].zVal < tinfo.zVal) {
-		    prevInfo = tinfo;
-		    tinfo = tinfo.next;
-		}
-		r.parentTInfo[i].prev = prevInfo;
-		if (prevInfo.next != null) {
-		    prevInfo.next.prev = r.parentTInfo[i];
-		}
-		r.parentTInfo[i].next = prevInfo.next;
-		prevInfo.next = r.parentTInfo[i];
-		
-	    }
-	    
-	}
-    }
-
-
+//    void insertDepthSort(RenderAtom r) {
+//	TransparentRenderingInfo tinfo = null;
+//	//	System.out.println("&&&&&&&&insertDepthSort");
+//	for (int i = 0; i < r.rListInfo.length; i++) {
+//	    if (r.parentTInfo[i] == null)
+//		continue;
+//	    
+//	    if (transparentInfo == null) {
+//		transparentInfo = r.parentTInfo[i];
+//		transparentInfo.prev = null;
+//		transparentInfo.next = null;
+//	    }
+//	    else {
+//		tinfo = transparentInfo;
+//		TransparentRenderingInfo prevInfo = transparentInfo;
+//                if (transparencySortComparator==null)
+//                    while (tinfo != null && r.parentTInfo[i].zVal < tinfo.zVal) {
+//                        prevInfo = tinfo;
+//                        tinfo = tinfo.next;
+//                    }
+//                else {
+//                    System.out.println("Code Path 2 ");
+//                    if (tinfo!=null && (transparencySortComparator.compare(r.parentTInfo[i], tinfo)<0)==r.parentTInfo[i].zVal < tinfo.zVal)
+//                        System.out.println("PASS");
+//                    else
+//                        System.out.println("FAIL");
+//                    while (tinfo != null && transparencySortComparator.compare(r.parentTInfo[i], tinfo)<0) {
+//                        prevInfo = tinfo;
+//                        tinfo = tinfo.next;
+//                    }
+//                }
+//		r.parentTInfo[i].prev = prevInfo;
+//		if (prevInfo.next != null) {
+//		    prevInfo.next.prev = r.parentTInfo[i];
+//		}
+//		r.parentTInfo[i].next = prevInfo.next;
+//		prevInfo.next = r.parentTInfo[i];
+//		
+//	    }
+//	    
+//	}
+//    }
 
     TransparentRenderingInfo collectDirtyTRInfo( TransparentRenderingInfo dirtyList,
 						 RenderAtom r) {
@@ -6575,6 +6596,7 @@ System.out.println("......tb.soleUser= " +
  
 
     TransparentRenderingInfo depthSortAll(TransparentRenderingInfo startinfo) {
+        transparencySortComparator = com.sun.j3d.utils.scenegraph.transparency.TransparencySortController.getComparator(view);
 	TransparentRenderingInfo tinfo, previnfo, nextinfo;
 	double curZ;
 	//	System.out.println("&&&&&&&&&&&depthSortAll");
@@ -6594,10 +6616,21 @@ System.out.println("......tb.soleUser= " +
 	    previnfo = tinfo.prev;
 	    // Find the correct location for tinfo
 
-	    while (previnfo != null && previnfo.zVal < curZ) {
-		previnfo = previnfo.prev;
-
-	    }
+            if (transparencySortComparator==null) {
+                while (previnfo != null && previnfo.zVal < curZ) {
+                    previnfo = previnfo.prev;
+                }
+            } else {
+//                    System.out.println("Code Path 3 ");
+//                    if (tinfo!=null && (transparencySortComparator.compare(previnfo, tinfo)<0)==previnfo.zVal < curZ)
+//                        System.out.println("PASS");
+//                    else
+//                        System.out.println("FAIL");
+                while (previnfo != null && transparencySortComparator.compare(previnfo,tinfo)<0) {
+                    previnfo = previnfo.prev;
+                }               
+            }
+                      
 	    if (tinfo.prev != previnfo) {
 		if (previnfo == null) {
 		    if (tinfo.next != null) {

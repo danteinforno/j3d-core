@@ -11,10 +11,9 @@
  */
 
 package javax.media.j3d;
-import javax.vecmath.*;
-import java.util.*;
 
-class TransparentRenderingInfo extends Object {
+
+class TransparentRenderingInfo extends Object implements com.sun.j3d.utils.scenegraph.transparency.TransparencySortGeom {
     // For DepthSortedTransparency, rm is the rendermolecule
     // that this rInfo is part of
     // For non depth sorted transparency, rm is one of the rendermolecules
@@ -24,6 +23,7 @@ class TransparentRenderingInfo extends Object {
     RenderAtomListInfo rInfo;
     TransparentRenderingInfo prev;
     TransparentRenderingInfo next;
+    GeometryAtom geometryAtom;
     double zVal; // Used in DepthSorted Transparency
     // TODO: Add Dirty info
 
@@ -105,5 +105,26 @@ class TransparentRenderingInfo extends Object {
 	if (updateState(cv)) {
 	    rm.textureBin.render(cv, this);
 	}
+    }
+
+    public double getDistanceSquared() {
+        return zVal;
+    }
+
+    public Geometry getGeometry() {
+        // TODO verify 0 is always the correct index. Assumption is that for 
+        // Shape3D with multiple geometry each geometry is put in it's 
+        // own geometryAtom.
+        if (geometryAtom.geometryArray[0]==null)
+            return null;
+        return (Geometry)geometryAtom.geometryArray[0].source;
+    }
+
+    public void getLocalToVWorld(Transform3D localToVW) {
+        localToVW.set(rm.localToVworld[NodeRetained.LAST_LOCAL_TO_VWORLD]);
+    }
+
+    public Shape3D getShape3D() {
+        return (Shape3D)geometryAtom.source.source;
     }
 }
