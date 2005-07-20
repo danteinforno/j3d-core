@@ -12,9 +12,9 @@
 
 package javax.media.j3d;
 
+import java.awt.image.BufferedImage;
 import java.util.*;
 import javax.vecmath.*;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 
 /**
@@ -1366,8 +1366,9 @@ abstract class TextureRetained extends NodeComponentRetained {
 		yoffset = image.height - yoffset - height;
 
 	    } else {
+                // Fix issue 132
 		imageData = ((DataBufferByte)
-			image.bImage[0].getData().getDataBuffer()).getData();
+			((BufferedImage)image.bImage[0]).getRaster().getDataBuffer()).getData();
 
 	        // based on the yUp flag in the associated ImageComponent,
 	        // adjust the yoffset
@@ -2031,12 +2032,12 @@ abstract class TextureRetained extends NodeComponentRetained {
 	if (arg == null) {
 	    // no subimage info, so the entire image is to be updated
 	    info.entireImage = true;
-
-	} else if ((arg.width >= width/2) && (arg.height >= height/2)) {
-
-	    // if the subimage dimension is close to the complete dimension,
-            // use the full update (it's more efficient)
-	    info.entireImage = true;
+        // Fix issue 117 using ogl subimage always
+//	} else if ((arg.width >= width/2) && (arg.height >= height/2)) {
+//
+//	    // if the subimage dimension is close to the complete dimension,
+//            // use the full update (it's more efficient)
+//	    info.entireImage = true;
 	} else {
 	    info.entireImage = false;
 	}
