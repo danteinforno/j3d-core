@@ -75,6 +75,24 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         }
     }
 
+
+    /**
+     * Retrieves the vertex attribute names array from this
+     * ShaderProgram object.
+     *
+     * @return a copy of this ShaderProgram's array of vertex attribute names.
+     */
+    String[] getVertexAttrNames() {
+
+        if (vertexAttrNames == null) {
+	    return null;
+	} 
+	
+	return (String[])vertexAttrNames.clone();
+
+    }
+
+
     /**
      * Sets the shader attribute names array for this ShaderProgram
      * object. Each element in the array specifies a shader
@@ -95,6 +113,26 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             this.shaderAttrNames = (String[])shaderAttrNames.clone();
         }
     }
+
+
+    /**
+     * Retrieves the shader attribute names array from this
+     * ShaderProgram object.
+     *
+     * @return a copy of this ShaderProgram's array of shader attribute names.
+     */
+
+    String[] getShaderAttrNames() {
+
+        if (shaderAttrNames == null) {
+	    return null;
+	} 
+	
+	return (String[])shaderAttrNames.clone();
+
+    }
+
+
 
     /**
      * Copies the specified array of shaders into this shader
@@ -137,8 +175,6 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
      *
      * @return a copy of this ShaderProgram's array of Shader objects
      *
-     * @exception CapabilityNotSetException if appropriate capability is
-     * not set and this object is part of live or compiled scene graph
      */
     Shader[] getShaders() {
 

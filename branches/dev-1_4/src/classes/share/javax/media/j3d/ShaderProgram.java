@@ -89,7 +89,7 @@ public abstract class ShaderProgram extends NodeComponent {
 
     /**
      * Retrieves the vertex attribute names array from this
-     * GeometryArray object.
+     * ShaderProgram object.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
@@ -124,7 +124,7 @@ public abstract class ShaderProgram extends NodeComponent {
 
     /**
      * Retrieves the shader attribute names array from this
-     * GeometryArray object.
+     * ShaderProgram object.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
