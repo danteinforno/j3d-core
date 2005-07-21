@@ -49,7 +49,14 @@ public class CgShaderProgram extends ShaderProgram {
 
     // Implement abstract getVertexAttrNames method (inherit javadoc from parent class)
     public String[] getVertexAttrNames() {
-	throw new RuntimeException("not implemented");
+
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_NAMES_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("CgShaderProgram0"));
+	    }
+	}
+
+ 	return ((CgShaderProgramRetained)this.retained).getVertexAttrNames();
     }
 
     // Implement abstract setShaderAttrNames method (inherit javadoc from parent class)
@@ -69,7 +76,14 @@ public class CgShaderProgram extends ShaderProgram {
 
     // Implement abstract getShaderAttrNames method (inherit javadoc from parent class)
     public String[] getShaderAttrNames() {
-	throw new RuntimeException("not implemented");
+
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_NAMES_READ)) {
+		throw new CapabilityNotSetException(J3dI18N.getString("CgShaderProgram0"));
+	    }
+	}
+
+ 	return ((CgShaderProgramRetained)this.retained).getShaderAttrNames();
     }
 
     /**
