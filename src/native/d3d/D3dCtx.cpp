@@ -37,7 +37,7 @@ D3dCtx::D3dCtx(JNIEnv* env, jobject obj, HWND _hwnd, BOOL _offScreen,
 	       jint vid)
 {
     int i;
-    jniEnv = env; 
+    jniEnv = env;
     monitor = NULL;
     hwnd = _hwnd;
     pD3D = NULL;
@@ -57,6 +57,7 @@ D3dCtx::D3dCtx(JNIEnv* env, jobject obj, HWND _hwnd, BOOL _offScreen,
     inToggle = false;
     useFreeList0 = true;
     reIndexifyTable = NULL;
+	bFastDrawQuads = getSystemProperty(env,"j3d.d3dForceFastQuads","true");
 
     // set default RenderingState variable
     cullMode = D3DCULL_CW;
@@ -314,7 +315,7 @@ VOID D3dCtx::releaseVB()
     while (p != NULL) {
 	vbVector = p->vbVector;
 	if (vbVector != NULL) {
-	   for (ITER_LPD3DVERTEXBUFFER r = vbVector->begin(); 
+	   for (ITER_LPD3DVERTEXBUFFER r = vbVector->begin();
 			  r != vbVector->end(); ++r) {
 		if (*r == p) {
 		    vbVector->erase(r);
@@ -416,11 +417,11 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
 	getScreenRect(hwnd, &savedClientRect);
 	CopyMemory(&screenRect, &savedClientRect, sizeof (RECT));
     }
-	
+
     dwBehavior = findBehavior();
-    
+
     if (debug) {
-	printf("Use %s, ", driverInfo->adapterIdentifier.Description);
+	printf("[Java3D]: Use %s, ", driverInfo->adapterIdentifier.Description);
 
 	if (deviceInfo->isHardwareTnL &&
 	    (dwBehavior == D3DCREATE_SOFTWARE_VERTEXPROCESSING))
@@ -435,7 +436,7 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
     setPresentParams(env, obj);
 
     if (debug) {
-	printf("\nCreate device :\n");
+	printf("\n[Java3D]: Create device :\n");
 	printInfo(&d3dPresent);
     }
 
@@ -443,7 +444,7 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
     if ((d3dPresent.BackBufferWidth <= 0) ||
 	(d3dPresent.BackBufferHeight <= 0)) {
 	if (debug) {
-	    printf("D3D: Can't create device of buffer size %dx%d\n",
+	    printf("[Java3D]: D3D: Can't create device of buffer size %dx%d\n",
 		   d3dPresent.BackBufferWidth,
 		   d3dPresent.BackBufferHeight);
 	}
@@ -451,9 +452,9 @@ BOOL D3dCtx::initialize(JNIEnv *env, jobject obj)
     }
 
 if(bUseNvPerfHUD)
-{   
-   // using NVIDIA NvPerfHUD profiler  
-	printf("\n NVIDIA NvPerfHUD mode:");
+{
+   // using NVIDIA NvPerfHUD profiler
+   printf("\n[Java3D]: running in NVIDIA NvPerfHUD mode:");
    UINT adapterToUse=driverInfo->iAdapter;
    D3DDEVTYPE deviceType=deviceInfo->deviceType;
    DWORD behaviorFlags = dwBehavior;
@@ -472,7 +473,7 @@ if(bUseNvPerfHUD)
 		 deviceType=D3DDEVTYPE_REF;
 		 behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING;
          isHUDavail = true;
-         printf("\nfound NVIDIA NvPerfHUD adapter");
+         printf("\n[Java3D]: found  a NVIDIA NvPerfHUD adapter");
 		 break;
 	}
    }
@@ -484,11 +485,11 @@ if(bUseNvPerfHUD)
 							  &pDevice);
    if(!FAILED(hr)&& isHUDavail)
    {
-     printf("\n Using NVIDIA NvPerfHUD ! \n");
+     printf("\n[Java3D]: Using NVIDIA NvPerfHUD ! \n");
    }
    else
    {
-	    printf("\n No suitable device found for NVIDIA NvPerfHUD ! \n");
+	    printf("\n[Java3D]: No suitable device found for NVIDIA NvPerfHUD ! \n");
    }
 }
 else
@@ -505,7 +506,7 @@ else
 
     if (FAILED(hr) && (requiredDeviceID < 0))
 	{
-      printf("\n Using D3DDEVTYPE_REF mode.\n");
+      printf("\n[Java3D]: Using D3DDEVTYPE_REF mode.\n");
 	if (deviceInfo->deviceType != D3DDEVTYPE_REF) {
 	// switch to reference mode
 	    warning(CREATEDEVICEFAIL, hr);
@@ -521,7 +522,7 @@ else
 		return false;
 	    }
 	    if (debug) {
-		printf("Fallback to create reference device :\n");
+		printf("[Java3D]: Fallback to create reference device :\n");
 		printInfo(&d3dPresent);
 	    }
 
@@ -791,7 +792,10 @@ VOID D3dCtx::setPresentParams(JNIEnv *env, jobject obj)
 	d3dPresent.BackBufferHeight = driverInfo->desktopMode.Height;
 	d3dPresent.BackBufferFormat = driverInfo->desktopMode.Format;
 	d3dPresent.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;//D3DPRESENT_INTERVAL_ONE;
+	if (deviceInfo->supportRasterPresImmediate)
+	    d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+	else
+		d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
 
     } else {
 	d3dPresent.Windowed = true;
@@ -807,7 +811,11 @@ VOID D3dCtx::setPresentParams(JNIEnv *env, jobject obj)
 	d3dPresent.BackBufferHeight = getHeight();
 	d3dPresent.BackBufferFormat = driverInfo->desktopMode.Format;
 	d3dPresent.FullScreen_RefreshRateInHz = 0;
-	d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
+	if (deviceInfo->supportRasterPresImmediate)
+	    d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+	else
+		d3dPresent.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
 
     }
 
@@ -885,12 +893,12 @@ VOID D3dCtx::error(int idx, HRESULT hr)
 
 VOID D3dCtx::warning(int idx)
 {
-    printf("%s\n", getErrorMessage(idx));
+    printf("[Java3D] Warning : %s\n", getErrorMessage(idx));
 }
 
 VOID D3dCtx::warning(int idx, HRESULT hr)
 {
-    printf("%s - %s\n", getErrorMessage(idx), DXGetErrorString9(hr));
+    printf("[Java3D] Warning : %s - %s\n", getErrorMessage(idx), DXGetErrorString9(hr));
 }
 
 
@@ -909,12 +917,12 @@ VOID D3dCtx::error(char *s, HRESULT hr)
 
 VOID D3dCtx::d3dWarning(int idx)
 {
-    printf("%s\n", getErrorMessage(idx));
+    printf("[Java3D] Warning: %s\n", getErrorMessage(idx));
 }
 
 VOID D3dCtx::d3dWarning(int idx, HRESULT hr)
 {
-    printf("%s - %s\n",
+    printf("[Java3D] Warning: %s - %s\n",
 	   getErrorMessage(idx), DXGetErrorString9(hr));
 
 }
@@ -939,7 +947,7 @@ VOID D3dCtx::showError(HWND hwnd, char *s, BOOL bFullScreen)
 	firstError = false;
 	if (bFullScreen) {
 	    // In full screen mode, we can't see message box
-	    printf("[Java 3D] %s\n", s);
+	    printf("[Java3D] Error: %s\n", s);
 	    exit(1);
 	} else {
 	    MessageBox(hwnd, s, "Java 3D",  MB_OK|MB_ICONERROR);
@@ -1288,16 +1296,16 @@ BOOL D3dCtx::getSystemProperty(JNIEnv *env, char *strName, char *strValue)
             {
                 jboolean isCopy;
                 const char * chars = env->GetStringUTFChars(property, &isCopy );
-                if ( chars != 0 && stricmp( chars, strValue ) == 0 ) 
+                if ( chars != 0 && stricmp( chars, strValue ) == 0 )
 					{
 						env->ReleaseStringUTFChars( property, chars );
                         return true;
-                    } 
-					else 
+                    }
+					else
 					{
                        env->ReleaseStringUTFChars( property, chars );
 			           return false;
-		            } 
+		            }
             }
 	    }
     }
@@ -1459,7 +1467,7 @@ VOID D3dCtx::createVertexBuffer()
 					NULL);
 
     if (FAILED(hr)) {
-    printf("\nFailed to create VertexBuffer (D3DVERTEX)\n");
+    printf("\n[Java3D] Failed to create VertexBuffer (D3DVERTEX)\n");
 	error(CREATEVERTEXBUFFER, hr);
 
     }
@@ -1470,7 +1478,7 @@ VOID D3dCtx::createVertexBuffer()
 				     D3DPOOL_MANAGED,
 				     &dstVertexBuffer,NULL);
     if (FAILED(hr)) {
-	printf("\nFailed to create VertexBuffer (D3DTLVERTEX)\n");
+	printf("\n[Java3D] Warning: Failed to create VertexBuffer (D3DTLVERTEX)\n");
 	error(CREATEVERTEXBUFFER, hr);
     }
 }
@@ -1507,7 +1515,7 @@ VOID D3dCtx::transform(D3DVERTEX *worldCoord, D3DTLVERTEX *screenCoord) {
 	hr = srcVertexBuffer->Lock(0, 0, (VOID **)&pv, 0);
 	if (FAILED(hr)) {
 	    if (debug) {
-		printf("Fail to lock buffer %s\n", DXGetErrorString9(hr));
+		printf("[Java3D] Fail to lock buffer %s\n", DXGetErrorString9(hr));
 	    }
 	} else {
 	    pv[0].x = worldCoord->x;
@@ -1528,7 +1536,7 @@ VOID D3dCtx::transform(D3DVERTEX *worldCoord, D3DTLVERTEX *screenCoord) {
 
 	    if (FAILED(hr)) {
 		if (debug) {
-		    printf("Fail to processVertices %s\n", DXGetErrorString9(hr));
+		    printf("[Java3D] Fail to processVertices %s\n", DXGetErrorString9(hr));
 		}
 	    } else {
 		hr = dstVertexBuffer->Lock(0, 0, (VOID **)&tlpv,  D3DLOCK_READONLY);
@@ -1749,10 +1757,10 @@ DWORD D3dCtx::findBehavior()
 	bForceSWVertexProcess = getSystemProperty(jniEnv,"j3d.d3dVertexProcess","software");
 
 	bUseNvPerfHUD = getSystemProperty(jniEnv,"j3d.useNvPerfHUD","true");
-     
+
 	if (bUseNvPerfHUD) // must have bForceHwdVertexProcess as true
 	{
-     printf("\nUsing j3d.useNvPerfHUD=true\n");
+		printf("\n[Java3D]: using j3d.useNvPerfHUD=true\n");
      bForceHwdVertexProcess = true;
 	 bForceMixVertexProcess =  false;
 	 bForceSWVertexProcess = false;
@@ -1761,34 +1769,42 @@ DWORD D3dCtx::findBehavior()
     if (bForceHwdVertexProcess)
 	{
       softwareVertexProcessing = FALSE;
-	  printf("\nUsing d3dVertexProcess=hardware\n");
+	  printf("\n[Java3D]: using d3dVertexProcess=hardware\n");
 	  return D3DCREATE_HARDWARE_VERTEXPROCESSING;
 	}
 
 	if (bForceMixVertexProcess)
 	{
-      printf("\nUsing d3dVertexProcess=mixed\n");
+      printf("\n[Java3D]: using d3dVertexProcess=mixed\n");
       softwareVertexProcessing = FALSE;
 	  return D3DCREATE_MIXED_VERTEXPROCESSING;
 	}
 
 	if (bForceSWVertexProcess)
 	{
-      printf("\nUsing d3dVertexProcess=software\n");
+      printf("\n[Java3D]: using d3dVertexProcess=software\n");
       softwareVertexProcessing = TRUE;
 	  return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
 	}
-	
+	// high-end video cards: NV25 and above
 	if (deviceInfo->isHardwareTnL && deviceInfo->supportShaders11 &&
-	     ((requiredDeviceID < 0) || (requiredDeviceID == DEVICE_HAL_TnL))) 
+	     ((requiredDeviceID < 0) || (requiredDeviceID == DEVICE_HAL_TnL)))
 	   {
-        if (debug){printf("\nUsing hardware Vertex Processing.\n");}
+        if (debug){printf("\n[Java3D]: using hardware Vertex Processing.\n");}
 	    softwareVertexProcessing = FALSE;
 	    return D3DCREATE_HARDWARE_VERTEXPROCESSING;
-       } 
-	 else // use Software Vertex Processing
+       }
+    // midle-end video cards
+    if (deviceInfo->isHardwareTnL &&
+	   ((requiredDeviceID < 0) || (requiredDeviceID == DEVICE_HAL_TnL)))
+	   {
+        if (debug){printf("\n[Java3D]: using mixed Vertex Processing.\n");}
+	    softwareVertexProcessing = FALSE;
+	    return D3DCREATE_MIXED_VERTEXPROCESSING;
+       }
+	 else // low-end vcards use Software Vertex Processing
 	  {
-		if (debug){printf("\nUsing software Vertex Processing.\n");}
+		if (debug){printf("\n[Java3D]: using software Vertex Processing.\n");}
         softwareVertexProcessing = TRUE;
 	    return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
       }
@@ -1976,7 +1992,7 @@ BOOL D3dCtx::createFrontBuffer()
 jboolean  D3dCtx::getJavaBoolEnv(JNIEnv *env, char* envStr)
 {
    jclass systemClass = env->FindClass( "javax/media/j3d/MasterControl" );
-   
+
    if ( systemClass != NULL )
     {
         jmethodID method = env->GetStaticMethodID(
@@ -1995,12 +2011,12 @@ jboolean  D3dCtx::getJavaBoolEnv(JNIEnv *env, char* envStr)
                     property, &isCopy );
                 if ( chars != 0 )
                 {
-                    if ( stricmp( chars, "true" ) == 0 ) 
+                    if ( stricmp( chars, "true" ) == 0 )
 					{
                         env->ReleaseStringUTFChars( property, chars );
 						return true;
-                    } 
-					else 
+                    }
+					else
 					{
 					  env->ReleaseStringUTFChars( property, chars );
 			          return false;
