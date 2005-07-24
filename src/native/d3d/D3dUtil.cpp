@@ -11122,7 +11122,7 @@ BOOL createQuadIndices(D3dCtx *d3dCtx, int vcount)
 	d3dCtx->freeResource(d3dCtx->quadIndexBuffer);
 	hr = device->CreateIndexBuffer(dwIndexCount*sizeof(WORD),
 				       D3DUSAGE_WRITEONLY,
-				       D3DFMT_INDEX16,
+				       D3DFMT_INDEX32,
 				       D3DPOOL_MANAGED,
 				       &d3dCtx->quadIndexBuffer,
 					   NULL);
