@@ -47,22 +47,28 @@ VOID D3dDeviceInfo::setCaps(D3DCAPS9 *d3dCaps)
 	DWORD vsVersion = d3dCaps->VertexShaderVersion;
     if (debug)
 	   {
-	      printf("[Debug]Supported Shaders = %d.%d\n", 
-		          HIBYTE(LOWORD(vsVersion)),
-                  LOBYTE(LOWORD(vsVersion)));
-	   }
+		   char* dt;
+		   if (isHardware) 
+			   dt = "HAL";
+		   else 
+			   dt ="REL";
 
-    printf("Supported Shaders = %d.%d\n", 
-		         HIBYTE(LOWORD(vsVersion)),
-                 LOBYTE(LOWORD(vsVersion)));
+		   printf("Java3D: Supported Shaders = %d.%d in mode %s ", 
+		          HIBYTE(LOWORD(vsVersion)),
+                  LOBYTE(LOWORD(vsVersion)),
+				  dt);
+		   
+	   }   
 	
 	//supportStreamOffset = 
+    
+	supportDepthBias = (d3dCaps->RasterCaps & D3DPRASTERCAPS_DEPTHBIAS) != 0;
 
     maxTextureBlendStages = d3dCaps->MaxTextureBlendStages;
     maxSimultaneousTextures = d3dCaps->MaxSimultaneousTextures;
 	
     maxTextureUnitStageSupport = min(maxTextureBlendStages,  maxSimultaneousTextures);
-
+    
     supportMipmap = ((d3dCaps->TextureCaps & D3DPTEXTURECAPS_MIPMAP) != 0);
 
     texturePow2Only =  ((d3dCaps->TextureCaps &  D3DPTEXTURECAPS_POW2) != 0);
@@ -115,6 +121,10 @@ VOID D3dDeviceInfo::setCaps(D3DCAPS9 *d3dCaps)
     maxVertexCount[GEO_TYPE_INDEXED_TRI_FAN_SET] = maxVertexCount[GEO_TYPE_TRI_FAN_SET];
     maxVertexCount[GEO_TYPE_INDEXED_LINE_STRIP_SET] = maxVertexCount[GEO_TYPE_LINE_STRIP_SET];
 
+	if ( (d3dCaps->PresentationIntervals & D3DPRESENT_INTERVAL_IMMEDIATE) != 0) 
+	    supportRasterPresImmediate = true;
+	else 
+		supportRasterPresImmediate = false;
 
     if (((d3dCaps->RasterCaps & D3DPRASTERCAPS_FOGTABLE) != 0) &&
 	   ((d3dCaps->RasterCaps & D3DPRASTERCAPS_WFOG) != 0))
