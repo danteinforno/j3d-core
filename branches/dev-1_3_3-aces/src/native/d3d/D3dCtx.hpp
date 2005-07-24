@@ -84,6 +84,7 @@ public:
 
     BOOL           offScreen; // true if it is offScreen rendering
                               // in this case only backSurface is used
+	BOOL           bFastDrawQuads;
     DWORD          offScreenWidth;
     DWORD          offScreenHeight;
 
