@@ -47,12 +47,14 @@ public:
     // max z buffer depth support
     UINT  maxZBufferDepthSize;
 
-    // Max vetex count support for each primitive
+    // Max vertex count support for each primitive
     DWORD maxVertexCount[GEO_TYPE_INDEXED_LINE_STRIP_SET+1];
 
 	BOOL supportShaders11;
     BOOL isHardware;
     BOOL isHardwareTnL;
+	BOOL supportDepthBias;
+	BOOL supportRasterPresImmediate;
     BOOL canRenderWindowed;
     BOOL supportMipmap;
     BOOL texturePow2Only;
