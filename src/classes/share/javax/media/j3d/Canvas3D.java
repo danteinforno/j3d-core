@@ -458,6 +458,9 @@ public class Canvas3D extends Canvas {
     // View cache for this canvas and its associated view.
     //
     CanvasViewCache canvasViewCache = null;
+    
+    // Issue 109: View cache for this canvas, for computing view frustum planes
+    CanvasViewCache canvasViewCacheFrustum = null;
 
     // Since multiple renderAtomListInfo, share the same vecBounds
     // we want to do the intersection test only once per renderAtom
@@ -2879,11 +2882,17 @@ public class Canvas3D extends Canvas {
 	synchronized(cvLock) {
 	    if (view == null) {
 		canvasViewCache = null;
+                canvasViewCacheFrustum = null;
 	    } else {
 		
 		canvasViewCache = new CanvasViewCache(this,
 						      screen.screenViewCache,
-						  view.viewCache);
+                                                      view.viewCache);
+                // Issue 109 : construct a separate canvasViewCache for
+                // computing view frustum
+		canvasViewCacheFrustum = new CanvasViewCache(this,
+						      screen.screenViewCache,
+                                                      view.viewCache);
 		synchronized (dirtyMaskLock) {
 		    cvDirtyMask = (STEREO_DIRTY | MONOSCOPIC_VIEW_POLICY_DIRTY
 				   | EYE_IN_IMAGE_PLATE_DIRTY |
@@ -3692,12 +3701,21 @@ public class Canvas3D extends Canvas {
     void updateViewCache(boolean flag, CanvasViewCache cvc, 
 		BoundingBox frustumBBox, boolean doInfinite) {
 
+        assert cvc == null;
 	synchronized(cvLock) {	
-	    if (firstPaintCalled && (canvasViewCache != null)) {
-		canvasViewCache.snapshot();
-		canvasViewCache.computeDerivedData(flag, cvc, frustumBBox,
-						   doInfinite);
-	    }	   
+            if (firstPaintCalled && (canvasViewCache != null)) {
+                assert canvasViewCacheFrustum != null;
+                // Issue 109 : choose the appropriate cvCache
+                if (frustumBBox != null) {
+                    canvasViewCacheFrustum.snapshot(true);
+                    canvasViewCacheFrustum.computeDerivedData(flag, null,
+                            frustumBBox, doInfinite);
+                } else {
+                    canvasViewCache.snapshot(false);
+                    canvasViewCache.computeDerivedData(flag, null,
+                            null, doInfinite);
+                }
+            }
 	}
     }
     
