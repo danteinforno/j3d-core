@@ -342,9 +342,13 @@ class CanvasViewCache extends Object {
      * NOTE: This is probably not needed, but we'll do it for symmetry
      * with the ScreenViewCache and ViewCache objects.
      */
-    synchronized void snapshot() {
+    synchronized void snapshot(boolean computeFrustum) {
 	cvcDirtyMask = canvas.cvDirtyMask;
-	canvas.cvDirtyMask = 0;
+        // Issue 109 : clear the dirty bit unless this is the canvasViewCache
+        // for computing view frustum
+        if (!computeFrustum) {
+            canvas.cvDirtyMask = 0;
+        }
 	useStereo = canvas.useStereo;
 	monoscopicViewPolicy = canvas.monoscopicViewPolicy;
 	leftManualEyeInImagePlate.set(canvas.leftManualEyeInImagePlate);
@@ -439,7 +443,7 @@ class CanvasViewCache extends Object {
 
 	// System.out.println("vpcToVworld is \n" + vpcToVworld);
 
-	try {
+        try {
 	    vworldToVpc.invert(vpcToVworld);
 	}
 	catch (SingularMatrixException e) {
@@ -484,7 +488,8 @@ class CanvasViewCache extends Object {
 	if (frustumBBox != null)
 	    computefrustumBBox(frustumBBox);
 
-	// Copy the computed data into cvc.
+	// Issue 109: cvc should *always* be null
+        assert cvc == null;
 	if(cvc != null)
 	    copyComputedCanvasViewCache(cvc, doInfinite);
 
@@ -493,7 +498,9 @@ class CanvasViewCache extends Object {
         // reset screen view dirty mask if canvas is offScreen. Note:
 	// there is only one canvas per offscreen, so it is ok to
 	// do the reset here.
-	if (canvas.offScreen) {
+        // Issue 109 : only clear the flag if this is the renderer version
+        // of canvas view cache (not frustum version)
+	if (canvas.offScreen && (frustumBBox != null)) {
 	    screenViewCache.scrvcDirtyMask = 0;
 	}
 
