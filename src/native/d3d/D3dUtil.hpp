@@ -309,5 +309,6 @@ extern int  setTextureStage(D3dCtx *d3dCtx,
 extern void setTexTransformStageFlag(D3dCtx* d3dCtx,  
 				     LPDIRECT3DDEVICE9 device, 
 				     int tus, int ts, int genMode); 
+DWORD ucountBits(DWORD mask) ;
 #endif
 
