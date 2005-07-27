@@ -991,13 +991,13 @@ void copyDataFromSurface(jint internalFormat,
 	    }
 	} else { // handle less common format
 	    int rshift = firstBit(ddpf.dwRBitMask) +
-		           countBits(ddpf.dwRBitMask) - 8;
+		           ucountBits(ddpf.dwRBitMask) - 8;
 	    int gshift = firstBit(ddpf.dwGBitMask) +
-		           countBits(ddpf.dwGBitMask) - 8;
+		           ucountBits(ddpf.dwGBitMask) - 8;
 	    int bshift = firstBit(ddpf.dwBBitMask) +
-		           countBits(ddpf.dwBBitMask) - 8;
+		           ucountBits(ddpf.dwBBitMask) - 8;
 	    int ashift = firstBit(ddpf.dwRGBAlphaBitMask) +
-		           countBits(ddpf.dwRGBAlphaBitMask) - 8;
+		           ucountBits(ddpf.dwRGBAlphaBitMask) - 8;
 
 	    if ((ddpf.dwRGBBitCount <= 32) &&
 		(ddpf.dwRGBBitCount > 24)) {
@@ -1189,9 +1189,9 @@ void copyDataFromSurface(jint internalFormat,
 	}
     } else if (internalFormat == FORMAT_BYTE_LA) {
 	int gshift = firstBit(ddpf.dwGBitMask) +
-	    countBits(ddpf.dwGBitMask) - 8;
+	    ucountBits(ddpf.dwGBitMask) - 8;
 	int ashift = firstBit(ddpf.dwRGBAlphaBitMask) +
-	    countBits(ddpf.dwRGBAlphaBitMask) - 8;
+	    ucountBits(ddpf.dwRGBAlphaBitMask) - 8;
 	dstPitch = subWidth << 1;
 	destRow += (subHeight-1)*dstPitch;
 
@@ -1220,7 +1220,7 @@ void copyDataFromSurface(jint internalFormat,
 	    }
 	} else { // handle less common format
 	    int gshift = firstBit(ddpf.dwGBitMask) +
-		           countBits(ddpf.dwGBitMask) - 8;
+		           ucountBits(ddpf.dwGBitMask) - 8;
 	    if ((ddpf.dwRGBBitCount <= 32) &&
 		(ddpf.dwRGBBitCount > 24)) {
 
@@ -1351,7 +1351,7 @@ void copyDataFromSurface(jint internalFormat,
 
     } else if (internalFormat == FORMAT_BYTE_GRAY) {
 	int gshift = firstBit(ddpf.dwGBitMask) +
-	    countBits(ddpf.dwGBitMask) - 8;
+	           ucountBits(ddpf.dwGBitMask) - 8;
 	dstPitch = subWidth;
 	destRow += (subHeight-1)*dstPitch;
 
@@ -1375,7 +1375,7 @@ void copyDataFromSurface(jint internalFormat,
 	    }
 	} else { // handle less common format
 	    int gshift = firstBit(ddpf.dwGBitMask) +
-		           countBits(ddpf.dwGBitMask) - 8;
+		           ucountBits(ddpf.dwGBitMask) - 8;
 	    if ((ddpf.dwRGBBitCount <= 32) &&
 		(ddpf.dwRGBBitCount > 24)) {
 
@@ -1532,10 +1532,10 @@ void copyDataToSurfaceABGR(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -1690,10 +1690,10 @@ void copyDataToSurfaceABGR(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -1857,7 +1857,7 @@ void copyDataToSurfaceABGR(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -1947,10 +1947,10 @@ void copyDataToSurfaceABGR(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -2175,9 +2175,9 @@ void copyDataToSurfaceBGR(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -2311,9 +2311,9 @@ void copyDataToSurfaceBGR(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -2524,9 +2524,9 @@ void copyDataToSurfaceBGR(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -2739,10 +2739,10 @@ void copyDataToSurfaceRGBARev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -2898,10 +2898,10 @@ void copyDataToSurfaceRGBARev(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -3066,7 +3066,7 @@ void copyDataToSurfaceRGBARev(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -3156,10 +3156,10 @@ void copyDataToSurfaceRGBARev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -3387,10 +3387,10 @@ void copyDataToSurfaceABGRRev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -3545,10 +3545,10 @@ void copyDataToSurfaceABGRRev(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -3712,7 +3712,7 @@ void copyDataToSurfaceABGRRev(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -3803,10 +3803,10 @@ void copyDataToSurfaceABGRRev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -4035,9 +4035,9 @@ void copyDataToSurfaceBGRRev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -4171,9 +4171,9 @@ void copyDataToSurfaceBGRRev(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -4384,9 +4384,9 @@ void copyDataToSurfaceBGRRev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -4594,9 +4594,9 @@ void copyDataToSurfaceRGBRev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -4730,9 +4730,9 @@ void copyDataToSurfaceRGBRev(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -4943,9 +4943,9 @@ void copyDataToSurfaceRGBRev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -5152,10 +5152,10 @@ void copyDataToSurfaceLARev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -5271,10 +5271,10 @@ void copyDataToSurfaceLARev(jint internalFormat,
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
 
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -5431,7 +5431,7 @@ void copyDataToSurfaceLARev(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -5521,10 +5521,10 @@ void copyDataToSurfaceLARev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -5747,9 +5747,9 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -5844,10 +5844,10 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
 
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -6003,7 +6003,7 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -6089,10 +6089,10 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -6273,7 +6273,7 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 
 
     if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -6363,10 +6363,10 @@ void copyDataToSurfaceGrayRev(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -6610,10 +6610,10 @@ void copyDataToSurfaceRGBA(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -6769,10 +6769,10 @@ void copyDataToSurfaceRGBA(jint internalFormat,
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
 
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -6936,7 +6936,7 @@ void copyDataToSurfaceRGBA(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -7026,10 +7026,10 @@ void copyDataToSurfaceRGBA(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -7258,9 +7258,9 @@ void copyDataToSurfaceRGB(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -7394,9 +7394,9 @@ void copyDataToSurfaceRGB(jint internalFormat,
 	    }
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -7607,9 +7607,9 @@ void copyDataToSurfaceRGB(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -7817,10 +7817,10 @@ void copyDataToSurfaceLA(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	    int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	    int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -7936,10 +7936,10 @@ void copyDataToSurfaceLA(jint internalFormat,
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
 
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -8095,7 +8095,7 @@ void copyDataToSurfaceLA(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -8185,10 +8185,10 @@ void copyDataToSurfaceLA(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -8412,9 +8412,9 @@ void copyDataToSurfaceGray(jint internalFormat,
 		destRow += rectPitch;
 	    }
 	} else { // handle less common (even weird) format
-	    int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	    int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	    int bDiscard = 8-countBits(ddpf->dwBBitMask);
+	    int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	    int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	    int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
 	    int rshift = firstBit(ddpf->dwRBitMask);
 	    int gshift = firstBit(ddpf->dwGBitMask);
 	    int bshift = firstBit(ddpf->dwBBitMask);
@@ -8509,10 +8509,10 @@ void copyDataToSurfaceGray(jint internalFormat,
 	}
     } else if (internalFormat == LUMINANCE_ALPHA) {
 
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -8668,7 +8668,7 @@ void copyDataToSurfaceGray(jint internalFormat,
 		   ddpf->dwRGBBitCount);
 	}
     } else if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -8754,10 +8754,10 @@ void copyDataToSurfaceGray(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -9057,7 +9057,7 @@ void copyDataToSurfaceGray(jint internalFormat,
 
 
     if (internalFormat == ALPHA) {
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int ashift = firstBit(ddpf->dwRGBAlphaBitMask);
 	DWORD mask;
 
@@ -9147,10 +9147,10 @@ void copyDataToSurfaceGray(jint internalFormat,
 	}
     } else if ((internalFormat == LUMINANCE) ||
 	       (internalFormat == INTENSITY)) {
-	int rDiscard = 8-countBits(ddpf->dwRBitMask);
-	int gDiscard = 8-countBits(ddpf->dwGBitMask);
-	int bDiscard = 8-countBits(ddpf->dwBBitMask);
-	int aDiscard = 8-countBits(ddpf->dwRGBAlphaBitMask);
+	int rDiscard = 8-ucountBits(ddpf->dwRBitMask);
+	int gDiscard = 8-ucountBits(ddpf->dwGBitMask);
+	int bDiscard = 8-ucountBits(ddpf->dwBBitMask);
+	int aDiscard = 8-ucountBits(ddpf->dwRGBAlphaBitMask);
 	int rshift = firstBit(ddpf->dwRBitMask);
 	int gshift = firstBit(ddpf->dwGBitMask);
 	int bshift = firstBit(ddpf->dwBBitMask);
@@ -10396,13 +10396,13 @@ void compositeDataToSurface(jint px, jint py,
 	}
     } else { // handle less common (even weird) format
 	int rshift = firstBit(ddpf.dwRBitMask) +
-	    countBits(ddpf.dwRBitMask) - 8;
+	    ucountBits(ddpf.dwRBitMask) - 8;
 	int gshift = firstBit(ddpf.dwGBitMask) +
-	    countBits(ddpf.dwGBitMask) - 8;
+	    ucountBits(ddpf.dwGBitMask) - 8;
 	int bshift = firstBit(ddpf.dwBBitMask) +
-	    countBits(ddpf.dwBBitMask) - 8;
+	    ucountBits(ddpf.dwBBitMask) - 8;
 	int ashift = firstBit(ddpf.dwRGBAlphaBitMask) +
-	    countBits(ddpf.dwRGBAlphaBitMask) - 8;
+	    ucountBits(ddpf.dwRGBAlphaBitMask) - 8;
 
 	DWORD mask, dmask;
 	DWORD dr, dg, db, da;
@@ -11122,11 +11122,12 @@ BOOL createQuadIndices(D3dCtx *d3dCtx, int vcount)
 	d3dCtx->freeResource(d3dCtx->quadIndexBuffer);
 	hr = device->CreateIndexBuffer(dwIndexCount*sizeof(WORD),
 				       D3DUSAGE_WRITEONLY,
-				       D3DFMT_INDEX32,
+				       D3DFMT_INDEX16,
 				       D3DPOOL_MANAGED,
 				       &d3dCtx->quadIndexBuffer,
 					   NULL);
 	if (FAILED(hr)) {
+		printf("[Java3D] Error CREATEINDEXVBFAIL \n");
 	    D3dCtx::d3dWarning(CREATEINDEXVBFAIL, hr);
 	    d3dCtx->quadIndexBufferSize = 0;
 	    d3dCtx->quadIndexBuffer = NULL;
@@ -11674,3 +11675,16 @@ void drawTextureRect(D3dCtx *d3dCtx,
 	device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
 }
 
+DWORD ucountBits(DWORD mask) 
+{
+    DWORD count = 0;
+    int i;
+    
+    for (i=sizeof(DWORD)*8-1; i >=0 ; i--) {
+	if ((mask & 0x01) > 0) {
+	    count++;
+	}
+	mask >>= 1;
+    }
+    return count;
+}
