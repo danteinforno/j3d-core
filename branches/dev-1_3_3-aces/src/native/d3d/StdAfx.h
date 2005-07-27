@@ -7,11 +7,19 @@
  *
  * $Revision$
  * $Date$
- * $State$
+ * $State$_WIN32_WINNT
  */
 
 #if !defined(AFX_STDAFX_H)
 #define AFX_STDAFX_H
+
+#ifndef WINVER
+#define WINVER 0x0501
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
 
 #if _MSC_VER > 1000
 #pragma once
