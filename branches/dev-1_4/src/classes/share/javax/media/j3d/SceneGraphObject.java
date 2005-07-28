@@ -378,6 +378,7 @@ public abstract class SceneGraphObject extends Object {
         // Duplicate any class specific data here.
 	capabilityBits = originalNode.capabilityBits;
         userData = originalNode.userData;
+        objectName = originalNode.objectName;
     }
 
 
