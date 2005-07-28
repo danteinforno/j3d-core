@@ -626,9 +626,8 @@ public class GraphicsContext3D extends Object   {
 	if (fog != null) {
 	    ((FogRetained)fog.retained).setInImmCtx(true);
 
-
-	    if (fog.retained instanceof LinearFogRetained)
-		updateFogState((LinearFogRetained)fog.retained);
+            // Issue 144: updateFogState now called unconditionally
+            updateFogState((FogRetained)fog.retained);
 	}
     }
 
@@ -912,8 +911,9 @@ public class GraphicsContext3D extends Object   {
     }
 
 
-    void updateFogState(LinearFogRetained lfog) {
-	lfog.localToVworldScale = modelTransform.getDistanceScale();
+    void updateFogState(FogRetained fogRet) {
+        // Issue 144: update localToVWorldScale for all types of Fog
+        fogRet.setLocalToVworldScale(modelTransform.getDistanceScale());
     }
 
 
