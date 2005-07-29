@@ -47,6 +47,17 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
     ShaderAttributeArrayRetained() {
     }
 
+    void initValue(int index, Object value) {
+	/*
+	System.err.println("ShaderAttributeObjectRetained : attrName = " + attrName +
+			   ", index = " + index + ", value = " + value +
+			   ", value.class = " + value.getClass());
+	*/
+	((ArrayWrapper)attrWrapper).set(index, value);
+
+    }
+
+    
     /**
      * Sets the specified array element of the value of this shader
      * attribute to the specified value.
@@ -64,10 +75,15 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
      * not set and this object is part of live or compiled scene graph
      */
     void setValue(int index, Object value) {
-	((ArrayWrapper)attrWrapper).set(index, value);
-	// TODO : JADA - Need to handle index. After JavaOne05.  
-	// sendMessage(SHADER_ATTRIBUTE_VALUE_UPDATE, value);
-
+	initValue(index, value);
+	// We should only need to update the array instead of replacing it.
+	// Until this become a really bottleneck, it will just be a convenience 
+	// method for end user. 
+	// An efficient approach is to 
+	// (1) Create a new ShaderAttributeValue object for the "value" object 
+	// and pass it to sendMessage(), (2) Create a new sendMessage that take in
+	// a third arguement, ie. index.
+	setValue(attrWrapper.getRef());
     }
 
     /**
@@ -85,12 +101,12 @@ class ShaderAttributeArrayRetained extends ShaderAttributeObjectRetained {
 
     // Helper methods ...
 
-
     synchronized void createMirrorObject() {
 	// System.out.println("ShaderAttributeArrayRetained : createMirrorObject");
         // This method should only call by setLive().
 	if (mirror == null) {
             ShaderAttributeArrayRetained mirrorSAA = new ShaderAttributeArrayRetained();
+	    mirrorSAA.createObjectData(getValue());
 	    mirror = mirrorSAA;
 	    mirror.source = source;
 	    
