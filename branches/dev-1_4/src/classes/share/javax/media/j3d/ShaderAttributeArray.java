@@ -59,7 +59,6 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
      */
     public ShaderAttributeArray(String attrName, Object value) {
 	super(attrName, value);
-	throw new RuntimeException("not implemented");
     }
 
     // Implement abstract getValue method
@@ -117,8 +116,7 @@ public class ShaderAttributeArray extends ShaderAttributeObject {
 	if (isLive())
 	    ((ShaderAttributeArrayRetained)this.retained).setValue(index, value);
 	else {
-	    // TODO : JADA - Not Done Yet - After JavaOne05.
-	    // ((ShaderAttributeArrayRetained)this.retained).initValue(index, value);
+	    ((ShaderAttributeArrayRetained)this.retained).initValue(index, value);
 	}
     }
 
