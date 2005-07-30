@@ -1606,12 +1606,15 @@ class Renderer extends J3dThread {
 	    // restore current context
 	    currentCanvas.makeCtxCurrent();
 	}
-	if (texture.equals("2D")){
-	    VirtualUniverse.mc.freeTexture2DId(texId);
-	}
-	else if(texture.equals("3D")){
-	    VirtualUniverse.mc.freeTexture3DId(texId);
-	}
+        // Issue 162: TEMPORARY FIX -- don't free the texture ID, since it will
+        // be freed once per canvas / screen and will subsequently cause the ID
+        // to be used for multiple textures.
+//	if (texture.equals("2D")){
+//	    VirtualUniverse.mc.freeTexture2DId(texId);
+//	}
+//	else if(texture.equals("3D")){
+//	    VirtualUniverse.mc.freeTexture3DId(texId);
+//	}
     }
 
 
