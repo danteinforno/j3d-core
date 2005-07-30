@@ -1349,6 +1349,10 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 			    }
 			}			
 			texIdObj = new Integer(id);
+                        // TODO: The following code seems wrong -- why add it to
+                        // the list if it is already there? Maybe one is for the
+                        // texture and the other (idential value) is for the
+                        // detail texture?
 			if (cv.textureIdResourceFreeList.contains(texIdObj)) {
 			    cv.textureIdResourceFreeList.add(texIdObj);
 			    dtex.resourceCreationMask[tex.format] &= ~cv.canvasBit;
