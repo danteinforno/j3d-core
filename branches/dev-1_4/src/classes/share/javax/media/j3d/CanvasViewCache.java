@@ -344,11 +344,16 @@ class CanvasViewCache extends Object {
      */
     synchronized void snapshot(boolean computeFrustum) {
 	cvcDirtyMask = canvas.cvDirtyMask;
-        // Issue 109 : clear the dirty bit unless this is the canvasViewCache
-        // for computing view frustum
-        if (!computeFrustum) {
-            canvas.cvDirtyMask = 0;
-        }
+        //
+        // Issue 163 : TEMPORARY -- comment out the clearing of dirty bits,
+        // which as a result of the fix to Issue 109, causes the frustum planes
+        // to be computed incorrectly.
+        //
+//        // Issue 109 : clear the dirty bit unless this is the canvasViewCache
+//        // for computing view frustum
+//        if (!computeFrustum) {
+//            canvas.cvDirtyMask = 0;
+//        }
 	useStereo = canvas.useStereo;
 	monoscopicViewPolicy = canvas.monoscopicViewPolicy;
 	leftManualEyeInImagePlate.set(canvas.leftManualEyeInImagePlate);
@@ -495,14 +500,19 @@ class CanvasViewCache extends Object {
 
 	canvas.canvasDirty |= Canvas3D.VIEW_MATRIX_DIRTY;
 
-        // reset screen view dirty mask if canvas is offScreen. Note:
-	// there is only one canvas per offscreen, so it is ok to
-	// do the reset here.
-        // Issue 109 : only clear the flag if this is the renderer version
-        // of canvas view cache (not frustum version)
-	if (canvas.offScreen && (frustumBBox != null)) {
-	    screenViewCache.scrvcDirtyMask = 0;
-	}
+        //
+        // Issue 163 : TEMPORARY -- comment out the clearing of dirty bits,
+        // which as a result of the fix to Issue 109, causes the frustum planes
+        // to be computed incorrectly.
+        //
+//        // reset screen view dirty mask if canvas is offScreen. Note:
+//        // there is only one canvas per offscreen, so it is ok to
+//        // do the reset here.
+//        // Issue 109 : only clear the flag if this is the renderer version
+//        // of canvas view cache (not frustum version)
+//        if (canvas.offScreen && (frustumBBox != null)) {
+//            screenViewCache.scrvcDirtyMask = 0;
+//        }
 
 	if((J3dDebug.devPhase) && (J3dDebug.canvasViewCache >= J3dDebug.LEVEL_1)) {
 	    // Print some data :
