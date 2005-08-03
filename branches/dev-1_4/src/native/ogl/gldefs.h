@@ -105,6 +105,7 @@
 #include "javax_media_j3d_Material.h"
 #include "javax_media_j3d_MaterialRetained.h"
 #include "javax_media_j3d_ModelClipRetained.h"
+#include "javax_media_j3d_NativeAPIInfo.h"
 #include "javax_media_j3d_NativeConfigTemplate3D.h"
 #include "javax_media_j3d_NodeRetained.h"
 #include "javax_media_j3d_PointAttributesRetained.h"
