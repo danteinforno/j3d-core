@@ -806,8 +806,10 @@ class Renderer extends J3dThread {
 
 			// save the BACKGROUND_IMAGE_DIRTY before canvas.updateViewCache
 			// clean it
-			background_image_update = 
-			    ((canvas.cvDirtyMask & Canvas3D.BACKGROUND_IMAGE_DIRTY) != 0);
+                        synchronized (canvas.dirtyMaskLock) {
+                            background_image_update = 
+                                ((canvas.cvDirtyMask[Canvas3D.RENDERER_DIRTY_IDX] & Canvas3D.BACKGROUND_IMAGE_DIRTY) != 0);
+                        }
 
 			if (VirtualUniverse.mc.doDsiRenderLock) {
 			    canvas.drawingSurfaceObject.unLock();

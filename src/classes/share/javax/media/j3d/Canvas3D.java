@@ -461,7 +461,7 @@ public class Canvas3D extends Canvas {
     
     // Issue 109: View cache for this canvas, for computing view frustum planes
     CanvasViewCache canvasViewCacheFrustum = null;
-
+    
     // Since multiple renderAtomListInfo, share the same vecBounds
     // we want to do the intersection test only once per renderAtom
     // this flag is set to true after the first intersect and set to
@@ -495,7 +495,14 @@ public class Canvas3D extends Canvas {
 					BACKGROUND_DIRTY |
 					BACKGROUND_IMAGE_DIRTY);    
 
-    int cvDirtyMask = VIEW_INFO_DIRTY;
+    // Issue 163: Array of dirty bits is used because the Renderer and
+    // RenderBin run asynchronously. Now that they each have a separate
+    // instance of CanvasViewCache (due to the fix for Issue 109), they
+    // need separate dirty bits. Array element 0 is used for the Renderer and
+    // element 1 is used for the RenderBin.
+    static final int RENDERER_DIRTY_IDX = 0;
+    static final int RENDER_BIN_DIRTY_IDX = 1;
+    int[] cvDirtyMask = new int[2];
 
     // This boolean informs the J3DGraphics2DImpl that the window is resized
     boolean resizeGraphics2D = true;
@@ -1149,6 +1156,10 @@ public class Canvas3D extends Canvas {
 	// Needed for Win32-D3D only.
 	vid = nativeWSobj.getCanvasVid(graphicsConfiguration);
 
+        // Issue 163 : Set dirty bits for both Renderer and RenderBin
+        cvDirtyMask[0] = VIEW_INFO_DIRTY;
+        cvDirtyMask[1] = VIEW_INFO_DIRTY;
+
 	// Fix for issue 20.
 	// Needed for Linux and Solaris.
 	Object fbConfigObject;  
@@ -1178,7 +1189,8 @@ public class Canvas3D extends Canvas {
             // callback from AWT, set the added flag here
             added = true;
 	    synchronized(dirtyMaskLock) {
-	        cvDirtyMask |= Canvas3D.MOVED_OR_RESIZED_DIRTY;
+	        cvDirtyMask[0] |= MOVED_OR_RESIZED_DIRTY;
+	        cvDirtyMask[1] |= MOVED_OR_RESIZED_DIRTY;
 	    }
 
 	    // this canvas will not receive the paint callback either,
@@ -1357,7 +1369,8 @@ public class Canvas3D extends Canvas {
 	}
 
 	synchronized(dirtyMaskLock) {
-	    cvDirtyMask |= Canvas3D.MOVED_OR_RESIZED_DIRTY;
+	    cvDirtyMask[0] |= MOVED_OR_RESIZED_DIRTY;
+	    cvDirtyMask[1] |= MOVED_OR_RESIZED_DIRTY;
 	}
 	
         canvasId = VirtualUniverse.mc.getCanvasId();
@@ -1859,7 +1872,8 @@ public class Canvas3D extends Canvas {
         offScreenBuffer = buffer;
 
         synchronized(dirtyMaskLock) {
-            cvDirtyMask |= Canvas3D.MOVED_OR_RESIZED_DIRTY;
+            cvDirtyMask[0] |= MOVED_OR_RESIZED_DIRTY;
+            cvDirtyMask[1] |= MOVED_OR_RESIZED_DIRTY;
         }
     }
 
@@ -2478,7 +2492,8 @@ public class Canvas3D extends Canvas {
 
 	this.leftManualEyeInImagePlate.set(position);
 	synchronized(dirtyMaskLock) {
-	    cvDirtyMask |= Canvas3D.EYE_IN_IMAGE_PLATE_DIRTY;
+	    cvDirtyMask[0] |= EYE_IN_IMAGE_PLATE_DIRTY;
+            cvDirtyMask[1] |= EYE_IN_IMAGE_PLATE_DIRTY;
 	}
 	redraw();
     }
@@ -2499,7 +2514,8 @@ public class Canvas3D extends Canvas {
 
 	this.rightManualEyeInImagePlate.set(position);
 	synchronized(dirtyMaskLock) {
-	    cvDirtyMask |= Canvas3D.EYE_IN_IMAGE_PLATE_DIRTY;
+	    cvDirtyMask[0] |= EYE_IN_IMAGE_PLATE_DIRTY;
+            cvDirtyMask[1] |= EYE_IN_IMAGE_PLATE_DIRTY;
 	}
 	redraw();
     }
@@ -2894,11 +2910,10 @@ public class Canvas3D extends Canvas {
 						      screen.screenViewCache,
                                                       view.viewCache);
 		synchronized (dirtyMaskLock) {
-		    cvDirtyMask = (STEREO_DIRTY | MONOSCOPIC_VIEW_POLICY_DIRTY
-				   | EYE_IN_IMAGE_PLATE_DIRTY |
-				   MOVED_OR_RESIZED_DIRTY);	
+                    cvDirtyMask[0] = VIEW_INFO_DIRTY;
+                    cvDirtyMask[1] = VIEW_INFO_DIRTY;
 		}
-	    }	    
+	    }
 	}
     }
 
@@ -2941,7 +2956,8 @@ public class Canvas3D extends Canvas {
 	stereoEnable = flag;
         useStereo = stereoEnable && stereoAvailable;
 	synchronized(dirtyMaskLock) {
-	    cvDirtyMask |= Canvas3D.STEREO_DIRTY;
+	    cvDirtyMask[0] |= STEREO_DIRTY;
+            cvDirtyMask[1] |= STEREO_DIRTY;
 	}
 	redraw();
     }
@@ -2993,7 +3009,8 @@ public class Canvas3D extends Canvas {
 	
 	monoscopicViewPolicy = policy;
 	synchronized(dirtyMaskLock) {
-	    cvDirtyMask |= Canvas3D.MONOSCOPIC_VIEW_POLICY_DIRTY;    
+            cvDirtyMask[0] |= MONOSCOPIC_VIEW_POLICY_DIRTY;
+            cvDirtyMask[1] |= MONOSCOPIC_VIEW_POLICY_DIRTY;
 	}
 	redraw();
     }
@@ -3859,7 +3876,10 @@ public class Canvas3D extends Canvas {
 
 	reset();
 
-	cvDirtyMask |= VIEW_INFO_DIRTY;
+        synchronized (dirtyMaskLock) {
+            cvDirtyMask[0] |= VIEW_INFO_DIRTY;
+            cvDirtyMask[1] |= VIEW_INFO_DIRTY;
+        }
 	needToRebuildDisplayList = true;
 
 	ctxTimeStamp = VirtualUniverse.mc.getContextTimeStamp();
@@ -3974,7 +3994,10 @@ public class Canvas3D extends Canvas {
 	updateMaterial(ctx, 1.0f, 1.0f, 1.0f, 1.0f);
 	resetRendering(NOCHANGE);
 	makeCtxCurrent();
-	cvDirtyMask |= VIEW_INFO_DIRTY;
+        synchronized (dirtyMaskLock) {
+            cvDirtyMask[0] |= VIEW_INFO_DIRTY;
+            cvDirtyMask[1] |= VIEW_INFO_DIRTY;
+        }
 	needToRebuildDisplayList = true;
 
 	ctxTimeStamp = VirtualUniverse.mc.getContextTimeStamp();	    
@@ -4449,7 +4472,7 @@ public class Canvas3D extends Canvas {
 	    // it so there is no need to do so in 
 	    // Renderer.freeContextResources()
 	    if (rdr.objectId > 0) {
-		Canvas3D.freeTexture(ctx, rdr.objectId);
+		freeTexture(ctx, rdr.objectId);
 		VirtualUniverse.mc.freeTexture2DId(rdr.objectId);	
 		rdr.objectId = -1;
 
@@ -4457,7 +4480,7 @@ public class Canvas3D extends Canvas {
 	    // Free Graphics2D Texture
 	    if ((graphics2D != null) &&
 		(graphics2D.objectId != -1)) {
-		Canvas3D.freeTexture(ctx, graphics2D.objectId);
+		freeTexture(ctx, graphics2D.objectId);
 		VirtualUniverse.mc.freeTexture2DId(graphics2D.objectId);
 		graphics2D.objectId = -1;
 	    }
