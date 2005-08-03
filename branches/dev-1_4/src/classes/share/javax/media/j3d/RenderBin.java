@@ -5403,9 +5403,14 @@ System.out.println("......tb.soleUser= " +
 	Canvas3D canvases[] = view.getCanvases();	
 	for (int i=0; i< canvases.length; i++) {
 	    Canvas3D canvas = canvases[i];
-	    if(cvDirty)
-		canvas.cvDirtyMask |= Canvas3D.BACKGROUND_DIRTY;
-	    canvas.cvDirtyMask |= Canvas3D.BACKGROUND_IMAGE_DIRTY;
+            synchronized (canvas.dirtyMaskLock) {
+                if(cvDirty) {
+                    canvas.cvDirtyMask[0] |= Canvas3D.BACKGROUND_DIRTY;
+                    canvas.cvDirtyMask[1] |= Canvas3D.BACKGROUND_DIRTY;
+                }
+                canvas.cvDirtyMask[0] |= Canvas3D.BACKGROUND_IMAGE_DIRTY;
+                canvas.cvDirtyMask[1] |= Canvas3D.BACKGROUND_IMAGE_DIRTY;
+            }
 	}
     }
 
