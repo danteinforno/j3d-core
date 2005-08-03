@@ -212,6 +212,9 @@
      	     srcfile="${javahCoreSrc}/ModelClipRetained.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_ModelClipRetained.h"/>
 	    <uptodate
+             srcfile="${javahCoreSrc}/NativeAPIInfo.java"
+             targetfile="${javahCoreTarget}/javax_media_j3d_NativeAPIInfo.h"/>
+            <uptodate
      	     srcfile="${src}/classes/${ostype}/javax/media/j3d/NativeConfigTemplate3D.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_NativeConfigTemplate3D.h"/>
 	    <uptodate
@@ -367,6 +370,7 @@
 	<class name="javax.media.j3d.Material"/>
 	<class name="javax.media.j3d.MaterialRetained"/>
 	<class name="javax.media.j3d.ModelClipRetained"/>
+        <class name="javax.media.j3d.NativeAPIInfo"/>
 	<class name="javax.media.j3d.NativeConfigTemplate3D"/>
 	<class name="javax.media.j3d.NodeRetained"/>
 	<class name="javax.media.j3d.PointAttributesRetained"/>

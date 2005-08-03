@@ -16,11 +16,15 @@
  * of the Java 3D API.
  */
 
+#include <jni.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <jawt_md.h>
+
+#include "javax_media_j3d_MasterControl.h"
+#include "javax_media_j3d_DrawingSurfaceObjectAWT.h"
 
 #ifdef DEBUG
 /* Uncomment the following for VERBOSE debug messages */
