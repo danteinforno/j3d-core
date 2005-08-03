@@ -948,6 +948,62 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 	}
     }
     
+     /**
+     * Update native value for ShaderAttributeArray class
+     */
+    ShaderError setUniformAttrArray(long ctx, long shaderProgramId, long loc,
+				    ShaderAttributeArrayRetained saa) {   
+
+        switch (saa.classType) {
+            case ShaderAttributeObjectRetained.TYPE_INTEGER:
+                return  setUniform1iArray(ctx, shaderProgramId, loc, saa.length(),
+                        ((int[])saa.attrWrapper.getRef()));
+                
+            case ShaderAttributeObjectRetained.TYPE_FLOAT:
+                return setUniform1fArray(ctx, shaderProgramId, loc, saa.length(),
+                        ((float[])saa.attrWrapper.getRef()));
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE2I:
+                return setUniform2iArray(ctx, shaderProgramId, loc, saa.length(),
+                        (int[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE2F:
+                return setUniform2fArray(ctx, shaderProgramId, loc, saa.length(),
+                        (float[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE3I:
+                return setUniform3iArray(ctx, shaderProgramId, loc, saa.length(),
+                        (int[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE3F:
+                return setUniform3fArray(ctx, shaderProgramId, loc, saa.length(),
+                        (float[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE4I:
+                return setUniform4iArray(ctx, shaderProgramId, loc, saa.length(),
+                        (int[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_TUPLE4F:
+                return setUniform4fArray(ctx, shaderProgramId, loc, saa.length(),
+                        (float[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_MATRIX3F:
+                return setUniformMatrix3fArray(ctx, shaderProgramId, loc, saa.length(),
+                        (float[])saa.attrWrapper.getRef());
+                
+            case ShaderAttributeObjectRetained.TYPE_MATRIX4F:
+                return setUniformMatrix4fArray(ctx, shaderProgramId, loc, saa.length(),
+                        (float[])saa.attrWrapper.getRef());
+                
+            default:
+                // Should never get here
+                assert false : "Unrecognized ShaderAttributeArray classType";
+                return null;
+        }
+    
+    }
+    
+    
     void setShaderAttributes(Canvas3D cv, ShaderAttributeSetRetained attributeSet) {
         final boolean useSharedCtx = cv.useSharedCtx && cv.screen.renderer.sharedCtx != 0;
         final int cvRdrIndex = useSharedCtx ? cv.screen.renderer.rendererId : cv.canvasId;        
@@ -976,9 +1032,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 if (saRetained instanceof ShaderAttributeValueRetained) {
                     err = setUniformAttrValue(cv.ctx, shaderProgramId, loc, (ShaderAttributeValueRetained)saRetained);
                 } else if (saRetained instanceof ShaderAttributeArrayRetained) {
-                    //TODO : - JADA.
-//                   err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, (ShaderAttributeArrayRetained)saRetained);
-                    throw new RuntimeException("not implemented");
+                    err = setUniformAttrArray(cv.ctx, shaderProgramId, loc, (ShaderAttributeArrayRetained)saRetained);
                 } else if (saRetained instanceof ShaderAttributeBindingRetained) {
                     assert false;
                     throw new RuntimeException("not implemented");
