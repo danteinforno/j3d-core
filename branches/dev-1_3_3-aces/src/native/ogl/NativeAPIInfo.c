@@ -19,6 +19,7 @@
 #include <jni.h>
 
 #include "javax_media_j3d_MasterControl.h"
+#include "javax_media_j3d_NativeAPIInfo.h"
 
 JNIEXPORT
 jint JNICALL Java_javax_media_j3d_NativeAPIInfo_getRenderingAPI(
