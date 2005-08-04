@@ -3095,6 +3095,14 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->pfnglUniform3fARB = NULL;
     ctxInfo->pfnglUniform4iARB = NULL;
     ctxInfo->pfnglUniform4fARB = NULL; 
+    ctxInfo->pfnglUniform1ivARB = NULL;
+    ctxInfo->pfnglUniform1fvARB = NULL;
+    ctxInfo->pfnglUniform2ivARB = NULL;
+    ctxInfo->pfnglUniform2fvARB = NULL;
+    ctxInfo->pfnglUniform3ivARB = NULL;
+    ctxInfo->pfnglUniform3fvARB = NULL;
+    ctxInfo->pfnglUniform4ivARB = NULL;
+    ctxInfo->pfnglUniform4fvARB = NULL;
     ctxInfo->pfnglUniformMatrix3fvARB = NULL; 
     ctxInfo->pfnglUniformMatrix4fvARB = NULL; 
 
