@@ -99,6 +99,22 @@ checkGLSLShaderExtensions(
 	    (PFNGLUNIFORM4IARBPROC)dlsym(RTLD_DEFAULT, "glUniform4iARB");
 	ctxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fARB");
+	ctxInfo->pfnglUniform1ivARB =
+	    (PFNGLUNIFORM1IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform1ivARB");
+	ctxInfo->pfnglUniform1fvARB =
+	    (PFNGLUNIFORM1FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform1fvARB");
+	ctxInfo->pfnglUniform2ivARB =
+	    (PFNGLUNIFORM2IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform2ivARB");
+	ctxInfo->pfnglUniform2fvARB =
+	    (PFNGLUNIFORM2FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform2fvARB");
+	ctxInfo->pfnglUniform3ivARB =
+	    (PFNGLUNIFORM3IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform3ivARB");
+	ctxInfo->pfnglUniform3fvARB =
+	    (PFNGLUNIFORM3FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform3fvARB");
+	ctxInfo->pfnglUniform4ivARB =
+	    (PFNGLUNIFORM4IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform4ivARB");
+	ctxInfo->pfnglUniform4fvARB =
+	    (PFNGLUNIFORM4FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fvARB");
 	ctxInfo->pfnglUniformMatrix3fvARB =
 	    (PFNGLUNIFORMMATRIX3FVARBPROC)dlsym(RTLD_DEFAULT, "glUniformMatrix3fvARB");
 	ctxInfo->pfnglUniformMatrix4fvARB =
@@ -149,6 +165,22 @@ checkGLSLShaderExtensions(
 	    (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
 	ctxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
+	ctxInfo->pfnglUniform1ivARB =
+	    (PFNGLUNIFORM1IVARBPROC)wglGetProcAddress("glUniform1ivARB");
+	ctxInfo->pfnglUniform1fvARB =
+	    (PFNGLUNIFORM1FVARBPROC)wglGetProcAddress("glUniform1fvARB");
+	ctxInfo->pfnglUniform2ivARB =
+	    (PFNGLUNIFORM2IVARBPROC)wglGetProcAddress("glUniform2ivARB");
+	ctxInfo->pfnglUniform2fvARB =
+	    (PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
+	ctxInfo->pfnglUniform3ivARB =
+	    (PFNGLUNIFORM3IVARBPROC)wglGetProcAddress("glUniform3ivARB");
+	ctxInfo->pfnglUniform3fvARB =
+	    (PFNGLUNIFORM3FVARBPROC)wglGetProcAddress("glUniform3fvARB");
+	ctxInfo->pfnglUniform4ivARB =
+	    (PFNGLUNIFORM4IVARBPROC)wglGetProcAddress("glUniform4ivARB");
+	ctxInfo->pfnglUniform4fvARB =
+	    (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
 	ctxInfo->pfnglUniformMatrix3fvARB =
 	    (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
 	ctxInfo->pfnglUniformMatrix4fvARB =
@@ -597,8 +629,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
        useShaderProgram(). */
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-
+    
     /* Load attribute */
     ctxProperties->pfnglUniform1fARB((GLint)location, value);
 
@@ -889,16 +920,43 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     return NULL;
 }
 
-#if 0
-
-
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform1iArray
  * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1iArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1iArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jintArray vArray)
+{
+
+    JNIEnv table = *env;
+    jint *values;
+    
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    
+    /* Get array values */
+    values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+    
+    /* Load attribute */
+    ctxProperties->pfnglUniform1ivARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
 
 
 /*
@@ -906,71 +964,351 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
  * Method:    setUniform1fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1fArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
+    
+    JNIEnv table = *env;
+    jfloat *values;
+    
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform1fvARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+  
+}
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform2iArray
  * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jintArray vArray)
+{
+
+    JNIEnv table = *env;
+    jint *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform2ivARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
+ 
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform2fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
+
+    JNIEnv table = *env;
+    jfloat *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform2fvARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform3iArray
  * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jintArray vArray)
+{
+
+    JNIEnv table = *env;
+    jint *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform3ivARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform3fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
+
+    JNIEnv table = *env;
+    jfloat *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform3fvARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform4iArray
  * Signature: (JJJI[I)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jintArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jintArray vArray)
+{
+
+    JNIEnv table = *env;
+    jint *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform4ivARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniform4fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
+
+    JNIEnv table = *env;
+    jfloat *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Load attribute */
+    ctxProperties->pfnglUniform4fvARB((GLint)location, length, values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniformMatrix3fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3fArray
+(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
+
+    JNIEnv table = *env;
+    jfloat *values;
+
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */    
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+
+    /* Load attribute */
+    /*  transpose is GL_TRUE : each matrix is supplied in row major order */
+    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, length,
+					    GL_TRUE, (GLfloat *)values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+}
+
 
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    setUniformMatrix4fArray
  * Signature: (JJJI[F)Ljavax/media/j3d/ShaderError;
  */
-JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jfloatArray);
+JNIEXPORT jobject
+JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
+(
+    JNIEnv *env,
+    jobject obj,
+    jlong ctxInfo,
+    jlong shaderProgramId,
+    jlong location,
+    jint length,
+    jfloatArray vArray)
+{
 
-#endif
+    JNIEnv table = *env;
+    jfloat *values;
+    
+    /* We do not need to use shaderProgramId because caller has already called
+       useShaderProgram(). */    
+
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
+    /* Get array values */
+    values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
+    
+    /* Load attribute */
+    /*  transpose is GL_TRUE : each matrix is supplied in row major order */
+    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, length,
+					    GL_TRUE, (GLfloat *)values);
+
+    /* Release array values */
+    (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
+    
+    /* TODO : We need to handle ShaderError. */
+    return NULL;
+}
