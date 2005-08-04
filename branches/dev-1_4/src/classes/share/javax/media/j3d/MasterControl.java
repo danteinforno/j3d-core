@@ -20,6 +20,8 @@ package javax.media.j3d;
 
 import java.util.*;
 import java.awt.*;
+import java.io.File;
+
 
 class MasterControl {
 
@@ -434,6 +436,13 @@ class MasterControl {
     private ArrayList timestampUpdateList = new ArrayList(3);
 
     private UnorderList freeMessageList = new UnorderList(8);
+    
+    // System properties containing the native library search PATH
+    // The order listed is the order in which they will be searched
+    private static final String[] systemPathProps = {
+        "sun.boot.library.path",
+        "java.library.path"
+    };
 
     long awt;
     native long getAWT();
@@ -442,7 +451,7 @@ class MasterControl {
     private native boolean initializeJ3D(boolean disableXinerama);
 
     // Method to verify whether the native Cg library is available
-    private static native boolean loadNativeCgLibrary();
+    private static native boolean loadNativeCgLibrary(String[] libpath);
 
     // Method to get number of procesor
     private native int getNumberOfProcessor();
@@ -822,7 +831,9 @@ class MasterControl {
 
         // Check whether the Cg library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
-            if (loadNativeCgLibrary()) {
+            String cgLibraryName = libraryName + "-cg";
+            String[] libpath = setupLibPath(systemPathProps, cgLibraryName);
+            if (loadNativeCgLibrary(libpath)) {
                 cgLibraryAvailable = true;
             }
         }
@@ -835,6 +846,46 @@ class MasterControl {
                 glslLibraryAvailable = true;
             }
         }
+    }
+
+
+    /**
+     * Parse the specified System properties containing a PATH and return an
+     * array of Strings, where each element is an absolute filename consisting of
+     * the individual component of the path concatenated with the (relative)
+     * library file name. Only those absolute filenames that exist are included.
+     * If no absolute filename is found, we will try the relative library name.
+     */
+    private static String[] setupLibPath(String[] props, String libName) {
+        ArrayList pathList = new ArrayList();
+
+        String filename = System.mapLibraryName(libName);
+        for (int n = 0; n < props.length; n++) {
+            String pathString = getProperty(props[n]);
+            boolean done = false;
+            int posStart = 0;
+            while (!done) {
+                int posEnd = pathString.indexOf(File.pathSeparator, posStart);
+                if (posEnd == -1) {
+                    posEnd = pathString.length();
+                    done = true;
+                }
+                String pathDir = pathString.substring(posStart, posEnd);
+                File pathFile = new File(pathDir, filename);
+                if (pathFile.exists()) {
+                    pathList.add(pathFile.getAbsolutePath());
+                }
+
+                posStart = posEnd + 1;
+            }
+        }
+
+        // If no absolute path names exist, add in the relative library name
+        if (pathList.size() == 0) {
+            pathList.add(filename);
+        }
+
+        return (String[])pathList.toArray(new String[0]);
     }
 
 
