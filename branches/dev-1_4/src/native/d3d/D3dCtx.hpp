@@ -47,8 +47,11 @@ typedef struct _D3DTLVERTEX {
     float tu, tv;
 } D3DTLVERTEX;
 
-typedef vector<LPDIRECT3DRESOURCE8> LPDIRECT3DRESOURCE8Vector;
-typedef vector<LPDIRECT3DVERTEXBUFFER8> LPDIRECT3DVERTEXBUFFER8Vector;
+typedef vector<LPDIRECT3DRESOURCE9> LPDIRECT3DRESOURCE9Vector;
+typedef vector<LPDIRECT3DVERTEXBUFFER9> LPDIRECT3DVERTEXBUFFER9Vector;
+//issue 135 iterator for vectors
+typedef vector<LPDIRECT3DRESOURCE9>::iterator ITER_LPDIRECT3DRESOURCE9;
+typedef vector<LPDIRECT3DVERTEXBUFFER9>::iterator ITER_LPDIRECT3DVERTEXBUFFER9;
 
 class D3dCtx {
 public:
@@ -58,23 +61,30 @@ public:
     D3dDriverInfo  *driverInfo;   // Driver use
     D3dDeviceInfo  *deviceInfo;   // Device use
 
-    LPDIRECT3D8       pD3D;       // Direct3D interface
-    LPDIRECT3DDEVICE8 pDevice;    // Instance of D3D Device
+    LPDIRECT3D9       pD3D;       // Direct3D interface
+    LPDIRECT3DDEVICE9 pDevice;    // Instance of D3D Device
 
-    LPDIRECT3DSURFACE8 depthStencilSurface;
+    LPDIRECT3DSURFACE9 depthStencilSurface;
 
     // This is used for readRaster and offscreen rendering
     // Only allocate the memory area if necessary
-    LPDIRECT3DSURFACE8 frontSurface;
+    LPDIRECT3DSURFACE9 frontSurface;
 
-    LPDIRECT3DSURFACE8 backSurface;
+    LPDIRECT3DSURFACE9 backSurface;
 
     // Parameters use for CreateDevice()
     D3DPRESENT_PARAMETERS d3dPresent;
     DWORD          dwBehavior;
+	BOOL           bForceHwdVertexProcess; // true if j3d.d3dVertexProcess is hardware
+	BOOL           bForceMixVertexProcess; // true if j3d.d3dVertexProcess is mixed
+	BOOL           bForceSWVertexProcess;  // true if j3d.d3dVertexProcess is software
+
+	BOOL           bUseNvPerfHUD; // true if j3d.useNvPerfHUD is true
+	                              // it also makes  bForceHwdVertexProcess true
 
     BOOL           offScreen; // true if it is offScreen rendering
                               // in this case only backSurface is used
+	BOOL           bFastDrawQuads;
     DWORD          offScreenWidth;
     DWORD          offScreenHeight;
 
@@ -113,11 +123,11 @@ public:
     DWORD zEnable;
 
     // Ambient material used when coloring Attributes
-    D3DMATERIAL8 ambientMaterial;
+    D3DMATERIAL9 ambientMaterial;
 
     // temporary variables for ambient light setting
-    D3DLIGHT8 savedLight;
-    D3DMATERIAL8 savedMaterial;
+    D3DLIGHT9 savedLight;
+    D3DMATERIAL9 savedMaterial;
     BOOL savedLightEnable;
 
     // temporary variables used for building VertexBuffer
@@ -132,17 +142,17 @@ public:
     INT *bindTextureId;
     DWORD bindTextureIdLen;
 
-    LPDIRECT3DTEXTURE8 *textureTable;
+    LPDIRECT3DTEXTURE9 *textureTable;
     DWORD textureTableLen;
 
     // Volume Texture related variables
     // Since 2d & 3d texture ID can't be the same from Java3D.
     // We don't need bindVolumeId
-    LPDIRECT3DVOLUMETEXTURE8 *volumeTable;
+    LPDIRECT3DVOLUMETEXTURE9 *volumeTable;
     DWORD volumeTableLen;
 
     // Texture Cube Mapping related variables
-    LPDIRECT3DCUBETEXTURE8 *cubeMapTable;
+    LPDIRECT3DCUBETEXTURE9 *cubeMapTable;
     DWORD cubeMapTableLen;
 
     // true if hardware support MultiTexture
@@ -171,8 +181,8 @@ public:
 
     // This is used for to transform vertex
     // from world to screen coordinate
-    LPDIRECT3DVERTEXBUFFER8 srcVertexBuffer;
-    LPDIRECT3DVERTEXBUFFER8 dstVertexBuffer;
+    LPDIRECT3DVERTEXBUFFER9 srcVertexBuffer;
+    LPDIRECT3DVERTEXBUFFER9 dstVertexBuffer;
 
     // For Rect of texture map in Raster write
     D3DTLVERTEX rasterRect[4];
@@ -215,11 +225,11 @@ public:
     BOOL resetColorTarget;
 
     // Use for QuadArray
-    LPDIRECT3DINDEXBUFFER8 quadIndexBuffer;
+    LPDIRECT3DINDEXBUFFER9 quadIndexBuffer;
     DWORD quadIndexBufferSize;
 
     // Use for Quad Polygon Line mode
-    LPDIRECT3DINDEXBUFFER8 lineModeIndexBuffer;
+    LPDIRECT3DINDEXBUFFER9 lineModeIndexBuffer;
 
     // Use temporary for reindexing
     DWORD *reIndexifyTable;
@@ -237,8 +247,8 @@ public:
 
     // Use to free resource surface in swap()
     BOOL useFreeList0;
-    LPDIRECT3DRESOURCE8Vector freeResourceList0;
-    LPDIRECT3DRESOURCE8Vector freeResourceList1;
+    LPDIRECT3DRESOURCE9Vector freeResourceList0;
+    LPDIRECT3DRESOURCE9Vector freeResourceList1;
     D3dVertexBufferVector freeVBList0;
     D3dVertexBufferVector freeVBList1;
 
@@ -280,11 +290,11 @@ public:
     VOID setPresentParams(JNIEnv *env, jobject obj);
     VOID setAmbientLightMaterial();
     VOID restoreDefaultLightMaterial();
-    VOID freeResource(LPDIRECT3DRESOURCE8 surf);
+    VOID freeResource(LPDIRECT3DRESOURCE9 surf);
     VOID freeVB(LPD3DVERTEXBUFFER vb);
 
     VOID freeList();
-    VOID freeResourceList(LPDIRECT3DRESOURCE8Vector *v);
+    VOID freeResourceList(LPDIRECT3DRESOURCE9Vector *v);
     VOID freeVBList(D3dVertexBufferVector *v);
     BOOL createFrontBuffer();
 
@@ -296,15 +306,20 @@ public:
 					   BOOL *bFullScreen,
 					   int minZDepth);
     static VOID setDeviceFromProperty(JNIEnv *env);
+	static BOOL getSystemProperty(JNIEnv *env, char *strName, char *strValue);
     static VOID setDebugProperty(JNIEnv *env);
     static VOID setVBLimitProperty(JNIEnv *env);
     static VOID setImplicitMultisamplingProperty(JNIEnv *env);
+	
+
 
 private:
 
     RECT savedTopRect;        // for toggle between fullscreen mode
     RECT savedClientRect;
     DWORD winStyle;
+	// a private reference for JNIEnv
+	JNIEnv* jniEnv;
 
     VOID createVertexBuffer();
 
@@ -317,9 +332,12 @@ private:
     VOID setDefaultAttributes();
     VOID printInfo(D3DPRESENT_PARAMETERS *d3dPresent);
     VOID setWindowMode();
+	jboolean getJavaBoolEnv(JNIEnv *env, char* envStr);
 };
 
 typedef vector<D3dCtx *> D3dCtxVector;
+//issue 135 added iterator for D3dCtxVector
+typedef vector<D3dCtx *>::iterator ITER_D3dCtxVector;
 extern D3dCtxVector d3dCtxList;
 const extern D3DXMATRIX identityMatrix;
 #endif
