@@ -1019,10 +1019,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform2ivARB((GLint)location, length, values);
@@ -1059,10 +1059,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform2fvARB((GLint)location, length, values);
@@ -1098,10 +1098,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform3ivARB((GLint)location, length, values);
@@ -1137,10 +1137,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform3fvARB((GLint)location, length, values);
@@ -1176,10 +1176,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform4ivARB((GLint)location, length, values);
@@ -1215,10 +1215,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray(
     /* We do not need to use shaderProgramId because caller has already called
        useShaderProgram(). */
 
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
 
     /* Load attribute */
     ctxProperties->pfnglUniform4fvARB((GLint)location, length, values);
