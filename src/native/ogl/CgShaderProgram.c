@@ -47,19 +47,18 @@ static CgWrapperInfo *globalCgWrapperInfo = NULL;
 JNIEXPORT jboolean JNICALL
 Java_javax_media_j3d_MasterControl_loadNativeCgLibrary(
     JNIEnv *env,
-    jclass clazz)
+    jclass clazz,
+    jobjectArray libpath)
 {
     CgWrapperInfo *cgWrapperInfo;
+    int i, pathLen;
+    char *errName = NULL;
 
 #ifdef WIN32
     DWORD err;
     LPTSTR errString;
     UINT origErrorMode;
 #endif /* WIN32 */
-
-    /*
-    fprintf(stderr, "MasterControl.loadNativeCgLibrary()\n");
-    */
 
     /*
      * This method is called exactly once to load and initialize the
@@ -72,16 +71,44 @@ Java_javax_media_j3d_MasterControl_loadNativeCgLibrary(
 	return JNI_FALSE;
     }
 
+    /* Allocate global Cg wrapper struct */
     cgWrapperInfo = (CgWrapperInfo*)malloc(sizeof(CgWrapperInfo));
     cgWrapperInfo->loaded = JNI_FALSE;
     cgWrapperInfo->cgLibraryHandle = NULL;
 
 #ifdef COMPILE_CG_SHADERS
 
+    /* Remove the following print statement when the native Cg code is done */
+    fprintf(stderr, "*** JAVA 3D : loading experimental native Cg library\n");
+
+    /* Get number of entries in libpath array */
+    pathLen = (*env)->GetArrayLength(env, libpath);
+    /*fprintf(stderr, "pathLen = %d\n", pathLen);*/
+
 #ifdef UNIX
-    cgWrapperInfo->cgLibraryHandle = dlopen("libj3dcore-ogl-cg.so", RTLD_LAZY);
+
+    for (i = 0; i < pathLen; i++) {
+        jstring libname;
+        char *libnameStr;
+
+        libname = (*env)->GetObjectArrayElement(env, libpath, i);
+        libnameStr = strJavaToC(env, libname);
+        /*fprintf(stderr, "dlopen(%s)\n", libnameStr);*/
+        cgWrapperInfo->cgLibraryHandle = dlopen(libnameStr, RTLD_LAZY);
+        if ((cgWrapperInfo->cgLibraryHandle == NULL) && (i == pathLen-1)) {
+            errName = strdup(libnameStr);
+        }
+        free(libnameStr);
+        if (cgWrapperInfo->cgLibraryHandle != NULL) {
+            break;
+        }
+    }
+
     if (cgWrapperInfo->cgLibraryHandle == NULL) {
-	perror("JAVA 3D ERROR : Unable to load library: j3dcore-ogl-cg");
+        fprintf(stderr, "JAVA 3D ERROR : Unable to load library ");
+        perror(errName);
+        free(errName);
+        free(cgWrapperInfo);
 	return JNI_FALSE;
     }
 
@@ -93,10 +120,28 @@ Java_javax_media_j3d_MasterControl_loadNativeCgLibrary(
 #endif /* UNIX */
 
 #ifdef WIN32
+
     /* Load the library, suppressing any dialog boxes that may occur */
     origErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX |
 				 SEM_FAILCRITICALERRORS);
-    cgWrapperInfo->cgLibraryHandle = LoadLibrary("j3dcore-ogl-cg.dll");
+
+    for (i = 0; i < pathLen; i++) {
+        jstring libname;
+        char *libnameStr;
+
+        libname = (*env)->GetObjectArrayElement(env, libpath, i);
+        libnameStr = strJavaToC(env, libname);
+        /*fprintf(stderr, "LoadLibrary(%s)\n", libnameStr);*/
+        cgWrapperInfo->cgLibraryHandle = LoadLibrary(libnameStr);
+        if ((cgWrapperInfo->cgLibraryHandle == NULL) && (i == pathLen-1)) {
+            errName = strdup(libnameStr);
+        }
+        free(libnameStr);
+        if (cgWrapperInfo->cgLibraryHandle != NULL) {
+            break;
+        }
+    }
+
     SetErrorMode(origErrorMode);
 
     if (cgWrapperInfo->cgLibraryHandle == NULL) {
@@ -106,8 +151,9 @@ Java_javax_media_j3d_MasterControl_loadNativeCgLibrary(
 		      NULL, err, 0, (LPTSTR)&errString, 0, NULL);
 
 	fprintf(stderr,
-		"JAVA 3D ERROR : Unable to load library: j3dcore-ogl-cg: %s\n",
-		errString);
+		"JAVA 3D ERROR : Unable to load library %s: %s\n",
+		errName, errString);
+        free(errName);
 	return JNI_FALSE;
     }
 
