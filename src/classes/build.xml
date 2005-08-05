@@ -321,8 +321,8 @@
         <fileset dir="${java.home}/lib/ext" includes="j3dcore.jar, j3dutils.jar, vecmath.jar"/>
     </delete>
     <delete>
-       <fileset dir="${java.home}/${install.bin}" includes="libj3dcore-ogl.so, libj3dutils.so"/>
-       <fileset dir="${java.home}/${install.bin}" includes="j3dcore-ogl.dll, j3dcore-d3d.dll, j3dutils.dll"/>
+       <fileset dir="${java.home}/${install.bin}" includes="libj3dcore*.so, libj3dutils.so"/>
+       <fileset dir="${java.home}/${install.bin}" includes="j3dcore*.dll, j3dutils.dll"/>
     </delete>
   </target>
  
