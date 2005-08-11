@@ -228,8 +228,10 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
         return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
     }
 
-    ShaderError lookupShaderAttrName(long ctx, long shaderProgramId, String attrName, long[] locArr) {
-        return lookupNativeShaderAttrName(ctx, shaderProgramId, attrName, locArr);
+    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId, String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
+        // TODO: port GLSLShaderProgramRetained method
+        System.err.println("*** WARNING: Cg ShaderAttributes not implemented");
+////////        OLD:  return lookupNativeShaderAttrName(ctx, shaderProgramId, attrName, locArr);
     }
 
     /**

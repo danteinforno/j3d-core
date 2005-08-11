@@ -3087,6 +3087,7 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->pfnglShaderSourceARB = NULL;
     ctxInfo->pfnglUseProgramObjectARB = NULL;
     ctxInfo->pfnglGetUniformLocationARB = NULL;
+    ctxInfo->pfnglGetActiveUniformARB = NULL;
     ctxInfo->pfnglUniform1iARB = NULL;
     ctxInfo->pfnglUniform1fARB = NULL;
     ctxInfo->pfnglUniform2iARB = NULL;

@@ -48,8 +48,8 @@ import javax.vecmath.*;
 
 abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
 
-    int classType;
-    Class baseClass;
+    private int classType;
+    private Class baseClass;
     AttrWrapper attrWrapper;
 
     /**
@@ -298,6 +298,14 @@ abstract class ShaderAttributeObjectRetained extends ShaderAttributeRetained {
 	 * to pass data down to native methods.
 	 */
 	abstract Object getRef();
+    }
+
+    int getClassType() {
+        return classType;
+    }
+
+    void setClassType(int classType) {
+        this.classType = classType;
     }
 
 }
