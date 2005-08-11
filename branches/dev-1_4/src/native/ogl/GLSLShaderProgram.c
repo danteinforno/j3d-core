@@ -26,6 +26,17 @@
 #include <dlfcn.h>
 #endif
 
+#define TYPE_INTEGER javax_media_j3d_ShaderAttributeObjectRetained_TYPE_INTEGER
+#define TYPE_FLOAT javax_media_j3d_ShaderAttributeObjectRetained_TYPE_FLOAT
+#define TYPE_TUPLE2I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2I
+#define TYPE_TUPLE2F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2F
+#define TYPE_TUPLE3I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3I
+#define TYPE_TUPLE3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3F
+#define TYPE_TUPLE4I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4I
+#define TYPE_TUPLE4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4F
+#define TYPE_MATRIX3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX3F
+#define TYPE_MATRIX4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX4F
+
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
 extern jobject createShaderError(JNIEnv *env,
@@ -83,6 +94,8 @@ checkGLSLShaderExtensions(
 	    (PFNGLBINDATTRIBLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glBindAttribLocationARB");
 	ctxInfo->pfnglVertexAttrib3fvARB =
 	    (PFNGLVERTEXATTRIB3FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib3fvARB");
+	ctxInfo->pfnglGetActiveUniformARB =
+	    (PFNGLGETACTIVEUNIFORMARBPROC)dlsym(RTLD_DEFAULT, "glGetActiveUniformARB");
 	ctxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)dlsym(RTLD_DEFAULT, "glUniform1iARB");
 	ctxInfo->pfnglUniform1fARB =
@@ -149,6 +162,8 @@ checkGLSLShaderExtensions(
 	    (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
 	ctxInfo->pfnglVertexAttrib3fvARB =
 	    (PFNGLVERTEXATTRIB3FVARBPROC)wglGetProcAddress("glVertexAttrib3fvARB");
+	ctxInfo->pfnglGetActiveUniformARB =
+	    (PFNGLGETACTIVEUNIFORMARBPROC)wglGetProcAddress("glGetActiveUniformARB");
 	ctxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
 	ctxInfo->pfnglUniform1fARB =
@@ -488,81 +503,193 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
 }
 
 
+static jint
+glslToJ3dType(GLint type) {
+    switch (type) {
+    case GL_BOOL_ARB:
+    case GL_INT:
+	return TYPE_INTEGER;
+	break;
+
+    case GL_FLOAT:
+	return TYPE_FLOAT;
+	break;
+
+    case GL_INT_VEC2_ARB:
+    case GL_BOOL_VEC2_ARB:
+	return TYPE_TUPLE2I;
+	break;
+
+    case GL_FLOAT_VEC2_ARB:
+	return TYPE_TUPLE2F;
+	break;
+
+    case GL_INT_VEC3_ARB:
+    case GL_BOOL_VEC3_ARB:
+	return TYPE_TUPLE3I;
+	break;
+
+    case GL_FLOAT_VEC3_ARB:
+	return TYPE_TUPLE3F;
+	break;
+
+    case GL_INT_VEC4_ARB:
+    case GL_BOOL_VEC4_ARB:
+	return TYPE_TUPLE4I;
+	break;
+
+    case GL_FLOAT_VEC4_ARB:
+	return TYPE_TUPLE4F;
+	break;
+
+    /* case GL_FLOAT_MAT2_ARB: */
+
+    case GL_FLOAT_MAT3_ARB:
+	return TYPE_MATRIX3F;
+	break;
+
+    case GL_FLOAT_MAT4_ARB:
+	return TYPE_MATRIX4F;
+	break;
+    }
+
+    return -1;
+}
+
+
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
- * Method:    lookupNativeShaderAttrName
- * Signature: (JJLjava/lang/String;[J)Ljavax/media/j3d/ShaderError;
+ * Method:    lookupNativeShaderAttrNames
+ * Signature: (JJI[Ljava/lang/String;[J[I[I)Ljavax/media/j3d/ShaderError;
  */
 JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrName(
+Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jlong shaderProgramId,
-    jstring attrName,
-    jlongArray locArr)
+    jint numAttrNames,
+    jobjectArray attrNames,
+    jlongArray locArr,
+    jintArray typeArr,
+    jintArray sizeArr)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
     jobject shaderError = NULL;
-    GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+    GLcharARB **attrNamesString;
     jlong *locPtr;
-    jlong loc;
-    jclass oom;
-
+    jint *typePtr;
+    jint *sizePtr;
+    GLint loc;
+    GLenum type;
+    GLint size;
+    GLcharARB *name;
+    GLint maxStrLen;
+    int numActiveUniforms;
+    int i, j;
+    
     JNIEnv table = *env;
 
-    if (attrNameString == NULL) {
-	/* Just return, since strJavaToC will throw OOM if it returns NULL */
-	return NULL;
-    }
-    
     locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
+    typePtr = (*env)->GetIntArrayElements(env, typeArr, NULL);
+    sizePtr = (*env)->GetIntArrayElements(env, sizeArr, NULL);
 
     /*
-    fprintf(stderr,
-	    "GLSLShaderProgramRetained.lookupNativeShaderAttrName: %s\n",
-	    attrNameString);
-    */
-
-    /*
-     * Get uniform attribute location
+     * Initialize the name array, also set the loc, type, and size
+     * arrays to out-of-band values
      */
-    loc = ctxProperties->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
-						    attrNameString);
-    
-    if (loc == -1) {
-	char *msgStr = "Attribute name lookup failed: ";
-	char *errMsg = (char*)malloc(strlen(msgStr) + strlen(attrNameString) + 1);
-	if (errMsg == NULL) {
-	    if ((oom = table->FindClass(env, "java/lang/OutOfMemoryError")) != NULL) {
-		table->ThrowNew(env, oom, "malloc");
-	    }
-	    return NULL;
-	}
-	strcpy(errMsg, msgStr);
-	strcat(errMsg, attrNameString);
+    attrNamesString = (GLcharARB **)malloc(numAttrNames * sizeof(GLcharARB *));
+    for (i = 0; i < numAttrNames; i++) {
+	jstring attrName;
 
-	shaderError = createShaderError(env,
-		javax_media_j3d_ShaderError_SHADER_ATTRIBUTE_LOOKUP_ERROR,
-		errMsg,
-		NULL);
-	free(errMsg);
+        attrName = (*env)->GetObjectArrayElement(env, attrNames, i);
+        attrNamesString[i] = (GLcharARB *)strJavaToC(env, attrName);
+
+	locPtr[i] = -1;
+	typePtr[i] = -1;
+	sizePtr[i] = -1;
     }
 
     /*
+     * Loop through the list of active uniform variables, one at a
+     * time, searching for a match in the attrNames array.
+     *
+     * NOTE: Since attrNames isn't sorted, and we don't have a
+     * hashtable of names to index locations, we will do a
+     * brute-force, linear search of the array. This leads to an
+     * O(n^2) algorithm (actually O(n*m) where n is attrNames.length
+     * and m is the number of uniform variables), but since we expect
+     * N to be small, we will not optimize this at this time.
+     */
+    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
+						GL_OBJECT_ACTIVE_UNIFORMS_ARB,
+						&numActiveUniforms);
+    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
+						GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB,
+						&maxStrLen);
+    name = malloc(maxStrLen + 1);
+
+    /*
     fprintf(stderr,
-	    "str = %s, loc = %d\n",
-	    attrNameString, loc);
+	    "numActiveUniforms = %d, maxStrLen = %d\n",
+	    numActiveUniforms, maxStrLen);
     */
 
-    locPtr[0] = loc;
-    
-    free(attrNameString);    
+    for (i = 0; i < numActiveUniforms; i++) {
+	ctxProperties->pfnglGetActiveUniformARB((GLhandleARB) shaderProgramId,
+						i,
+						maxStrLen,
+						NULL,
+						&size,
+						&type,
+						name);
+	/*
+	fprintf(stderr,
+		"Uniform[%d] : name = %s, type = %d, size = %d\n",
+		i, name, type, size);
+	*/
 
+	/* Now try to find the name */
+	for (j = 0; j < numAttrNames; j++) {
+	    if (strcmp(attrNamesString[j], name) == 0) {
+		sizePtr[j] = (jint)size;
+		typePtr[j] = glslToJ3dType(type);
+		break;
+	    }
+	}
+    }
+
+    free(name);
+
+    /* Now lookup the location of each name in the attrNames array */
+    for (i = 0; i < numAttrNames; i++) {
+        /*
+         * Get uniform attribute location
+         */
+        loc = ctxProperties->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
+                                                        attrNamesString[i]);
+
+	/*
+        fprintf(stderr,
+                "str = %s, loc = %d\n",
+                attrNamesString[i], loc);
+	*/
+
+        locPtr[i] = (jlong)loc;
+    }
+
+    /* Free the array of strings */
+    for (i = 0; i < numAttrNames; i++) {
+        free(attrNamesString[i]);
+    }
+    free(attrNamesString);
+
+    /* Release JNI arrays */
     (*env)->ReleaseLongArrayElements(env, locArr, locPtr, 0);
+    (*env)->ReleaseIntArrayElements(env, typeArr, typePtr, 0);
+    (*env)->ReleaseIntArrayElements(env, sizeArr, sizePtr, 0);
 
     return shaderError;
-
 }
 
 

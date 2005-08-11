@@ -302,6 +302,9 @@
      	     srcfile="${javahCoreSrc}/Shader.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_Shader.h"/>
 	    <uptodate
+     	     srcfile="${javahCoreSrc}/ShaderAttributeObjectRetained.java"
+    	     targetfile="${javahCoreTarget}/javax_media_j3d_ShaderAttributeObjectRetained.h"/>
+	    <uptodate
      	     srcfile="${javahCoreSrc}/ShaderError.java"
     	     targetfile="${javahCoreTarget}/javax_media_j3d_ShaderError.h"/>
 	    <uptodate
@@ -400,6 +403,7 @@
 	<class name="javax.media.j3d.GLSLShaderProgramRetained"/>
 	<class name="javax.media.j3d.CgShaderProgramRetained"/>
 	<class name="javax.media.j3d.Shader"/>
+	<class name="javax.media.j3d.ShaderAttributeObjectRetained"/>
 	<class name="javax.media.j3d.ShaderError"/>
 
     </javah>

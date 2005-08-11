@@ -135,6 +135,7 @@
 #include "javax_media_j3d_GLSLShaderProgramRetained.h"
 #include "javax_media_j3d_CgShaderProgramRetained.h"
 #include "javax_media_j3d_Shader.h"
+#include "javax_media_j3d_ShaderAttributeObjectRetained.h"
 #include "javax_media_j3d_ShaderError.h"
 
 /*
@@ -615,6 +616,7 @@ typedef struct {
     PFNGLGETATTRIBLOCATIONARBPROC pfnglGetAttribLocationARB;
     PFNGLBINDATTRIBLOCATIONARBPROC pfnglBindAttribLocationARB;
     PFNGLVERTEXATTRIB3FVARBPROC pfnglVertexAttrib3fvARB;
+    PFNGLGETACTIVEUNIFORMARBPROC pfnglGetActiveUniformARB;
     PFNGLUNIFORM1IARBPROC pfnglUniform1iARB;
     PFNGLUNIFORM1FARBPROC pfnglUniform1fARB;
     PFNGLUNIFORM2IARBPROC pfnglUniform2iARB;
