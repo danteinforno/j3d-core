@@ -169,11 +169,12 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
 						       long[] shaderId);
     private native ShaderError bindNativeVertexAttrName(long ctx, long shaderProgramId,
                                                         String attrName, int attrIndex);
-    private native ShaderError lookupNativeShaderAttrName(long ctx, long shaderProgramId,
-                                                          String attrName, long[] locArr);
-    
+    private native void lookupNativeShaderAttrNames(long ctx, long shaderProgramId,
+            int numAttrNames, String[] attrNames, long[] locArr,
+            int[] typeArr, int[] sizeArr, boolean[] isArrayArr);
+
     private native ShaderError useShaderProgram(long ctx, long shaderProgramId);
- 
+
     /**
      * Method to return a flag indicating whether this
      * ShaderProgram is supported on the specified Canvas.
@@ -228,10 +229,35 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
         return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
     }
 
-    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId, String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
-        // TODO: port GLSLShaderProgramRetained method
-        System.err.println("*** WARNING: Cg ShaderAttributes not implemented");
-////////        OLD:  return lookupNativeShaderAttrName(ctx, shaderProgramId, attrName, locArr);
+    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId,
+            String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
+
+        int numAttrNames = attrNames.length;
+        
+        long[] locArr = new long[numAttrNames];
+        int[] typeArr = new int[numAttrNames];
+        int[] sizeArr = new int[numAttrNames]; // currently unused
+        boolean[] isArrayArr = new boolean[numAttrNames];
+
+        // Initialize loc array to -1 (indicating no location)
+        for (int i = 0; i < numAttrNames; i++) {
+            locArr[i] = -1;
+        }
+
+        lookupNativeShaderAttrNames(cv.ctx, shaderProgramId,
+                numAttrNames, attrNames, locArr, typeArr, sizeArr, isArrayArr);
+
+        for (int i = 0; i < numAttrNames; i++) {
+            attrNameInfoArr[i] = new AttrNameInfo();
+            attrNameInfoArr[i].setLocation(locArr[i]);
+            attrNameInfoArr[i].setArray(isArrayArr[i]);
+            attrNameInfoArr[i].setType(typeArr[i]);
+            System.err.println(attrNames[i] +
+                    " : loc = " + locArr[i] +
+                    ", type = " + typeArr[i] +
+                    ", isArray = " + isArrayArr[i] +
+                    ", size = " + sizeArr[i]);
+        }
     }
 
     /**

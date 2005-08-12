@@ -27,6 +27,18 @@
 #include <dlfcn.h>
 #endif
 
+#define TYPE_INTEGER javax_media_j3d_ShaderAttributeObjectRetained_TYPE_INTEGER
+#define TYPE_FLOAT javax_media_j3d_ShaderAttributeObjectRetained_TYPE_FLOAT
+#define TYPE_TUPLE2I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2I
+#define TYPE_TUPLE2F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2F
+#define TYPE_TUPLE3I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3I
+#define TYPE_TUPLE3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3F
+#define TYPE_TUPLE4I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4I
+#define TYPE_TUPLE4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4F
+#define TYPE_MATRIX3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX3F
+#define TYPE_MATRIX4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX4F
+
+
 extern char *strJavaToC(JNIEnv *env, jstring str);
 extern void throwAssert(JNIEnv *env, char *str);
 extern jobject createShaderError(JNIEnv *env,
@@ -770,38 +782,248 @@ Java_javax_media_j3d_CgShaderProgramRetained_bindNativeVertexAttrName(
 }
 
 
+#ifdef COMPILE_CG_SHADERS
+
+static jint
+cgToJ3dType(CGtype type)
+{
+    switch (type) {
+    case CG_BOOL:
+    case CG_BOOL1:
+    case CG_FIXED:
+    case CG_FIXED1:
+    case CG_HALF:
+    case CG_HALF1:
+    case CG_INT:
+    case CG_INT1:
+	return TYPE_INTEGER;
+
+    case CG_BOOL2:
+    case CG_FIXED2:
+    case CG_HALF2:
+    case CG_INT2:
+	return TYPE_TUPLE2I;
+
+    case CG_BOOL3:
+    case CG_FIXED3:
+    case CG_HALF3:
+    case CG_INT3:
+	return TYPE_TUPLE3I;
+
+    case CG_BOOL4:
+    case CG_FIXED4:
+    case CG_HALF4:
+    case CG_INT4:
+	return TYPE_TUPLE4I;
+
+    case CG_FLOAT:
+    case CG_FLOAT1:
+	return TYPE_FLOAT;
+
+    case CG_FLOAT2:
+	return TYPE_TUPLE2F;
+
+    case CG_FLOAT3:
+	return TYPE_TUPLE3F;
+
+    case CG_FLOAT4:
+	return TYPE_TUPLE4F;
+
+    case CG_FLOAT3x3:
+	return TYPE_MATRIX3F;
+
+    case CG_FLOAT4x4:
+	return TYPE_MATRIX4F;
+    }
+
+    return -1;
+}
+
+#endif /* COMPILE_CG_SHADERS */
+
+
 /*
  * Class:     javax_media_j3d_CgShaderProgramRetained
- * Method:    lookupNativeShaderAttrName
- * Signature: (JJLjava/lang/String;[J)Ljavax/media/j3d/ShaderError;
+ * Method:    lookupNativeShaderAttrNames
+ * Signature: (JJI[Ljava/lang/String;[J[I[I[Z)V
  */
-JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrName(
+JNIEXPORT void JNICALL
+Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jlong shaderProgramId,
-    jstring attrName,
-    jlongArray locArr)
+    jint numAttrNames,
+    jobjectArray attrNames,
+    jlongArray locArr,
+    jintArray typeArr,
+    jintArray sizeArr,
+    jbooleanArray isArrayArr)
 {
-    jobject shaderError = NULL;
 
 #ifdef COMPILE_CG_SHADERS
 
-    fprintf(stderr, "CgShaderProgramRetained.lookupNativeShaderAttrName\n");
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
+    CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
 
-    /* TODO: implement this */
+    jstring attrName;
+    char *attrNameString;
+    jlong *locPtr;
+    jint *typePtr;
+    jint *sizePtr;
+    jboolean *isArrayPtr;
+    CGparameter loc;
+    CGtype type, type0;
+    int size, size0;
+    jboolean isArray, isArray0;
+    int i;
 
-#else /* COMPILE_CG_SHADERS */
+    JNIEnv table = *env;
 
-    shaderError = createShaderError(env,
-				    javax_media_j3d_ShaderError_UNSUPPORTED_LANGUAGE_ERROR,
-				    "CgShaderProgram support not compiled",
-				    NULL);
+    locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
+    typePtr = (*env)->GetIntArrayElements(env, typeArr, NULL);
+    sizePtr = (*env)->GetIntArrayElements(env, sizeArr, NULL);
+    isArrayPtr = (*env)->GetBooleanArrayElements(env, isArrayArr, NULL);
 
-#endif /* !COMPILE_CG_SHADERS */
+    /*
+     * Set the loc, type, and size arrays to out-of-band values
+     */
+    for (i = 0; i < numAttrNames; i++) {
+	locPtr[i] = -1;
+	typePtr[i] = -1;
+	sizePtr[i] = -1;
+    }
 
-    return shaderError;
+    /* Now lookup the location of each name in the attrNames array */
+    for (i = 0; i < numAttrNames; i++) {
+        int j;
+	jboolean err;
+	CgParameterInfo *cgParamInfo;
+	CGparameter firstElem;
+
+        attrName = (*env)->GetObjectArrayElement(env, attrNames, i);
+        attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+
+	/*
+	 * Get uniform attribute location -- note that we need to
+	 * lookup the name in both the vertex and fragment shader
+	 * (although we will generalize it to look at the list of "N"
+	 * shaders). If all parameter locations are NULL, then no
+	 * struct will be allocated and -1 will be stored for this
+	 * attribute. If there is more than one non-NULL parameter,
+	 * then all must be of the same type and dimensionality,
+	 * otherwise an error will be generated and -1 will be stored
+	 * for this attribute.  If all non-NULL parameters are of the
+	 * same type and dimensionality, then a struct is allocated
+	 * containing the list of parameters.
+	 *
+	 * When any of the setUniform methods are called, the attribute
+	 * will be set for each parameter in the list.
+	 */
+	cgParamInfo = (CgParameterInfo *)malloc(sizeof(CgParameterInfo));
+	cgParamInfo->numParams = 0;
+	cgParamInfo->params =
+	    (CGparameter *)malloc(shaderProgramInfo->numShaders * sizeof(CGparameter));
+	err = JNI_FALSE;
+	for (j = 0; j < shaderProgramInfo->numShaders; j++) {
+            loc = cgWrapperInfo->cgGetNamedParameter(shaderProgramInfo->shaders[j]->cgShader,
+                    attrNameString);
+	    if (loc != NULL) {
+		cgParamInfo->params[cgParamInfo->numParams] = loc;
+		type = cgWrapperInfo->cgGetParameterType(loc);
+		if (type == CG_ARRAY) {
+		    isArray = JNI_TRUE;
+		    size = cgWrapperInfo->cgGetArraySize(loc, 0);
+		    /*type = cgWrapperInfo->cgGetArrayType(loc);*/
+		    firstElem = cgWrapperInfo->cgGetArrayParameter(loc, 0);
+		    type = cgWrapperInfo->cgGetParameterType(firstElem);
+		    /*
+		    fprintf(stderr,
+			    "%d : firstElem = %d, type = %d\n",
+			    j, firstElem, type);
+		    */
+		}
+		else {
+		    isArray = JNI_FALSE;
+		    size = 1;
+		}
+		/*
+		fprintf(stderr,
+			"%d : str = %s, loc = %d, type = %d, isArray = %d, size = %d, dim = %d\n",
+			j, attrNameString, (int)loc, type, isArray, size,
+			cgWrapperInfo->cgGetArrayDimension(loc));
+		if (type == 0) {
+		    fprintf(stderr,
+			    "    type error: %s\n",
+			    cgWrapperInfo->cgGetErrorString(cgWrapperInfo->cgGetError()));
+		}
+		*/
+
+		if (cgParamInfo->numParams == 0) {
+		    type0 = type;
+		    size0 = size;
+		    isArray0 = isArray;
+		}
+		else {
+		    if (type != type0 || size != size0 || isArray != isArray0) {
+			/* TODO: the following needs to be propagated to ShaderError */
+			fprintf(stderr,
+				"JAVA 3D : error shader attribute type mismatch: %s\n",
+				attrNameString);
+			fprintf(stderr,
+				"    0 : type = %d, size = %d, isArray = %d\n",
+				type0, size0, isArray0);
+			fprintf(stderr,
+				"    1 : type = %d, size = %d, isArray = %d\n",
+				type, size, isArray);
+			err = JNI_TRUE;
+			break;
+		    }
+		}
+
+		cgParamInfo->numParams += 1;
+	    }
+	    /**/
+	    else {
+		fprintf(stderr,
+			"%d : str = %s, loc = NULL\n",
+			j, attrNameString);
+	    }
+	    /**/
+        }
+
+        if (err || cgParamInfo->numParams == 0) {
+	    /* TODO: distinguish between (err) and (cgParamInfo->numParams == 0) */
+	    free(cgParamInfo->params);
+	    free(cgParamInfo);
+	    locPtr[i] = (jlong)-1;
+        }
+	else {
+	    /*
+	     * TODO: need to store the cgParamInfo pointers in the
+	     * shader program so we can free them later.
+	     *
+	     * NOTE: WE CURRENTLY HAVE A MEMORY LEAK.
+	     */
+	    locPtr[i] = (jlong)cgParamInfo;
+            sizePtr[i] = (jint)size0;
+            isArrayPtr[i] = isArray0;
+            typePtr[i] = cgToJ3dType(type0);
+	}
+
+        free(attrNameString);
+    }
+
+    /* Release JNI arrays */
+    (*env)->ReleaseLongArrayElements(env, locArr, locPtr, 0);
+    (*env)->ReleaseIntArrayElements(env, typeArr, typePtr, 0);
+    (*env)->ReleaseIntArrayElements(env, sizeArr, sizePtr, 0);
+    (*env)->ReleaseBooleanArrayElements(env, isArrayArr, isArrayPtr, 0);
+
+#endif /* COMPILE_CG_SHADERS */
+
 }
 
 
@@ -894,7 +1116,23 @@ Java_javax_media_j3d_CgShaderProgramRetained_setUniform1f(
 
 #ifdef COMPILE_CG_SHADERS
 
-    /* TODO: implement this */
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
+    CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
+    CgParameterInfo *cgParamInfo = (CgParameterInfo *)location;
+
+    int i;
+
+    /*
+    fprintf(stderr, "setUniform1f(%f): numParams = %d\n", value, cgParamInfo->numParams);
+    */
+    for (i = 0; i < cgParamInfo->numParams; i++) {
+	/*
+	fprintf(stderr, "    param = %d\n", cgParamInfo->params[i]);
+	*/
+	cgWrapperInfo->cgSetParameter1f(cgParamInfo->params[i], value);
+    }
 
 #else /* COMPILE_CG_SHADERS */
 

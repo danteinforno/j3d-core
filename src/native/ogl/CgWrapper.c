@@ -44,6 +44,13 @@ j3dLoadCgFunctionPointers(CgWrapperInfo *cgWrapperInfo)
     cgWrapperInfo->cgGLUnbindProgram = &cgGLUnbindProgram;
     cgWrapperInfo->cgGLEnableProfile = &cgGLEnableProfile;
     cgWrapperInfo->cgGLDisableProfile = &cgGLDisableProfile;
+    cgWrapperInfo->cgGetNamedParameter = &cgGetNamedParameter;
+    cgWrapperInfo->cgGetParameterType = &cgGetParameterType;
+    cgWrapperInfo->cgGetArrayDimension = &cgGetArrayDimension;
+    cgWrapperInfo->cgGetArrayType = &cgGetArrayType;
+    cgWrapperInfo->cgGetArraySize = &cgGetArraySize;
+    cgWrapperInfo->cgGetArrayParameter = &cgGetArrayParameter;
+    cgWrapperInfo->cgSetParameter1f = &cgSetParameter1f;
 
     return;
 }

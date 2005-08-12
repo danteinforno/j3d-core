@@ -24,6 +24,7 @@
 typedef struct CgWrapperInfoRec CgWrapperInfo;
 typedef struct CgShaderInfoRec CgShaderInfo;
 typedef struct CgShaderProgramInfoRec CgShaderProgramInfo;
+typedef struct CgParameterInfoRec CgParameterInfo;
 
 
 /* Typedef for function pointer to entry point in CgWrapper library */
@@ -44,6 +45,13 @@ typedef void (*PFNCGGLBINDPROGRAM)(CGprogram);
 typedef void (*PFNCGGLUNBINDPROGRAM)(CGprofile);
 typedef void (*PFNCGGLENABLEPROFILE)(CGprofile);
 typedef void (*PFNCGGLDISABLEPROFILE)(CGprofile);
+typedef CGparameter (*PFNCGGETNAMEDPARAMETER)(CGprogram, const char *);
+typedef CGtype (*PFNCGGETPARAMETERTYPE)(CGparameter);
+typedef int (*PFNCGGETARRAYDIMENSION)(CGparameter);
+typedef CGtype (*PFNCGGETARRAYTYPE)(CGparameter);
+typedef int (*PFNCGGETARRAYSIZE)(CGparameter, int);
+typedef CGparameter (*PFNCGGETARRAYPARAMETER)(CGparameter, int);
+typedef void (*PFNCGSETPARAMETER1F)(CGparameter, float);
 
 #endif /* COMPILE_CG_SHADERS */
 
@@ -86,6 +94,13 @@ struct CgWrapperInfoRec {
     PFNCGGLUNBINDPROGRAM cgGLUnbindProgram;
     PFNCGGLENABLEPROFILE cgGLEnableProfile;
     PFNCGGLDISABLEPROFILE cgGLDisableProfile;
+    PFNCGGETNAMEDPARAMETER cgGetNamedParameter;
+    PFNCGGETPARAMETERTYPE cgGetParameterType;
+    PFNCGGETARRAYDIMENSION cgGetArrayDimension;
+    PFNCGGETARRAYTYPE cgGetArrayType;
+    PFNCGGETARRAYSIZE cgGetArraySize;
+    PFNCGGETARRAYPARAMETER cgGetArrayParameter;
+    PFNCGSETPARAMETER1F cgSetParameter1f;
 
 #endif /* COMPILE_CG_SHADERS */
 };
@@ -127,7 +142,18 @@ struct CgShaderProgramInfoRec {
 #endif /* COMPILE_CG_SHADERS */
 };
 
-
+/*
+ * Structure used to hold CG shader parameter information; passed back
+ * to Java in the locArr array
+ */
+struct CgParameterInfoRec {
+#ifdef COMPILE_CG_SHADERS
+    int numParams;
+    CGparameter *params;
+#else /* COMPILE_CG_SHADERS */
+    int dummy;
+#endif /* COMPILE_CG_SHADERS */
+};
 
 
 #endif /* _Java3D_CgWrapper_h_ */

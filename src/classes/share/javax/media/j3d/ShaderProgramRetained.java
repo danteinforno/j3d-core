@@ -561,6 +561,15 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         
             for (int i = 0; i < attrNames.length; i++) {
                 shaderProgramData[cvRdrIndex].setAttrNameInfo(attrNames[i], attrNameInfoArr[i]);
+                
+                // Report non-fatal error if location is invalid (-1)
+                if (attrNameInfoArr[i].getLocation() == -1) {
+                    String errMsg = "Attribute name lookup failed: " + attrNames[i];
+                    ShaderError err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_LOOKUP_ERROR, errMsg);
+                    err.setShaderProgram((ShaderProgram)this.source);
+                    err.setCanvas3D(cv);
+                    notifyErrorListeners(cv, err);
+                }
             }
         }
     }
@@ -1020,7 +1029,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                 err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_NAME_NOT_SET_ERROR, errMsg);
             } else {
                 long loc = attrNameInfo.getLocation();
-                if (loc >= 0) {
+                if (loc != -1) {
                     if (saRetained instanceof ShaderAttributeValueRetained) {
                         ShaderAttributeValueRetained savRetained = (ShaderAttributeValueRetained)saRetained;
                         if (attrNameInfo.isArray() ||
