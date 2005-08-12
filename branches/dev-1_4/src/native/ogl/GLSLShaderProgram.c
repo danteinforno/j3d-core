@@ -504,53 +504,44 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
 
 
 static jint
-glslToJ3dType(GLint type) {
+glslToJ3dType(GLint type)
+{
     switch (type) {
     case GL_BOOL_ARB:
     case GL_INT:
 	return TYPE_INTEGER;
-	break;
 
     case GL_FLOAT:
 	return TYPE_FLOAT;
-	break;
 
     case GL_INT_VEC2_ARB:
     case GL_BOOL_VEC2_ARB:
 	return TYPE_TUPLE2I;
-	break;
 
     case GL_FLOAT_VEC2_ARB:
 	return TYPE_TUPLE2F;
-	break;
 
     case GL_INT_VEC3_ARB:
     case GL_BOOL_VEC3_ARB:
 	return TYPE_TUPLE3I;
-	break;
 
     case GL_FLOAT_VEC3_ARB:
 	return TYPE_TUPLE3F;
-	break;
 
     case GL_INT_VEC4_ARB:
     case GL_BOOL_VEC4_ARB:
 	return TYPE_TUPLE4I;
-	break;
 
     case GL_FLOAT_VEC4_ARB:
 	return TYPE_TUPLE4F;
-	break;
 
     /* case GL_FLOAT_MAT2_ARB: */
 
     case GL_FLOAT_MAT3_ARB:
 	return TYPE_MATRIX3F;
-	break;
 
     case GL_FLOAT_MAT4_ARB:
 	return TYPE_MATRIX4F;
-	break;
     }
 
     return -1;
@@ -560,9 +551,9 @@ glslToJ3dType(GLint type) {
 /*
  * Class:     javax_media_j3d_GLSLShaderProgramRetained
  * Method:    lookupNativeShaderAttrNames
- * Signature: (JJI[Ljava/lang/String;[J[I[I)Ljavax/media/j3d/ShaderError;
+ * Signature: (JJI[Ljava/lang/String;[J[I[I[Z)V
  */
-JNIEXPORT jobject JNICALL
+JNIEXPORT void JNICALL
 Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     JNIEnv *env,
     jobject obj,
@@ -572,14 +563,15 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     jobjectArray attrNames,
     jlongArray locArr,
     jintArray typeArr,
-    jintArray sizeArr)
+    jintArray sizeArr,
+    jbooleanArray isArrayArr)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-    jobject shaderError = NULL;
     GLcharARB **attrNamesString;
     jlong *locPtr;
     jint *typePtr;
     jint *sizePtr;
+    jboolean *isArrayPtr;
     GLint loc;
     GLenum type;
     GLint size;
@@ -593,6 +585,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
     typePtr = (*env)->GetIntArrayElements(env, typeArr, NULL);
     sizePtr = (*env)->GetIntArrayElements(env, sizeArr, NULL);
+    isArrayPtr = (*env)->GetBooleanArrayElements(env, isArrayArr, NULL);
 
     /*
      * Initialize the name array, also set the loc, type, and size
@@ -653,6 +646,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
 	for (j = 0; j < numAttrNames; j++) {
 	    if (strcmp(attrNamesString[j], name) == 0) {
 		sizePtr[j] = (jint)size;
+                isArrayPtr[j] = (size > 1);
 		typePtr[j] = glslToJ3dType(type);
 		break;
 	    }
@@ -688,8 +682,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     (*env)->ReleaseLongArrayElements(env, locArr, locPtr, 0);
     (*env)->ReleaseIntArrayElements(env, typeArr, typePtr, 0);
     (*env)->ReleaseIntArrayElements(env, sizeArr, sizePtr, 0);
-
-    return shaderError;
+    (*env)->ReleaseBooleanArrayElements(env, isArrayArr, isArrayPtr, 0);
 }
 
 

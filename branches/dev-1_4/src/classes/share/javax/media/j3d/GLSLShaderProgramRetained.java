@@ -168,9 +168,9 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 						       long[] shaderId);
     private native ShaderError bindNativeVertexAttrName(long ctx, long shaderProgramId,
                                                         String attrName, int attrIndex);
-    private native ShaderError lookupNativeShaderAttrNames(long ctx, long shaderProgramId,
+    private native void lookupNativeShaderAttrNames(long ctx, long shaderProgramId,
             int numAttrNames, String[] attrNames, long[] locArr,
-            int[] typeArr, int[] sizeArr);
+            int[] typeArr, int[] sizeArr, boolean[] isArrayArr);
     
     private native ShaderError useShaderProgram(long ctx, long shaderProgramId);
  
@@ -228,35 +228,34 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
         return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
     }
 
-    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId, String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
-        
-        ShaderError err = null;
-        
+    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId,
+            String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
+
         int numAttrNames = attrNames.length;
         
         long[] locArr = new long[numAttrNames];
         int[] typeArr = new int[numAttrNames];
-        int[] sizeArr = new int[numAttrNames];
-        err = lookupNativeShaderAttrNames(cv.ctx, shaderProgramId,
-                numAttrNames, attrNames, locArr, typeArr, sizeArr);
+        int[] sizeArr = new int[numAttrNames]; // currently unused
+        boolean[] isArrayArr = new boolean[numAttrNames];
+
+        // Initialize loc array to -1 (indicating no location)
+        for (int i = 0; i < numAttrNames; i++) {
+            locArr[i] = -1;
+        }
+
+        lookupNativeShaderAttrNames(cv.ctx, shaderProgramId,
+                numAttrNames, attrNames, locArr, typeArr, sizeArr, isArrayArr);
 
         for (int i = 0; i < numAttrNames; i++) {
             attrNameInfoArr[i] = new AttrNameInfo();
             attrNameInfoArr[i].setLocation(locArr[i]);
-            attrNameInfoArr[i].setArray(sizeArr[i] > 1);
+            attrNameInfoArr[i].setArray(isArrayArr[i]);
             attrNameInfoArr[i].setType(typeArr[i]);
 //            System.err.println(attrNames[i] +
 //                    " : loc = " + locArr[i] +
 //                    ", type = " + typeArr[i] +
+//                    ", isArray = " + isArrayArr[i] +
 //                    ", size = " + sizeArr[i]);
-
-            if (locArr[i] < 0) {
-                String errMsg = "Attribute name lookup failed: " + attrNames[i];
-                err = new ShaderError(ShaderError.SHADER_ATTRIBUTE_LOOKUP_ERROR, errMsg);
-                err.setShaderProgram((ShaderProgram)this.source);
-                err.setCanvas3D(cv);
-                notifyErrorListeners(cv, err);
-            }
         }
     }
 
