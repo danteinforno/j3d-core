@@ -135,21 +135,29 @@ struct CgShaderInfoRec {
  */
 struct CgShaderProgramInfoRec {
 #ifdef COMPILE_CG_SHADERS
-    int numShaders;
-    CgShaderInfo **shaders;
+    /*
+     * Vertex and fragment shader -- may be null to indicate that one
+     *  or the other is not present
+     */
+    CgShaderInfo *vShader; /* Vertex shader */
+    CgShaderInfo *fShader; /* Fragment shader */
+
+    /* Array of parameters for (varying) vertex attributes */
+    int numVtxAttrs;
+    CGparameter *vtxAttrs;
 #else /* COMPILE_CG_SHADERS */
     int dummy;
 #endif /* COMPILE_CG_SHADERS */
 };
 
 /*
- * Structure used to hold CG shader parameter information; passed back
- * to Java in the locArr array
+ * Structure used to hold CG shader parameter information for uniform
+ * shader attributes; passed back to Java in the locArr array
  */
 struct CgParameterInfoRec {
 #ifdef COMPILE_CG_SHADERS
-    int numParams;
-    CGparameter *params;
+    CGparameter vParam; /* Parameter handle for vertex shader */
+    CGparameter fParam; /* Parameter handle for fragment shader */
 #else /* COMPILE_CG_SHADERS */
     int dummy;
 #endif /* COMPILE_CG_SHADERS */

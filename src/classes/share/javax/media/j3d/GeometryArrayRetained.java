@@ -229,10 +229,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     byte[][] mirrorUnsignedByteRefColors= new byte[1][];
     float[][] mirrorInterleavedColorPointer = null;
 
-    // This native method builds a native representation of this object, then
-    // returns the nativeId.
-    native int build(int geoType);
-
     // boolean to determine if a mirror was allocated
     int mirrorVertexAllocated = 0;
     int mirrorColorAllocated = 0;
@@ -5091,7 +5087,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			int start, int length) {
 
         // TODO KCR : remove this print statement
-	System.err.println("GARet.setVertexAttrs(" +
+	System.err.println("GeometryArrayRetained.setVertexAttrs(" +
 			   vertexAttrNum + ", " +
 			   vertexAttrs + ", " +
 			   start + ", " +

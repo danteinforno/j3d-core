@@ -614,8 +614,10 @@ Java_javax_media_j3d_CgShaderProgramRetained_createNativeShaderProgram(
 
     fprintf(stderr, "CgShaderProgramRetained.createNativeShaderProgram\n");
 
-    shaderProgramInfo->numShaders = 0;
-    shaderProgramInfo->shaders = NULL;
+    shaderProgramInfo->vShader = NULL;
+    shaderProgramInfo->fShader = NULL;
+    shaderProgramInfo->numVtxAttrs = 0;
+    shaderProgramInfo->vtxAttrs = NULL;
 
     shaderProgramIdPtr = (*env)->GetLongArrayElements(env, shaderProgramIdArray, NULL);
     shaderProgramIdPtr[0] = (jlong)shaderProgramInfo;
@@ -650,9 +652,17 @@ Java_javax_media_j3d_CgShaderProgramRetained_destroyNativeShaderProgram(
 
 #ifdef COMPILE_CG_SHADERS
 
+    CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
+
     fprintf(stderr, "CgShaderProgramRetained.destroyNativeShaderProgram\n");
 
-    /* TODO: implement this */
+    if (shaderProgramInfo != NULL) {
+	if (shaderProgramInfo->vtxAttrs != NULL) {
+	    free(shaderProgramInfo->vtxAttrs);
+	    shaderProgramInfo->vtxAttrs = NULL;
+	}
+	free(shaderProgramInfo);
+    }
 
 #else /* COMPILE_CG_SHADERS */
 
@@ -696,16 +706,23 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
 
     CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
 
-    shaderProgramInfo->numShaders = shaderIdArrayLength;
-    shaderProgramInfo->shaders =
-	(CgShaderInfo**)malloc(shaderIdArrayLength * sizeof(CgShaderInfo*));
-
     fprintf(stderr, "CgShaderProgramRetained.linkNativeShaderProgram\n");
 
+    /*
+     * NOTE: we assume that the caller has already verified that there
+     * is at most one vertex program and one fragment program
+     */
+    shaderProgramInfo->vShader = NULL;
+    shaderProgramInfo->fShader = NULL;
     for (i = 0; i < shaderIdArrayLength; i++) {
-	shaderProgramInfo->shaders[i] = (CgShaderInfo*)shaderIdPtr[i];
+	CgShaderInfo *shader = (CgShaderInfo*)shaderIdPtr[i];
+	if (shader->shaderType == javax_media_j3d_Shader_SHADER_TYPE_VERTEX) {
+	    shaderProgramInfo->vShader = shader;
+	} else {
+	    shaderProgramInfo->fShader = shader;
+	}
 
-	cgWrapperInfo->cgGLLoadProgram(shaderProgramInfo->shaders[i]->cgShader);
+	cgWrapperInfo->cgGLLoadProgram(shader->cgShader);
 
 	if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	    char *detailMsg = getErrorLog(ctxProperties, lastError);
@@ -718,7 +735,7 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
 	    }
 	}
 
-	cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
+	cgWrapperInfo->cgGLBindProgram(shader->cgShader);
 
 	if ((lastError = cgWrapperInfo->cgGetError()) != 0) {
 	    char *detailMsg = getErrorLog(ctxProperties, lastError);
@@ -749,36 +766,65 @@ Java_javax_media_j3d_CgShaderProgramRetained_linkNativeShaderProgram(
 
 /*
  * Class:     javax_media_j3d_CgShaderProgramRetained
- * Method:    bindNativeVertexAttrName
- * Signature: (JJLjava/lang/String;I)Ljavax/media/j3d/ShaderError;
+ * Method:    lookupNativeVertexAttrNames
+ * Signature: (JJI[Ljava/lang/String;[Z)V
  */
-JNIEXPORT jobject JNICALL
-Java_javax_media_j3d_CgShaderProgramRetained_bindNativeVertexAttrName(
-    JNIEnv * env,
+JNIEXPORT void JNICALL
+Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeVertexAttrNames(
+    JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
     jlong shaderProgramId,
-    jstring attrName,
-    jint attrIndex)
+    jint numAttrNames,
+    jobjectArray attrNames,
+    jbooleanArray errArr)
 {
-    jobject shaderError = NULL;
-
 #ifdef COMPILE_CG_SHADERS
 
-    fprintf(stderr, "CgShaderProgramRetained.bindNativeVertexAttrName\n");
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
+    CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
 
-    /* TODO: implement this */
+    CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
 
-#else /* COMPILE_CG_SHADERS */
+    int i;
+    jstring attrName;
+    char *attrNameString;
+    jboolean *errPtr;
 
-    shaderError = createShaderError(env,
-				    javax_media_j3d_ShaderError_UNSUPPORTED_LANGUAGE_ERROR,
-				    "CgShaderProgram support not compiled",
-				    NULL);
+    errPtr = (*env)->GetBooleanArrayElements(env, errArr, NULL);
 
-#endif /* !COMPILE_CG_SHADERS */
+    if (shaderProgramInfo->vShader == NULL) {
+	/* If there if no vertex shader, no attributes can be looked up, so all fail */
+	for (i = 0; i < numAttrNames; i++) {
+	    errPtr[i] = JNI_TRUE;
+	}
+	(*env)->ReleaseBooleanArrayElements(env, errArr, errPtr, 0);
+	return;
+    }
 
-    return shaderError;
+    shaderProgramInfo->numVtxAttrs = numAttrNames;
+    shaderProgramInfo->vtxAttrs = (CGparameter *)malloc(numAttrNames * sizeof(CGparameter));
+
+    fprintf(stderr, "CgShaderProgramRetained.lookupNativeVertexAttrNames()\n");
+    for (i = 0; i < numAttrNames; i++) {
+        attrName = (*env)->GetObjectArrayElement(env, attrNames, i);
+        attrNameString = strJavaToC(env, attrName);
+
+	shaderProgramInfo->vtxAttrs[i] =
+	    cgWrapperInfo->cgGetNamedParameter(shaderProgramInfo->vShader->cgShader,
+					       attrNameString);
+	fprintf(stderr, "    %s : 0x%x\n", attrNameString, shaderProgramInfo->vtxAttrs[i]);
+	if (shaderProgramInfo->vtxAttrs[i] == NULL) {
+	    errPtr[i] = JNI_TRUE;
+	}
+
+        free(attrNameString);
+    }
+
+    (*env)->ReleaseBooleanArrayElements(env, errArr, errPtr, 0);
+
+#endif /* COMPILE_CG_SHADERS */
 }
 
 
@@ -841,6 +887,43 @@ cgToJ3dType(CGtype type)
 
 #endif /* COMPILE_CG_SHADERS */
 
+static CGparameter
+lookupParams(
+    CgWrapperInfo *cgWrapperInfo,
+    CgShaderInfo *shader,
+    char *attrNameString,
+    CGtype *type,
+    int *size,
+    jboolean *isArray)
+{
+    CGparameter loc;
+    CGparameter firstElem;
+
+    loc = cgWrapperInfo->cgGetNamedParameter(shader->cgShader,
+					     attrNameString);
+    if (loc != NULL) {
+	*type = cgWrapperInfo->cgGetParameterType(loc);
+	if (*type == CG_ARRAY) {
+	    *isArray = JNI_TRUE;
+	    *size = cgWrapperInfo->cgGetArraySize(loc, 0);
+	    /**type = cgWrapperInfo->cgGetArrayType(loc);*/
+	    firstElem = cgWrapperInfo->cgGetArrayParameter(loc, 0);
+	    *type = cgWrapperInfo->cgGetParameterType(firstElem);
+	    /*
+	      fprintf(stderr,
+	      "firstElem = %d, *type = %d\n",
+	      firstElem, *type);
+	    */
+	}
+	else {
+	    *isArray = JNI_FALSE;
+	    *size = 1;
+	}
+    }
+
+    return loc;
+}
+
 
 /*
  * Class:     javax_media_j3d_CgShaderProgramRetained
@@ -874,13 +957,11 @@ Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
     jint *typePtr;
     jint *sizePtr;
     jboolean *isArrayPtr;
-    CGparameter loc;
-    CGtype type, type0;
-    int size, size0;
-    jboolean isArray, isArray0;
+    CGparameter vLoc, fLoc;
+    CGtype vType, fType;
+    int vSize, fSize;
+    jboolean vIsArray, fIsArray;
     int i;
-
-    JNIEnv table = *env;
 
     locPtr = (*env)->GetLongArrayElements(env, locArr, NULL);
     typePtr = (*env)->GetIntArrayElements(env, typeArr, NULL);
@@ -901,10 +982,11 @@ Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
         int j;
 	jboolean err;
 	CgParameterInfo *cgParamInfo;
-	CGparameter firstElem;
 
         attrName = (*env)->GetObjectArrayElement(env, attrNames, i);
         attrNameString = (GLcharARB *)strJavaToC(env, attrName);
+
+	fprintf(stderr, "lookup %s\n", attrNameString);
 
 	/*
 	 * Get uniform attribute location -- note that we need to
@@ -923,80 +1005,67 @@ Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
 	 * will be set for each parameter in the list.
 	 */
 	cgParamInfo = (CgParameterInfo *)malloc(sizeof(CgParameterInfo));
-	cgParamInfo->numParams = 0;
-	cgParamInfo->params =
-	    (CGparameter *)malloc(shaderProgramInfo->numShaders * sizeof(CGparameter));
+	cgParamInfo->vParam = NULL;
+	cgParamInfo->fParam = NULL;
 	err = JNI_FALSE;
-	for (j = 0; j < shaderProgramInfo->numShaders; j++) {
-            loc = cgWrapperInfo->cgGetNamedParameter(shaderProgramInfo->shaders[j]->cgShader,
-                    attrNameString);
-	    if (loc != NULL) {
-		cgParamInfo->params[cgParamInfo->numParams] = loc;
-		type = cgWrapperInfo->cgGetParameterType(loc);
-		if (type == CG_ARRAY) {
-		    isArray = JNI_TRUE;
-		    size = cgWrapperInfo->cgGetArraySize(loc, 0);
-		    /*type = cgWrapperInfo->cgGetArrayType(loc);*/
-		    firstElem = cgWrapperInfo->cgGetArrayParameter(loc, 0);
-		    type = cgWrapperInfo->cgGetParameterType(firstElem);
-		    /*
-		    fprintf(stderr,
-			    "%d : firstElem = %d, type = %d\n",
-			    j, firstElem, type);
-		    */
-		}
-		else {
-		    isArray = JNI_FALSE;
-		    size = 1;
-		}
-		/*
-		fprintf(stderr,
-			"%d : str = %s, loc = %d, type = %d, isArray = %d, size = %d, dim = %d\n",
-			j, attrNameString, (int)loc, type, isArray, size,
-			cgWrapperInfo->cgGetArrayDimension(loc));
-		if (type == 0) {
-		    fprintf(stderr,
-			    "    type error: %s\n",
-			    cgWrapperInfo->cgGetErrorString(cgWrapperInfo->cgGetError()));
-		}
-		*/
 
-		if (cgParamInfo->numParams == 0) {
-		    type0 = type;
-		    size0 = size;
-		    isArray0 = isArray;
-		}
-		else {
-		    if (type != type0 || size != size0 || isArray != isArray0) {
-			/* TODO: the following needs to be propagated to ShaderError */
-			fprintf(stderr,
-				"JAVA 3D : error shader attribute type mismatch: %s\n",
-				attrNameString);
-			fprintf(stderr,
-				"    0 : type = %d, size = %d, isArray = %d\n",
-				type0, size0, isArray0);
-			fprintf(stderr,
-				"    1 : type = %d, size = %d, isArray = %d\n",
-				type, size, isArray);
-			err = JNI_TRUE;
-			break;
-		    }
-		}
+	vLoc = NULL;
+	if (shaderProgramInfo->vShader != NULL) {
+	    vLoc = lookupParams(cgWrapperInfo, shaderProgramInfo->vShader,
+				attrNameString, &vType, &vSize, &vIsArray);
+	    cgParamInfo->vParam = vLoc;
+	    if (vLoc != NULL) {
+		sizePtr[i] = (jint)vSize;
+		isArrayPtr[i] = vIsArray;
+		typePtr[i] = cgToJ3dType(vType);
 
-		cgParamInfo->numParams += 1;
+		fprintf(stderr, "    vLoc = %d, vType = %d, vSize = %d, vIsArray = %d\n",
+			vLoc, vType, vSize, vIsArray);
 	    }
-	    /**/
-	    else {
-		fprintf(stderr,
-			"%d : str = %s, loc = NULL\n",
-			j, attrNameString);
-	    }
-	    /**/
-        }
+	}
 
-        if (err || cgParamInfo->numParams == 0) {
-	    /* TODO: distinguish between (err) and (cgParamInfo->numParams == 0) */
-	    free(cgParamInfo->params);
+	fLoc = NULL;
+	if (shaderProgramInfo->fShader != NULL) {
+	    fLoc = lookupParams(cgWrapperInfo, shaderProgramInfo->fShader,
+				attrNameString, &fType, &fSize, &fIsArray);
+	    cgParamInfo->fParam = fLoc;
+	    if (fLoc != NULL) {
+		sizePtr[i] = (jint)fSize;
+		isArrayPtr[i] = fIsArray;
+		typePtr[i] = cgToJ3dType(fType);
+
+		fprintf(stderr, "    fLoc = %d, fType = %d, fSize = %d, fIsArray = %d\n",
+			fLoc, fType, fSize, fIsArray);
+	    }
+	}
+
+	/*
+	 * If the name lookup found an entry in both vertex and
+	 * fragment program, verify that the type and size are the
+	 * same.
+	 */
+	if (cgParamInfo->vParam != NULL && cgParamInfo->fParam != NULL) {
+	    if (vType != fType || vSize != fSize || vIsArray != fIsArray) {
+		/* TODO: the following needs to be propagated to ShaderError */
+		fprintf(stderr,
+			"JAVA 3D : error shader attribute type mismatch: %s\n",
+			attrNameString);
+		fprintf(stderr,
+			"    1 : type = %d, size = %d, isArray = %d\n",
+			vType, vSize, vIsArray);
+		fprintf(stderr,
+			"    0 : type = %d, size = %d, isArray = %d\n",
+			fType, fSize, fIsArray);
+		err = JNI_TRUE;
+	    }
+	}
+
+	/*
+	 * Report an error if we got a mismatch or if the attribute
+	 * was not found in either the vertex or the fragment program
+	 */
+        if (err || (cgParamInfo->vParam == NULL && cgParamInfo->fParam == NULL)) {
+	    /* TODO: distinguish between (err) and (vParam and fParam both NULL) */
 	    free(cgParamInfo);
 	    locPtr[i] = (jlong)-1;
         }
@@ -1008,9 +1077,6 @@ Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
 	     * NOTE: WE CURRENTLY HAVE A MEMORY LEAK.
 	     */
 	    locPtr[i] = (jlong)cgParamInfo;
-            sizePtr[i] = (jint)size0;
-            isArrayPtr[i] = isArray0;
-            typePtr[i] = cgToJ3dType(type0);
 	}
 
         free(attrNameString);
@@ -1053,11 +1119,18 @@ Java_javax_media_j3d_CgShaderProgramRetained_useShaderProgram(
     cgWrapperInfo->cgGLDisableProfile(cgCtxInfo->fProfile);
 
     if (shaderProgramId != 0) {
-	for (i = 0; i < shaderProgramInfo->numShaders; i++) {
-	    cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->shaders[i]->cgShader);
-	    cgWrapperInfo->cgGLEnableProfile(shaderProgramInfo->shaders[i]->shaderProfile);
+	if (shaderProgramInfo->vShader != NULL) {
+	    cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->vShader->cgShader);
+	    cgWrapperInfo->cgGLEnableProfile(shaderProgramInfo->vShader->shaderProfile);
+	}
+
+	if (shaderProgramInfo->fShader != NULL) {
+	    cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->fShader->cgShader);
+	    cgWrapperInfo->cgGLEnableProfile(shaderProgramInfo->fShader->shaderProfile);
 	}
     }
+
+    ctxProperties->shaderProgramId = shaderProgramId;
 
 #endif /* COMPILE_CG_SHADERS */
 
@@ -1124,14 +1197,12 @@ Java_javax_media_j3d_CgShaderProgramRetained_setUniform1f(
 
     int i;
 
-    /*
-    fprintf(stderr, "setUniform1f(%f): numParams = %d\n", value, cgParamInfo->numParams);
-    */
-    for (i = 0; i < cgParamInfo->numParams; i++) {
-	/*
-	fprintf(stderr, "    param = %d\n", cgParamInfo->params[i]);
-	*/
-	cgWrapperInfo->cgSetParameter1f(cgParamInfo->params[i], value);
+    if (cgParamInfo->vParam != NULL) {
+	cgWrapperInfo->cgSetParameter1f(cgParamInfo->vParam, value);
+    }
+
+    if (cgParamInfo->fParam != NULL) {
+	cgWrapperInfo->cgSetParameter1f(cgParamInfo->fParam, value);
     }
 
 #else /* COMPILE_CG_SHADERS */
