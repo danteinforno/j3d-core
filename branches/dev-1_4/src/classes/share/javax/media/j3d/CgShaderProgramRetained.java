@@ -167,8 +167,8 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
     private native ShaderError destroyNativeShaderProgram(long ctx, long shaderProgramId);
     private native ShaderError linkNativeShaderProgram(long ctx, long shaderProgramId,
 						       long[] shaderId);
-    private native ShaderError bindNativeVertexAttrName(long ctx, long shaderProgramId,
-                                                        String attrName, int attrIndex);
+    private native void lookupNativeVertexAttrNames(long ctx, long shaderProgramId,
+            int numAttrNames, String[] attrNames, boolean[] errArr);
     private native void lookupNativeShaderAttrNames(long ctx, long shaderProgramId,
             int numAttrNames, String[] attrNames, long[] locArr,
             int[] typeArr, int[] sizeArr, boolean[] isArrayArr);
@@ -226,10 +226,15 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
     }
  
     ShaderError bindVertexAttrName(long ctx, long shaderProgramId, String attrName, int attrIndex) {
-        return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
+        // This is a no-op for Cg
+        return null;
     }
 
-    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId,
+    void lookupVertexAttrNames(long ctx, long shaderProgramId, String[] attrNames, boolean[] errArr) {
+        lookupNativeVertexAttrNames(ctx, shaderProgramId, attrNames.length, attrNames, errArr);
+    }
+
+    void lookupShaderAttrNames(long ctx, long shaderProgramId,
             String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
 
         int numAttrNames = attrNames.length;
@@ -244,7 +249,7 @@ class CgShaderProgramRetained extends ShaderProgramRetained {
             locArr[i] = -1;
         }
 
-        lookupNativeShaderAttrNames(cv.ctx, shaderProgramId,
+        lookupNativeShaderAttrNames(ctx, shaderProgramId,
                 numAttrNames, attrNames, locArr, typeArr, sizeArr, isArrayArr);
 
         for (int i = 0; i < numAttrNames; i++) {

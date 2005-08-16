@@ -381,7 +381,12 @@ public class GraphicsContext3D extends Object   {
 		enableLighting = false;
 	    }
 
-	    if (((AppearanceRetained)appearance.retained).texUnitState != null) {
+            if (appearance instanceof ShaderAppearance) {
+                // TODO : handle ShaderProgram and ShaderAttributeSet
+                System.err.println("ShaderProgram not implemented for immediate mode rendering");
+            }
+
+            if (((AppearanceRetained)appearance.retained).texUnitState != null) {
 		TextureUnitStateRetained[] texUnitState = 
 		    ((AppearanceRetained)appearance.retained).texUnitState;
 

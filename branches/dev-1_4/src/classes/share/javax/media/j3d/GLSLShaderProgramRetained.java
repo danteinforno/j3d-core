@@ -228,7 +228,11 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
         return bindNativeVertexAttrName(ctx, shaderProgramId, attrName, attrIndex);
     }
 
-    void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId,
+    void lookupVertexAttrNames(long ctx, long shaderProgramId, String[] attrNames, boolean[] errArr) {
+        // This method is a no-op for GLSL
+    }
+
+    void lookupShaderAttrNames(long ctx, long shaderProgramId,
             String[] attrNames, AttrNameInfo[] attrNameInfoArr) {
 
         int numAttrNames = attrNames.length;
@@ -243,7 +247,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
             locArr[i] = -1;
         }
 
-        lookupNativeShaderAttrNames(cv.ctx, shaderProgramId,
+        lookupNativeShaderAttrNames(ctx, shaderProgramId,
                 numAttrNames, attrNames, locArr, typeArr, sizeArr, isArrayArr);
 
         for (int i = 0; i < numAttrNames; i++) {
@@ -258,7 +262,7 @@ class GLSLShaderProgramRetained extends ShaderProgramRetained {
 //                    ", size = " + sizeArr[i]);
         }
     }
-
+    
     /**
      * Method to enable the native shader program.
      */

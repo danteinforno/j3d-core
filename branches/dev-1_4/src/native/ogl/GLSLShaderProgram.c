@@ -702,6 +702,8 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_useShaderProgram(
 
     ctxProperties->pfnglUseProgramObjectARB((GLhandleARB)shaderProgramId);
 
+    ctxProperties->shaderProgramId = shaderProgramId;
+
     return NULL;
 }
 

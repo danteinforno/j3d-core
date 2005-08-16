@@ -640,6 +640,9 @@ typedef struct {
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
 #endif /* UNIX_ */
 
+    /* Pointer to currently bound shader program */
+    jlong shaderProgramId;
+
     /* Cg shader context information */
     CgCtxInfo *cgCtxInfo;
 

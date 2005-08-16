@@ -233,9 +233,15 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
     abstract ShaderError bindVertexAttrName(long ctx, long shaderProgramId, String attrName, int attrIndex);
 
     /**
-     * Method to bind a vertex attribute name to the specified index.
+     * Method to lookup a list of (uniform) shader attribute names and return
+     * information about the attributes.
      */
-    abstract void lookupShaderAttrNames(Canvas3D cv, long shaderProgramId, String[] attrNames, AttrNameInfo[] attrNameInfoArr);
+    abstract void lookupShaderAttrNames(long ctx, long shaderProgramId, String[] attrNames, AttrNameInfo[] attrNameInfoArr);
+    
+    /*
+     * Method to lookup a list of vertex attribute names.
+     */
+    abstract void lookupVertexAttrNames(long ctx, long shaderProgramId, String[] attrNames, boolean[] errArr);
 
     /**
      * Method to use the native shader program.
@@ -550,6 +556,26 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
         }
         return null;
     }
+    
+    private void lookupVertexAttrNames(Canvas3D cv, int cvRdrIndex, String[] attrNames) {
+        synchronized(resourceLock) {
+            long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
+
+            boolean[] errArr = new boolean[attrNames.length];
+            lookupVertexAttrNames(cv.ctx, shaderProgramId, attrNames, errArr);
+        
+            for (int i = 0; i < attrNames.length; i++) {
+                // Report non-fatal error if detected
+                if (errArr[i]) {
+                    String errMsg = "Vertex Attribute name lookup failed: " + attrNames[i];
+                    ShaderError err = new ShaderError(ShaderError.VERTEX_ATTRIBUTE_LOOKUP_ERROR, errMsg);
+                    err.setShaderProgram((ShaderProgram)this.source);
+                    err.setCanvas3D(cv);
+                    notifyErrorListeners(cv, err);
+                }
+            }
+        }
+    }
 
 
     private void lookupShaderAttrNames(Canvas3D cv, int cvRdrIndex, String[] attrNames) {
@@ -557,7 +583,7 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
             long shaderProgramId = shaderProgramData[cvRdrIndex].getShaderProgramId();
 
             AttrNameInfo[] attrNameInfoArr = new AttrNameInfo[attrNames.length];
-            lookupShaderAttrNames(cv, shaderProgramId, attrNames, attrNameInfoArr);
+            lookupShaderAttrNames(cv.ctx, shaderProgramId, attrNames, attrNameInfoArr);
         
             for (int i = 0; i < attrNames.length; i++) {
                 shaderProgramData[cvRdrIndex].setAttrNameInfo(attrNames[i], attrNameInfoArr[i]);
@@ -843,12 +869,11 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
 //                        System.err.println("vertexAttrNames.length = " + vertexAttrNames.length);
                         for (int i = 0; i < vertexAttrNames.length; i++) {
                             err = bindVertexAttrName(cv, cvRdrIndex, vertexAttrNames[i], i);
+                            // Report non-fatal error, if one was detected
                             if (err != null) {
                                 err.setShaderProgram((ShaderProgram)this.source);
                                 err.setCanvas3D(cv);
                                 notifyErrorListeners(cv, err);
-                                linkErrorOccurred = true;
-                                errorOccurred = true;
                             }
                         }
                     }
@@ -864,6 +889,13 @@ abstract class ShaderProgramRetained extends NodeComponentRetained {
                         destroyShaderProgram(cv, cvRdrIndex);
                         linkErrorOccurred = true;
                         errorOccurred = true;
+                    }
+                }
+                
+                // lookup vertex attribute names
+                if (!errorOccurred) {
+                    if (vertexAttrNames != null) {
+                        lookupVertexAttrNames(cv, cvRdrIndex, vertexAttrNames);
                     }
                 }
                 
