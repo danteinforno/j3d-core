@@ -885,8 +885,6 @@ cgToJ3dType(CGtype type)
     return -1;
 }
 
-#endif /* COMPILE_CG_SHADERS */
-
 static CGparameter
 lookupParams(
     CgWrapperInfo *cgWrapperInfo,
@@ -923,6 +921,8 @@ lookupParams(
 
     return loc;
 }
+
+#endif /* COMPILE_CG_SHADERS */
 
 
 /*
