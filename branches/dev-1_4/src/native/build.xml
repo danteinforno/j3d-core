@@ -18,44 +18,44 @@
 <project name="Java 3D" default="compile-opt">
 
   <target name="nativeSetup-debug-solaris" if="isSolarisOnSparc">
-	<property name="bldFlag" value="g"/>
+	<property name="bldFlag" value="-g -DDEBUG"/>
 	<property name="coreLibDependency" value="lib/sparc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-debug-solaris-x86" if="isSolarisOnX86">
-	<property name="bldFlag" value="g"/>
+	<property name="bldFlag" value="-g -DDEBUG"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-debug-linux" if="isLinuxOnX86">
-	<property name="bldFlag" value="g"/>
+	<property name="bldFlag" value="-g -DDEBUG"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-debug-linux-amd64" if="isLinuxOnAmd64">
-	<property name="bldFlag" value="g -fPIC -march=k8 -msse2 -mfpmath=sse"/>
+	<property name="bldFlag" value="-g -DDEBUG -fPIC -march=k8 -msse2 -mfpmath=sse"/>
 	<property name="coreLibDependency" value="lib/amd64/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/amd64/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-debug-linux-ia64" if="isLinuxOnIA64">
-	<property name="bldFlag" value="g"/>
+	<property name="bldFlag" value="-g -DDEBUG"/>
 	<property name="coreLibDependency" value="lib/ia64/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/ia64/libj3dutils.so"/>
   </target>
   
   <target name="nativeSetup-debug-linux-ppc" if="isLinuxOnPPC">
-	<property name="bldFlag" value="g"/>
+	<property name="bldFlag" value="-g -DDEBUG"/>
 	<property name="coreLibDependency" value="lib/ppc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/ppc/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-debug-win32" if="isWindowsOnX86">
 	<property name="bldFlag" 
-	         value="-DWIN32 -DDEBUG -D_WINDOWS"/>
+	         value="-DDEBUG -DWIN32 -D_WINDOWS"/>
 	<property name="coreLibDependency" value="bin/j3dcore-${build.rend}.dll"/>
 	<property name="coreUtilsLibDependency" value="bin/j3dutils.dll"/>
   </target>
@@ -74,44 +74,44 @@
   </target>
 
   <target name="nativeSetup-opt-solaris" if="isSolarisOnSparc">
-	<property name="bldFlag" value="O"/>
+	<property name="bldFlag" value="-O"/>
 	<property name="coreLibDependency" value="lib/sparc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/sparc/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-solaris-x86" if="isSolarisOnX86">
-	<property name="bldFlag" value="O"/>
+	<property name="bldFlag" value="-O"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux" if="isLinuxOnX86">
-	<property name="bldFlag" value="O"/>
+	<property name="bldFlag" value="-O"/>
 	<property name="coreLibDependency" value="lib/i386/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/i386/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux-amd64" if="isLinuxOnAmd64">
-	<property name="bldFlag" value="O -fPIC -march=k8 -msse2 -mfpmath=sse"/>
+	<property name="bldFlag" value="-O -fPIC -march=k8 -msse2 -mfpmath=sse"/>
 	<property name="coreLibDependency" value="lib/amd64/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/amd64/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux-ia64" if="isLinuxOnIA64">
-	<property name="bldFlag" value="O"/>
+	<property name="bldFlag" value="-O"/>
 	<property name="coreLibDependency" value="lib/ia64/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/ia64/libj3dutils.so"/>
   </target>
 
   <target name="nativeSetup-opt-linux-ppc" if="isLinuxOnPPC">
-	<property name="bldFlag" value="O"/>
+	<property name="bldFlag" value="-O"/>
 	<property name="coreLibDependency" value="lib/ppc/libj3dcore-ogl.so"/>
 	<property name="coreUtilsLibDependency" value="lib/ppc/libj3dutils.so"/>
   </target>
   
   <target name="nativeSetup-opt-win32" if="isWindowsOnX86">
 	<property name="bldFlag" 
-	         value="-DWIN32 -DNDEBUG -D_WINDOWS"/>
+	         value="-DWIN32 -D_WINDOWS"/>
 	<property name="coreLibDependency" value="bin/j3dcore-${build.rend}.dll"/>
 	<property name="coreUtilsLibDependency" value="bin/j3dutils.dll"/>
   </target>
