@@ -1568,88 +1568,86 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     // used for GeometryArrays by Copy or interleaved
     private native void execute(long ctx,
-			GeometryArrayRetained geo, int geo_type, 
-			boolean isNonUniformScale,
-			boolean useAlpha,
-			boolean multiScreen,
-			boolean ignoreVertexColors,
-			int startVIndex, int vcount, int vformat, 
-			int texCoordSetCount, int texCoordSetMap[],
-			int texCoordSetMapLen,
-		        int[] texCoordSetOffset,
-			int numActiveTexUnitState,
-			int[] texUnitStateMap,
-			float[] varray, float[] cdata, int texUnitIndex, int cdirty);
-
-
-
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean useAlpha,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int startVIndex, int vcount, int vformat,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen,
+            int[] texCoordSetOffset,
+            int numActiveTexUnitState,
+            int[] texUnitStateMap,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            float[] varray, float[] cdata, int texUnitIndex, int cdirty);
 
     // used by GeometryArray by Reference with java arrays
+    // TODO KCR : add vertex attrs
     private native void executeVA(long ctx,
-			  GeometryArrayRetained geo, int geo_type, 
-			  boolean isNonUniformScale, 
-			  boolean multiScreen,
-			  boolean ignoreVertexColors,
-			  int vcount,
-			  int vformat,
-			  int vdefined,
-			  int coordIndex, float[] vfcoords, double[] vdcoords,
-			  int colorIndex, float[] cfdata, byte[] cbdata,
-			  int normalIndex, float[] ndata,
-			  int pass, int texcoordmaplength, 
-			  int[] texcoordoffset, 
-			  int numActiveTexUnitState, int[] texunitstatemap,
-			  int[] texIndex, int texstride, Object[] texCoords,
-			  int cdirty);
-
- 
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int vcount,
+            int vformat,
+            int vdefined,
+            int coordIndex, float[] vfcoords, double[] vdcoords,
+            int colorIndex, float[] cfdata, byte[] cbdata,
+            int normalIndex, float[] ndata,
+            int pass, int texcoordmaplength,
+            int[] texcoordoffset,
+            int numActiveTexUnitState, int[] texunitstatemap,
+            int[] texIndex, int texstride, Object[] texCoords,
+            int cdirty);
 
     // used by GeometryArray by Reference with NIO buffer
+    // TODO KCR : add vertex attrs
     private native void executeVABuffer(long ctx,
-				GeometryArrayRetained geo, int geo_type, 
-				boolean isNonUniformScale, 
-				boolean multiScreen,
-				boolean ignoreVertexColors,
-				int vcount,
-				int vformat,
-				int vdefined, 
-				int coordIndex,
-				Object vcoords,
-				int colorIndex,
-				Object cdataBuffer,
-				float[] cfdata, byte[] cbdata,
-				int normalIndex, Object ndata,
-				int pass, int texcoordmaplength, 
-				int[] texcoordoffset, 
-				int numActiveTexUnitState, int[] texunitstatemap,
-				int[] texIndex, int texstride, Object[] texCoords,
-				int cdirty);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int vcount,
+            int vformat,
+            int vdefined,
+            int coordIndex,
+            Object vcoords,
+            int colorIndex,
+            Object cdataBuffer,
+            float[] cfdata, byte[] cbdata,
+            int normalIndex, Object ndata,
+            int pass, int texcoordmaplength,
+            int[] texcoordoffset,
+            int numActiveTexUnitState, int[] texunitstatemap,
+            int[] texIndex, int texstride, Object[] texCoords,
+            int cdirty);
 
     // used by GeometryArray by Reference in interleaved format with NIO buffer
     private native void executeInterleavedBuffer(long ctx,
-					 GeometryArrayRetained geo, int geo_type, 
-					 boolean isNonUniformScale,
-					 boolean useAlpha,
-					 boolean multiScreen,
-					 boolean ignoreVertexColors,
-					 int startVIndex, int vcount, int vformat, 
-					 int texCoordSetCount, int texCoordSetMap[],
-					 int texCoordSetMapLen,
-					 int[] texCoordSetOffset,
-					 int numActiveTexUnitState,
-					 int[] texUnitStateMap,
-					 Object varray, float[] cdata, int texUnitIndex, int cdirty);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean useAlpha,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int startVIndex, int vcount, int vformat,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen,
+            int[] texCoordSetOffset,
+            int numActiveTexUnitState,
+            int[] texUnitStateMap,
+            Object varray, float[] cdata, int texUnitIndex, int cdirty);
 
+    private native void setVertexFormat(long ctx,
+            int vformat, boolean useAlpha, boolean ignoreVertexColors,
+            int vertexAttrCount, int[] vertexAttrSizes);
 
-			  
-    native void setVertexFormat(int vformat, boolean useAlpha, 
-				boolean ignoreVertexColors, long ctx);
-    native void disableGlobalAlpha(long ctx, int vformat, 
-				   boolean useAlpha, 
-				   boolean ignoreVertexColors);
+    private native void disableGlobalAlpha(long ctx, int vformat,
+            boolean useAlpha, boolean ignoreVertexColors);
 
     void setVertexFormat(boolean useAlpha, boolean ignoreVC, long ctx) {
-	setVertexFormat(vertexFormat, useAlpha, ignoreVC, ctx);
+	setVertexFormat(ctx, vertexFormat, useAlpha, ignoreVC,
+                vertexAttrCount, vertexAttrSizes);
     }
     
     void disableGlobalAlpha(long ctx, boolean useAlpha, boolean ignoreVC) {
@@ -2361,8 +2359,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
                     (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
                     texCoordSetMapOffset, 
 		    cv.numActiveTexUnit, cv.texUnitStateMap, 
-		    vdata, null,
-		    pass, cdirty);
+                    vertexAttrCount, vertexAttrSizes,
+                    vdata, null,
+                    pass, cdirty);
 	}
 
 	//By reference with java array
@@ -2405,8 +2404,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			texCoordSetCount, texCoordSetMap,
 			(texCoordSetMap == null) ? 0 : texCoordSetMap.length,
 			texCoordSetMapOffset, 
-			cv.numActiveTexUnit, cv.texUnitStateMap, 
-			interLeavedVertexData, cdata,
+			cv.numActiveTexUnit, cv.texUnitStateMap,
+                        vertexAttrCount, vertexAttrSizes,
+                        interLeavedVertexData, cdata,
 			pass, cdirty);
 
 	    } // end of interleaved case
@@ -2489,6 +2489,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 			vdefined |= TEXCOORD_FLOAT;
 
+                    // TODO KCR : add vertex attrs
 		    executeVA(cv.ctx, this, geoType, isNonUniformScale, 
 			      multiScreen, 
 			      ignoreVertexColors,
@@ -2543,7 +2544,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    }
 		    dirtyFlag = 0;
 		}
-
 
 		executeInterleavedBuffer(cv.ctx, this, geoType, isNonUniformScale, 
 					 useAlpha,
@@ -2657,6 +2657,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 		       vdefined |= TEXCOORD_FLOAT;
 
+                    // TODO KCR : add vertex attrs
 		    executeVABuffer(cv.ctx, this, geoType, isNonUniformScale, 
 				    multiScreen, 
 				    ignoreVertexColors,
@@ -2683,19 +2684,21 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 
     // used for GeometryArrays
-    private native void buildGA(long ctx, GeometryArrayRetained geo, int geo_type, 
-			boolean isNonUniformScale, boolean updateAlpha,
-			float alpha,
-			boolean ignoreVertexColors,
-			int startVIndex,
-			int vcount, int vformat, 
-			int texCoordSetCount, int texCoordSetMap[],
-			int texCoordSetMapLen,
-			int[] texCoordSetMapOffset, 
-			double[] xform, double[] nxform,
-			float[] varray);
+    private native void buildGA(long ctx,
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale, boolean updateAlpha,
+            float alpha,
+            boolean ignoreVertexColors,
+            int startVIndex,
+            int vcount, int vformat,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen, int[] texCoordSetMapOffset,
+            int vertexAttrCount, int[] vertexAttrSizes,    
+            double[] xform, double[] nxform,
+            float[] varray);
 
     // used to Build Dlist GeometryArray by Reference with java arrays
+    // TODO KCR : add vertex attrs
     private native void buildGAForByRef(long ctx,
 			  GeometryArrayRetained geo, int geo_type, 
 			  boolean isNonUniformScale,  boolean updateAlpha,
@@ -2713,7 +2716,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			double[] xform, double[] nxform);
 
 
-    // used to Build Dlist GeometryArray by Reference with java arrays
+    // used to Build Dlist GeometryArray by Reference with NIO buffer
+    // TODO KCR : add vertex attrs
     private native void buildGAForBuffer(long ctx,
 			  GeometryArrayRetained geo, int geo_type, 
 			  boolean isNonUniformScale,  boolean updateAlpha,
@@ -2757,7 +2761,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    texCoordSetCount, texCoordSetMap,
 		    (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
 		    texCoordSetMapOffset, 
-		    (xform == null) ? null : xform.mat,
+                    vertexAttrCount, vertexAttrSizes,
+                    (xform == null) ? null : xform.mat,
 		    (nxform == null) ? null : nxform.mat,
 		    vdata);
 	}
@@ -2778,6 +2783,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			vdefined |= NORMAL_FLOAT;
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 			vdefined |= TEXCOORD_FLOAT;
+                    // TODO KCR : add vertex attrs
 		    buildGAForByRef(cv.ctx, this, geoType, isNonUniformScale,
 			    updateAlpha, alpha,
 			    ignoreVertexColors,
@@ -2822,6 +2828,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 		       vdefined |= TEXCOORD_FLOAT;
+                    // TODO KCR : add vertex attrs
 		    buildGAForBuffer(cv.ctx, this, geoType, isNonUniformScale,
 			    updateAlpha, alpha,
 			    ignoreVertexColors,

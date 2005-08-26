@@ -79,6 +79,8 @@ class MasterControl {
     static final Integer SET_QUERYPROPERTIES = new Integer(20);    
     static final Integer SET_VIEW = new Integer(21);
 
+    private static boolean librariesLoaded = false;
+
     /**
      * reference to MasterControl thread
      */
@@ -351,6 +353,10 @@ class MasterControl {
     // If this flag is set, then by-ref geometry will not be
     // put in display list
     boolean buildDisplayListIfPossible = false;
+    
+    // If this flag is set, then geometry arrays with vertex attributes can
+    // be in display list.
+    boolean vertexAttrsInDisplayList = false;
 
     // The global shading language being used. Using a ShaderProgram
     // with a shading language other than the one specified by
@@ -493,7 +499,8 @@ class MasterControl {
      * VirtualUniverse.
      */
     MasterControl() {
-
+        assert librariesLoaded;
+        
 	// Get AWT handle
 	awt = getAWT();
 
@@ -590,16 +597,21 @@ class MasterControl {
 	    getBooleanProperty("j3d.optimizeForSpace", true,
 			       "optimize for space");
 
-	// Build Display list for by-ref geometry and infrequently changing geometry
-	// ONLY IF (isDisplayList is true and optimizeForSpace if False)
-	if (isDisplayList && !j3dOptimizeSpace) {
-	    buildDisplayListIfPossible = true;
-	}
-	else {
-	    buildDisplayListIfPossible = false;
-	}
+        if (isDisplayList) {
+            // Build Display list for by-ref geometry
+            // ONLY IF optimizeForSpace is false
+            if (!j3dOptimizeSpace) {
+                buildDisplayListIfPossible = true;
+            }
 
-	// Check to see whether Renderer can run without DSI lock
+            // Build display lists for geometry with vertex attributes
+            // ONLY if we are in GLSL mode and GLSL shaders are available
+            if (glslLibraryAvailable) {
+                vertexAttrsInDisplayList = true;
+            }
+        }
+
+        // Check to see whether Renderer can run without DSI lock
 	doDsiRenderLock = getBooleanProperty("j3d.renderLock",
 					     doDsiRenderLock,
 					     "render lock");
@@ -767,7 +779,9 @@ class MasterControl {
      * the MasterControl object is created.
      */
     static void loadLibraries() {
-       	// This works around a native load library bug
+        assert !librariesLoaded;
+
+        // This works around a native load library bug
        	try {
             java.awt.Toolkit toolkit = java.awt.Toolkit.getDefaultToolkit();
             toolkit = null;   // just making sure GC collects this
@@ -846,6 +860,11 @@ class MasterControl {
                 glslLibraryAvailable = true;
             }
         }
+
+        assert !(glslLibraryAvailable && cgLibraryAvailable) :
+            "ERROR: cannot support both GLSL and CG at the same time";
+
+        librariesLoaded = true;
     }
 
 

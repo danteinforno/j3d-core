@@ -1401,36 +1401,11 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
     }
 
     boolean canBeInDisplayList(GeometryRetained geo, GeometryAtom ga) {
-	boolean inDL = false;
-	inDL =  geo.canBeInDisplayList(ga.alphaEditable);
-	// If can not in DL, then check if all the attrs affecting
-	// it are infrequently changing, if yes then put it
-	// Exclude Morph and indexed-by-ref-use-index-coord only  for now
-	// in displayList if OptimizeForSpace if false
+        if (ga.source.sourceNode instanceof MorphRetained) {
+            return false;
+        }
 
-	//	System.out.println("inDL = "+inDL);
-	//	System.out.println("geo.cachedChangedFrequent = "+geo.cachedChangedFrequent);
-	//	System.out.println("inDL = "+inDL);
-	//	System.out.println("COLOR = "+((((GeometryArrayRetained)geo).vertexFormat&
-	//					     GeometryArray.COLOR) != 0));
-	//	System.out.println("Before: inDL = "+inDL);
-	//	System.out.println("VirtualUniverse.mc.buildDisplayListIfPossible = "+VirtualUniverse.mc.buildDisplayListIfPossible);
-	if (VirtualUniverse.mc.buildDisplayListIfPossible &&
-	    !inDL &&
-	    !(ga.source.sourceNode instanceof MorphRetained ||
-	      (geo instanceof GeometryArrayRetained &&
-	       ((((GeometryArrayRetained)geo).vertexFormat & (GeometryArray.USE_NIO_BUFFER|GeometryArray.INTERLEAVED)) ==(GeometryArray.USE_NIO_BUFFER|GeometryArray.INTERLEAVED))) ||
-	      (geo instanceof IndexedGeometryArrayRetained &&
-	       ((((IndexedGeometryArrayRetained)geo).vertexFormat & (GeometryArray.BY_REFERENCE|GeometryArray.USE_COORD_INDEX_ONLY)) == (GeometryArray.BY_REFERENCE|GeometryArray.USE_COORD_INDEX_ONLY))))) {
-	    // Check if geometry is frequentlyEditable
-	    boolean alphaFreqEditable = ga.source.isAlphaFrequentlyEditable(geo);
-	    inDL = !((geo.cachedChangedFrequent != 0) ||
-		     ((!(geo instanceof GeometryArrayRetained) && alphaFreqEditable)||
-		      (alphaFreqEditable && ((((GeometryArrayRetained)geo).vertexFormat&
-					      GeometryArray.COLOR) != 0))));
-	}
-	//	System.out.println("After: inDL = "+inDL);
-	return inDL;
+	return geo.canBeInDisplayList(ga.alphaEditable);
     }
 
     // If dlist will be altered due to alpha or ignoreVertexColors, then don't
