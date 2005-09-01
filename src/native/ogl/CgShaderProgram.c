@@ -27,17 +27,6 @@
 #include <dlfcn.h>
 #endif
 
-#define TYPE_INTEGER javax_media_j3d_ShaderAttributeObjectRetained_TYPE_INTEGER
-#define TYPE_FLOAT javax_media_j3d_ShaderAttributeObjectRetained_TYPE_FLOAT
-#define TYPE_TUPLE2I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2I
-#define TYPE_TUPLE2F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2F
-#define TYPE_TUPLE3I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3I
-#define TYPE_TUPLE3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3F
-#define TYPE_TUPLE4I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4I
-#define TYPE_TUPLE4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4F
-#define TYPE_MATRIX3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX3F
-#define TYPE_MATRIX4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX4F
-
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
 extern void throwAssert(JNIEnv *env, char *str);
@@ -45,6 +34,16 @@ extern jobject createShaderError(JNIEnv *env,
 				 int errorCode,
 				 const char *errorMsg,
 				 const char *detailMsg);
+
+static void cgVertexAttrPointer(GraphicsContextPropertiesInfo *ctxProperties,
+				int index, int size, int type, int stride,
+				const void *pointer);
+static void cgEnableVertexAttrArray(GraphicsContextPropertiesInfo *ctxProperties,
+				    int index);
+static void cgDisableVertexAttrArray(GraphicsContextPropertiesInfo *ctxProperties,
+				     int index);
+static void cgVertexAttr(GraphicsContextPropertiesInfo *ctxProperties,
+			 int index, const float *v);
 
 
 /* Global CG wrapper info struct, created by MasterControl during initialization */
@@ -368,12 +367,22 @@ checkCgShaderExtensions(
 
 #ifdef COMPILE_CG_SHADERS
     if (cgLibraryAvailable) {
+	/* TODO: need to free ctxInfo->cgCtxInfo when ctxInfo is freed */
 	ctxInfo->cgCtxInfo = createCgShaderContext(env, ctxInfo);
 	if (ctxInfo->cgCtxInfo != NULL) {
-	    ctxInfo->shadingLanguageCg = JNI_TRUE;
 	    /*
 	    fprintf(stderr, "Cg ctx is available\n");
 	    */
+	    ctxInfo->shadingLanguageCg = JNI_TRUE;
+
+	    /* Initialize shader vertex attribute function pointers */
+	    ctxInfo->vertexAttrPointer = cgVertexAttrPointer;
+	    ctxInfo->enableVertexAttrArray = cgEnableVertexAttrArray;
+	    ctxInfo->disableVertexAttrArray = cgDisableVertexAttrArray;
+	    ctxInfo->vertexAttr1fv = cgVertexAttr;
+	    ctxInfo->vertexAttr2fv = cgVertexAttr;
+	    ctxInfo->vertexAttr3fv = cgVertexAttr;
+	    ctxInfo->vertexAttr4fv = cgVertexAttr;
 	}
 	/*
 	else {
@@ -1482,8 +1491,51 @@ Java_javax_media_j3d_CgShaderProgramRetained_setUniformMatrix4f(
 }
 
 
+/*
+ * Cg vertex attribute functions
+ */
 
+static void
+cgVertexAttrPointer(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, int size, int type, int stride,
+    const void *pointer)
+{
+    /* TODO: implement this */
+    fprintf(stderr, "cgVertexAttrPointer: not implemented\n");
+}
 
+static void
+cgEnableVertexAttrArray(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index)
+{
+    /* TODO: implement this */
+    fprintf(stderr, "cgEnableVertexAttrArray: not implemented\n");
+}
+
+static void
+cgDisableVertexAttrArray(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index)
+{
+    /* TODO: implement this */
+    fprintf(stderr, "cgDisableVertexAttrArray: not implemented\n");
+}
+
+static void
+cgVertexAttr(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+    /*
+     * NOTE: we should never get here. This function is only called
+     * when building display lists for geometry arrays with vertex
+     * attributes, and such display lists are disabled in Cg mode.
+     */
+    fprintf(stderr,
+	    "Java 3D ERROR : Assertion failed: invalid call to cgVertexAttr*f\n");
+}
 
 
 #if 0

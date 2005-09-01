@@ -21,21 +21,16 @@
 #include <jni.h>
 
 #include "gldefs.h"
+#include "GLSLInfo.h"
 
 #if defined(UNIX)
 #include <dlfcn.h>
 #endif
 
-#define TYPE_INTEGER javax_media_j3d_ShaderAttributeObjectRetained_TYPE_INTEGER
-#define TYPE_FLOAT javax_media_j3d_ShaderAttributeObjectRetained_TYPE_FLOAT
-#define TYPE_TUPLE2I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2I
-#define TYPE_TUPLE2F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2F
-#define TYPE_TUPLE3I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3I
-#define TYPE_TUPLE3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3F
-#define TYPE_TUPLE4I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4I
-#define TYPE_TUPLE4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4F
-#define TYPE_MATRIX3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX3F
-#define TYPE_MATRIX4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX4F
+#ifdef DEBUG
+/* Uncomment the following for VERBOSE debug messages */
+/* #define VERBOSE */
+#endif /* DEBUG */
 
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
@@ -45,6 +40,23 @@ extern jobject createShaderError(JNIEnv *env,
 				 const char *detailMsg);
 
 extern int isExtensionSupported(const char *allExtensions, const char *extension);
+
+
+static void glslVertexAttrPointer(GraphicsContextPropertiesInfo *ctxProperties,
+				  int index, int size, int type, int stride,
+				  const void *pointer);
+static void glslEnableVertexAttrArray(GraphicsContextPropertiesInfo *ctxProperties,
+				      int index);
+static void glslDisableVertexAttrArray(GraphicsContextPropertiesInfo *ctxProperties,
+				       int index);
+static void glslVertexAttr1fv(GraphicsContextPropertiesInfo *ctxProperties,
+			      int index, const float *v);
+static void glslVertexAttr2fv(GraphicsContextPropertiesInfo *ctxProperties,
+			      int index, const float *v);
+static void glslVertexAttr3fv(GraphicsContextPropertiesInfo *ctxProperties,
+			      int index, const float *v);
+static void glslVertexAttr4fv(GraphicsContextPropertiesInfo *ctxProperties,
+			      int index, const float *v);
 
 
 /*
@@ -60,160 +72,205 @@ checkGLSLShaderExtensions(
     GraphicsContextPropertiesInfo *ctxInfo,
     jboolean glslLibraryAvailable)
 {
+    ctxInfo->shadingLanguageGLSL = JNI_FALSE;	
+    ctxInfo->glslCtxInfo = NULL;
 
     if (glslLibraryAvailable &&
 	isExtensionSupported(tmpExtensionStr, "GL_ARB_shader_objects") &&
 	isExtensionSupported(tmpExtensionStr, "GL_ARB_shading_language_100")) {
 
+	GLSLCtxInfo *glslCtxInfo = (GLSLCtxInfo *)malloc(sizeof(GLSLCtxInfo));
+	memset(glslCtxInfo, 0, sizeof(GLSLCtxInfo));
+
 #if defined(UNIX)
-	ctxInfo->pfnglAttachObjectARB =
+	glslCtxInfo->pfnglAttachObjectARB =
 	    (PFNGLATTACHOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glAttachObjectARB");
-	ctxInfo->pfnglCompileShaderARB =
+	glslCtxInfo->pfnglCompileShaderARB =
 	    (PFNGLCOMPILESHADERARBPROC)dlsym(RTLD_DEFAULT, "glCompileShaderARB");
-	ctxInfo->pfnglCreateProgramObjectARB =
+	glslCtxInfo->pfnglCreateProgramObjectARB =
 	    (PFNGLCREATEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateProgramObjectARB");
-	ctxInfo->pfnglCreateShaderObjectARB =
+	glslCtxInfo->pfnglCreateShaderObjectARB =
 	    (PFNGLCREATESHADEROBJECTARBPROC)dlsym(RTLD_DEFAULT, "glCreateShaderObjectARB");
-	ctxInfo->pfnglglDeleteObjectARB =
+	glslCtxInfo->pfnglglDeleteObjectARB =
 	    (PFNGLDELETEOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glDeleteObjectARB");
-	ctxInfo->pfnglGetInfoLogARB =
+	glslCtxInfo->pfnglGetInfoLogARB =
 	    (PFNGLGETINFOLOGARBPROC)dlsym(RTLD_DEFAULT, "glGetInfoLogARB");
-	ctxInfo->pfnglGetObjectParameterivARB =
+	glslCtxInfo->pfnglGetObjectParameterivARB =
 	    (PFNGLGETOBJECTPARAMETERIVARBPROC)dlsym(RTLD_DEFAULT, "glGetObjectParameterivARB");
-	ctxInfo->pfnglLinkProgramARB =
+	glslCtxInfo->pfnglLinkProgramARB =
 	    (PFNGLLINKPROGRAMARBPROC)dlsym(RTLD_DEFAULT, "glLinkProgramARB");
-	ctxInfo->pfnglShaderSourceARB =
+	glslCtxInfo->pfnglShaderSourceARB =
 	    (PFNGLSHADERSOURCEARBPROC)dlsym(RTLD_DEFAULT, "glShaderSourceARB");
-	ctxInfo->pfnglUseProgramObjectARB =
+	glslCtxInfo->pfnglUseProgramObjectARB =
 	    (PFNGLUSEPROGRAMOBJECTARBPROC)dlsym(RTLD_DEFAULT, "glUseProgramObjectARB");
-	ctxInfo->pfnglGetUniformLocationARB =
+	glslCtxInfo->pfnglGetUniformLocationARB =
 	    (PFNGLGETUNIFORMLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetUniformLocationARB");
-	ctxInfo->pfnglGetAttribLocationARB =
+	glslCtxInfo->pfnglGetAttribLocationARB =
 	    (PFNGLGETATTRIBLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glGetAttribLocationARB");
-	ctxInfo->pfnglBindAttribLocationARB =
+	glslCtxInfo->pfnglBindAttribLocationARB =
 	    (PFNGLBINDATTRIBLOCATIONARBPROC)dlsym(RTLD_DEFAULT, "glBindAttribLocationARB");
-	ctxInfo->pfnglVertexAttrib3fvARB =
+	glslCtxInfo->pfnglVertexAttrib1fvARB =
+	    (PFNGLVERTEXATTRIB1FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib1fvARB");
+	glslCtxInfo->pfnglVertexAttrib2fvARB =
+	    (PFNGLVERTEXATTRIB2FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib2fvARB");
+	glslCtxInfo->pfnglVertexAttrib3fvARB =
 	    (PFNGLVERTEXATTRIB3FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib3fvARB");
-	ctxInfo->pfnglGetActiveUniformARB =
+	glslCtxInfo->pfnglVertexAttrib4fvARB =
+	    (PFNGLVERTEXATTRIB4FVARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttrib4fvARB");
+	glslCtxInfo->pfnglVertexAttribPointerARB =
+	    (PFNGLVERTEXATTRIBPOINTERARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttribPointerARB");
+	glslCtxInfo->pfnglEnableVertexAttribArrayARB =
+	    (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)dlsym(RTLD_DEFAULT, "glEnableVertexAttribArrayARB");
+	glslCtxInfo->pfnglDisableVertexAttribArrayARB =
+	    (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)dlsym(RTLD_DEFAULT, "glDisableVertexAttribArrayARB");
+	glslCtxInfo->pfnglVertexAttribPointerARB =
+	    (PFNGLVERTEXATTRIBPOINTERARBPROC)dlsym(RTLD_DEFAULT, "glVertexAttribPointerARB");
+	glslCtxInfo->pfnglGetActiveUniformARB =
 	    (PFNGLGETACTIVEUNIFORMARBPROC)dlsym(RTLD_DEFAULT, "glGetActiveUniformARB");
-	ctxInfo->pfnglUniform1iARB =
+	glslCtxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)dlsym(RTLD_DEFAULT, "glUniform1iARB");
-	ctxInfo->pfnglUniform1fARB =
+	glslCtxInfo->pfnglUniform1fARB =
 	    (PFNGLUNIFORM1FARBPROC)dlsym(RTLD_DEFAULT, "glUniform1fARB");
-	ctxInfo->pfnglUniform2iARB =
+	glslCtxInfo->pfnglUniform2iARB =
 	    (PFNGLUNIFORM2IARBPROC)dlsym(RTLD_DEFAULT, "glUniform2iARB");
-	ctxInfo->pfnglUniform2fARB =
+	glslCtxInfo->pfnglUniform2fARB =
 	    (PFNGLUNIFORM2FARBPROC)dlsym(RTLD_DEFAULT, "glUniform2fARB");
-	ctxInfo->pfnglUniform3iARB =
+	glslCtxInfo->pfnglUniform3iARB =
 	    (PFNGLUNIFORM3IARBPROC)dlsym(RTLD_DEFAULT, "glUniform3iARB");
-	ctxInfo->pfnglUniform3fARB =
+	glslCtxInfo->pfnglUniform3fARB =
 	    (PFNGLUNIFORM3FARBPROC)dlsym(RTLD_DEFAULT, "glUniform3fARB");
-	ctxInfo->pfnglUniform4iARB =
+	glslCtxInfo->pfnglUniform4iARB =
 	    (PFNGLUNIFORM4IARBPROC)dlsym(RTLD_DEFAULT, "glUniform4iARB");
-	ctxInfo->pfnglUniform4fARB =
+	glslCtxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fARB");
-	ctxInfo->pfnglUniform1ivARB =
+	glslCtxInfo->pfnglUniform1ivARB =
 	    (PFNGLUNIFORM1IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform1ivARB");
-	ctxInfo->pfnglUniform1fvARB =
+	glslCtxInfo->pfnglUniform1fvARB =
 	    (PFNGLUNIFORM1FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform1fvARB");
-	ctxInfo->pfnglUniform2ivARB =
+	glslCtxInfo->pfnglUniform2ivARB =
 	    (PFNGLUNIFORM2IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform2ivARB");
-	ctxInfo->pfnglUniform2fvARB =
+	glslCtxInfo->pfnglUniform2fvARB =
 	    (PFNGLUNIFORM2FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform2fvARB");
-	ctxInfo->pfnglUniform3ivARB =
+	glslCtxInfo->pfnglUniform3ivARB =
 	    (PFNGLUNIFORM3IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform3ivARB");
-	ctxInfo->pfnglUniform3fvARB =
+	glslCtxInfo->pfnglUniform3fvARB =
 	    (PFNGLUNIFORM3FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform3fvARB");
-	ctxInfo->pfnglUniform4ivARB =
+	glslCtxInfo->pfnglUniform4ivARB =
 	    (PFNGLUNIFORM4IVARBPROC)dlsym(RTLD_DEFAULT, "glUniform4ivARB");
-	ctxInfo->pfnglUniform4fvARB =
+	glslCtxInfo->pfnglUniform4fvARB =
 	    (PFNGLUNIFORM4FVARBPROC)dlsym(RTLD_DEFAULT, "glUniform4fvARB");
-	ctxInfo->pfnglUniformMatrix3fvARB =
+	glslCtxInfo->pfnglUniformMatrix3fvARB =
 	    (PFNGLUNIFORMMATRIX3FVARBPROC)dlsym(RTLD_DEFAULT, "glUniformMatrix3fvARB");
-	ctxInfo->pfnglUniformMatrix4fvARB =
+	glslCtxInfo->pfnglUniformMatrix4fvARB =
 	    (PFNGLUNIFORMMATRIX4FVARBPROC)dlsym(RTLD_DEFAULT, "glUniformMatrix4fvARB");
 #endif
 #ifdef WIN32
-	ctxInfo->pfnglAttachObjectARB =
+	glslCtxInfo->pfnglAttachObjectARB =
 	    (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	ctxInfo->pfnglCompileShaderARB =
+	glslCtxInfo->pfnglCompileShaderARB =
 	    (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	ctxInfo->pfnglCreateProgramObjectARB =
+	glslCtxInfo->pfnglCreateProgramObjectARB =
 	    (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	ctxInfo->pfnglCreateShaderObjectARB =
+	glslCtxInfo->pfnglCreateShaderObjectARB =
 	    (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	ctxInfo->pfnglglDeleteObjectARB =
+	glslCtxInfo->pfnglglDeleteObjectARB =
 	    (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	ctxInfo->pfnglGetInfoLogARB =
+	glslCtxInfo->pfnglGetInfoLogARB =
 	    (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-	ctxInfo->pfnglGetObjectParameterivARB =
+	glslCtxInfo->pfnglGetObjectParameterivARB =
 	    (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
-	ctxInfo->pfnglLinkProgramARB =
+	glslCtxInfo->pfnglLinkProgramARB =
 	    (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	ctxInfo->pfnglShaderSourceARB =
+	glslCtxInfo->pfnglShaderSourceARB =
 	    (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-	ctxInfo->pfnglUseProgramObjectARB =
+	glslCtxInfo->pfnglUseProgramObjectARB =
 	    (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	ctxInfo->pfnglGetUniformLocationARB =
+	glslCtxInfo->pfnglGetUniformLocationARB =
 	    (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	ctxInfo->pfnglGetAttribLocationARB =
+	glslCtxInfo->pfnglGetAttribLocationARB =
 	    (PFNGLGETATTRIBLOCATIONARBPROC)wglGetProcAddress("glGetAttribLocationARB");
-	ctxInfo->pfnglBindAttribLocationARB =
+	glslCtxInfo->pfnglBindAttribLocationARB =
 	    (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
-	ctxInfo->pfnglVertexAttrib3fvARB =
+	glslCtxInfo->pfnglVertexAttrib1fvARB =
+	    (PFNGLVERTEXATTRIB1FVARBPROC)wglGetProcAddress("glVertexAttrib1fvARB");
+	glslCtxInfo->pfnglVertexAttrib2fvARB =
+	    (PFNGLVERTEXATTRIB2FVARBPROC)wglGetProcAddress("glVertexAttrib2fvARB");
+	glslCtxInfo->pfnglVertexAttrib3fvARB =
 	    (PFNGLVERTEXATTRIB3FVARBPROC)wglGetProcAddress("glVertexAttrib3fvARB");
-	ctxInfo->pfnglGetActiveUniformARB =
+	glslCtxInfo->pfnglVertexAttrib4fvARB =
+	    (PFNGLVERTEXATTRIB4FVARBPROC)wglGetProcAddress("glVertexAttrib4fvARB");
+	glslCtxInfo->pfnglVertexAttribPointerARB =
+	    (PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
+	glslCtxInfo->pfnglEnableVertexAttribArrayARB =
+	    (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
+	glslCtxInfo->pfnglDisableVertexAttribArrayARB =
+	    (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
+	glslCtxInfo->pfnglVertexAttribPointerARB =
+	    (PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
+	glslCtxInfo->pfnglGetActiveUniformARB =
 	    (PFNGLGETACTIVEUNIFORMARBPROC)wglGetProcAddress("glGetActiveUniformARB");
-	ctxInfo->pfnglUniform1iARB =
+	glslCtxInfo->pfnglUniform1iARB =
 	    (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	ctxInfo->pfnglUniform1fARB =
+	glslCtxInfo->pfnglUniform1fARB =
 	    (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-	ctxInfo->pfnglUniform2iARB =
+	glslCtxInfo->pfnglUniform2iARB =
 	    (PFNGLUNIFORM2IARBPROC)wglGetProcAddress("glUniform2iARB");
-	ctxInfo->pfnglUniform2fARB =
+	glslCtxInfo->pfnglUniform2fARB =
 	    (PFNGLUNIFORM2FARBPROC)wglGetProcAddress("glUniform2fARB");
-	ctxInfo->pfnglUniform3iARB =
+	glslCtxInfo->pfnglUniform3iARB =
 	    (PFNGLUNIFORM3IARBPROC)wglGetProcAddress("glUniform3iARB");
-	ctxInfo->pfnglUniform3fARB =
+	glslCtxInfo->pfnglUniform3fARB =
 	    (PFNGLUNIFORM3FARBPROC)wglGetProcAddress("glUniform3fARB");
-	ctxInfo->pfnglUniform4iARB =
+	glslCtxInfo->pfnglUniform4iARB =
 	    (PFNGLUNIFORM4IARBPROC)wglGetProcAddress("glUniform4iARB");
-	ctxInfo->pfnglUniform4fARB =
+	glslCtxInfo->pfnglUniform4fARB =
 	    (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
-	ctxInfo->pfnglUniform1ivARB =
+	glslCtxInfo->pfnglUniform1ivARB =
 	    (PFNGLUNIFORM1IVARBPROC)wglGetProcAddress("glUniform1ivARB");
-	ctxInfo->pfnglUniform1fvARB =
+	glslCtxInfo->pfnglUniform1fvARB =
 	    (PFNGLUNIFORM1FVARBPROC)wglGetProcAddress("glUniform1fvARB");
-	ctxInfo->pfnglUniform2ivARB =
+	glslCtxInfo->pfnglUniform2ivARB =
 	    (PFNGLUNIFORM2IVARBPROC)wglGetProcAddress("glUniform2ivARB");
-	ctxInfo->pfnglUniform2fvARB =
+	glslCtxInfo->pfnglUniform2fvARB =
 	    (PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
-	ctxInfo->pfnglUniform3ivARB =
+	glslCtxInfo->pfnglUniform3ivARB =
 	    (PFNGLUNIFORM3IVARBPROC)wglGetProcAddress("glUniform3ivARB");
-	ctxInfo->pfnglUniform3fvARB =
+	glslCtxInfo->pfnglUniform3fvARB =
 	    (PFNGLUNIFORM3FVARBPROC)wglGetProcAddress("glUniform3fvARB");
-	ctxInfo->pfnglUniform4ivARB =
+	glslCtxInfo->pfnglUniform4ivARB =
 	    (PFNGLUNIFORM4IVARBPROC)wglGetProcAddress("glUniform4ivARB");
-	ctxInfo->pfnglUniform4fvARB =
+	glslCtxInfo->pfnglUniform4fvARB =
 	    (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
-	ctxInfo->pfnglUniformMatrix3fvARB =
+	glslCtxInfo->pfnglUniformMatrix3fvARB =
 	    (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
-	ctxInfo->pfnglUniformMatrix4fvARB =
+	glslCtxInfo->pfnglUniformMatrix4fvARB =
 	    (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
 #endif
-	
-    }
 
-    if (ctxInfo->pfnglCreateShaderObjectARB == NULL) {
-	/*fprintf(stderr, "Java 3D : GLSLShader extension not available\n");*/
-	ctxInfo->shadingLanguageGLSL = JNI_FALSE;	
-	
-    }
-    else {
-	/*fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");*/
-	ctxInfo->shadingLanguageGLSL = JNI_TRUE;	
-    }
+	/* Initialize shader vertex attribute function pointers */
+	ctxInfo->vertexAttrPointer = glslVertexAttrPointer;
+	ctxInfo->enableVertexAttrArray = glslEnableVertexAttrArray;
+	ctxInfo->disableVertexAttrArray = glslDisableVertexAttrArray;
+	ctxInfo->vertexAttr1fv = glslVertexAttr1fv;
+	ctxInfo->vertexAttr2fv = glslVertexAttr2fv;
+	ctxInfo->vertexAttr3fv = glslVertexAttr3fv;
+	ctxInfo->vertexAttr4fv = glslVertexAttr4fv;
 
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &ctxInfo->maxVertexAttrs);
+#ifdef VERBOSE
+	fprintf(stderr, "ctxInfo->maxVertexAttrs = %d\n", ctxInfo->maxVertexAttrs);
+#endif
+
+	if (glslCtxInfo->pfnglCreateShaderObjectARB != NULL) {
+	    /*fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");*/
+	    ctxInfo->shadingLanguageGLSL = JNI_TRUE;	
+	    /* TODO: need to free ctxInfo->glslCtxInfo when ctxInfo is freed */
+	    ctxInfo->glslCtxInfo = glslCtxInfo;
+	}
+	else {
+	    free(glslCtxInfo);
+	}
+    }
 }
 
 
@@ -230,19 +287,21 @@ getInfoLog(
     int len = 0;
     GLcharARB *infoLog = NULL;
 
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
     static const char *allocMsg =
 	"Java 3D ERROR: could not allocate infoLog buffer\n";
 
-    ctxProperties->pfnglGetObjectParameterivARB(obj,
-						GL_OBJECT_INFO_LOG_LENGTH_ARB,
-						&infoLogLength);
+    glslCtxInfo->pfnglGetObjectParameterivARB(obj,
+					      GL_OBJECT_INFO_LOG_LENGTH_ARB,
+					      &infoLogLength);
     if (infoLogLength > 0) {
 	infoLog = (GLcharARB *)malloc(infoLogLength);
 	if (infoLog == NULL) {
 	    return allocMsg;
 	}
 
-	ctxProperties->pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
+	glslCtxInfo->pfnglGetInfoLogARB(obj, infoLogLength, &len, infoLog);
     }
 
     return infoLog;
@@ -267,6 +326,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createNativeShader(
     GLhandleARB shaderHandle = 0;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     jobject shaderError = NULL;
 
     shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
@@ -277,11 +337,11 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createNativeShader(
     */
     if (shaderType == javax_media_j3d_Shader_SHADER_TYPE_VERTEX) { 
 	/* create the vertex shader */
-	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	shaderHandle = glslCtxInfo->pfnglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
     }
     else if (shaderType == javax_media_j3d_Shader_SHADER_TYPE_FRAGMENT) { 
 	    /* create the fragment shader */
-	shaderHandle = ctxProperties->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	shaderHandle = glslCtxInfo->pfnglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
     }
     
     if (shaderHandle == 0) {
@@ -311,8 +371,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyNativeShader(
     jlong shaderId)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
-    ctxProperties->pfnglglDeleteObjectARB( (GLhandleARB) shaderId);
+    glslCtxInfo->pfnglglDeleteObjectARB( (GLhandleARB) shaderId);
     
     return NULL;
 }
@@ -333,6 +394,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
     GLint status;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     jobject shaderError = NULL;
 
     /* Null-terminated "C" strings */
@@ -346,9 +408,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
     }
 
     shaderStringArr[0] = shaderString;
-    ctxProperties->pfnglShaderSourceARB((GLhandleARB)shaderId, 1, shaderStringArr, NULL);
-    ctxProperties->pfnglCompileShaderARB((GLhandleARB)shaderId);
-    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderId,
+    glslCtxInfo->pfnglShaderSourceARB((GLhandleARB)shaderId, 1, shaderStringArr, NULL);
+    glslCtxInfo->pfnglCompileShaderARB((GLhandleARB)shaderId);
+    glslCtxInfo->pfnglGetObjectParameterivARB((GLhandleARB)shaderId,
 						GL_OBJECT_COMPILE_STATUS_ARB,
 						&status);
     if (!status) {
@@ -383,9 +445,10 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_createNativeShaderProgram(
     jobject shaderError = NULL;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     shaderProgramIdPtr = (*env)->GetLongArrayElements(env, shaderProgramIdArray, NULL);
 
-    shaderProgramHandle = ctxProperties->pfnglCreateProgramObjectARB();
+    shaderProgramHandle = glslCtxInfo->pfnglCreateProgramObjectARB();
 
     if (shaderProgramHandle == 0) {
 	shaderError = createShaderError(env,
@@ -413,8 +476,9 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_destroyNativeShaderProgram(
     jlong shaderProgramId)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
-    ctxProperties->pfnglglDeleteObjectARB((GLhandleARB)shaderProgramId);
+    glslCtxInfo->pfnglglDeleteObjectARB((GLhandleARB)shaderProgramId);
 
     return NULL;
 }
@@ -436,6 +500,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkNativeShaderProgram(
     int i;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     jlong *shaderIdPtr = (*env)->GetLongArrayElements(env, shaderIdArray, NULL);
     jsize shaderIdArrayLength = (*env)->GetArrayLength(env,  shaderIdArray);
     jobject shaderError = NULL;
@@ -445,12 +510,12 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_linkNativeShaderProgram(
     */
     
     for(i=0; i<shaderIdArrayLength; i++) {
-	ctxProperties->pfnglAttachObjectARB((GLhandleARB)shaderProgramId,
+	glslCtxInfo->pfnglAttachObjectARB((GLhandleARB)shaderProgramId,
 					    (GLhandleARB)shaderIdPtr[i]);
     }
 
-    ctxProperties->pfnglLinkProgramARB((GLhandleARB)shaderProgramId);
-    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB)shaderProgramId,
+    glslCtxInfo->pfnglLinkProgramARB((GLhandleARB)shaderProgramId);
+    glslCtxInfo->pfnglGetObjectParameterivARB((GLhandleARB)shaderProgramId,
 						GL_OBJECT_LINK_STATUS_ARB,
 						&status);
 
@@ -484,6 +549,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
     jint attrIndex)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     jobject shaderError = NULL;
     GLcharARB *attrNameString = (GLcharARB *)strJavaToC(env, attrName);
 
@@ -493,7 +559,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_bindNativeVertexAttrName(
 	    attrNameString);
     */
 
-    ctxProperties->pfnglBindAttribLocationARB((GLhandleARB)shaderProgramId,
+    glslCtxInfo->pfnglBindAttribLocationARB((GLhandleARB)shaderProgramId,
 					      attrIndex + 1,
 					      attrNameString);
 
@@ -567,6 +633,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     jbooleanArray isArrayArr)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     GLcharARB **attrNamesString;
     jlong *locPtr;
     jint *typePtr;
@@ -614,10 +681,10 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
      * and m is the number of uniform variables), but since we expect
      * N to be small, we will not optimize this at this time.
      */
-    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
+    glslCtxInfo->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
 						GL_OBJECT_ACTIVE_UNIFORMS_ARB,
 						&numActiveUniforms);
-    ctxProperties->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
+    glslCtxInfo->pfnglGetObjectParameterivARB((GLhandleARB) shaderProgramId,
 						GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB,
 						&maxStrLen);
     name = malloc(maxStrLen + 1);
@@ -629,7 +696,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
     */
 
     for (i = 0; i < numActiveUniforms; i++) {
-	ctxProperties->pfnglGetActiveUniformARB((GLhandleARB) shaderProgramId,
+	glslCtxInfo->pfnglGetActiveUniformARB((GLhandleARB) shaderProgramId,
 						i,
 						maxStrLen,
 						NULL,
@@ -660,7 +727,7 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_lookupNativeShaderAttrNames(
         /*
          * Get uniform attribute location
          */
-        loc = ctxProperties->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
+        loc = glslCtxInfo->pfnglGetUniformLocationARB((GLhandleARB)shaderProgramId,
                                                         attrNamesString[i]);
 
 	/*
@@ -699,8 +766,9 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_useShaderProgram(
     jlong shaderProgramId)
 {
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
-    ctxProperties->pfnglUseProgramObjectARB((GLhandleARB)shaderProgramId);
+    glslCtxInfo->pfnglUseProgramObjectARB((GLhandleARB)shaderProgramId);
 
     ctxProperties->shaderProgramId = shaderProgramId;
 
@@ -725,9 +793,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Load attribute */
-    ctxProperties->pfnglUniform1iARB((GLint)location, value);
+    glslCtxInfo->pfnglUniform1iARB((GLint)location, value);
 
     /* TODO : We need to handle ShaderError. */
     return NULL;
@@ -751,9 +820,10 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
        useShaderProgram(). */
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     
     /* Load attribute */
-    ctxProperties->pfnglUniform1fARB((GLint)location, value);
+    glslCtxInfo->pfnglUniform1fARB((GLint)location, value);
 
     /* TODO : We need to handle ShaderError. */
     return NULL;
@@ -779,12 +849,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     jint *values;
 	
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2iARB((GLint)location, values[0], values[1]);
+    glslCtxInfo->pfnglUniform2iARB((GLint)location, values[0], values[1]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -815,6 +886,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     jfloat *values;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Why shaderProgramId is not needed ? */
     
@@ -822,7 +894,7 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2fARB((GLint)location, values[0], values[1]);
+    glslCtxInfo->pfnglUniform2fARB((GLint)location, values[0], values[1]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -853,12 +925,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     jint *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3iARB((GLint)location, values[0], values[1], values[2]);
+    glslCtxInfo->pfnglUniform3iARB((GLint)location, values[0], values[1], values[2]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -889,12 +962,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     jfloat *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3fARB((GLint)location, values[0], values[1], values[2]);
+    glslCtxInfo->pfnglUniform3fARB((GLint)location, values[0], values[1], values[2]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -924,12 +998,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
 
     jint *values;
 
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;    
+    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     /* Get array values */
     values = (*env)->GetIntArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4iARB((GLint)location, values[0], values[1], values[2], values[3]);
+    glslCtxInfo->pfnglUniform4iARB((GLint)location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
@@ -959,12 +1034,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     jfloat *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4fARB((GLint)location, values[0], values[1], values[2], values[3]);
+    glslCtxInfo->pfnglUniform4fARB((GLint)location, values[0], values[1], values[2], values[3]);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -993,13 +1069,14 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     jfloat *values;
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
 
     /* Load attribute */
     /*  transpose is GL_TRUE : each matrix is supplied in row major order */
-    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
+    glslCtxInfo->pfnglUniformMatrix3fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -1027,13 +1104,14 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     jfloat *values;
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (*env)->GetFloatArrayElements(env, varray, NULL);
     
     /* Load attribute */
     /*  transpose is GL_TRUE : each matrix is supplied in row major order */
-    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
+    glslCtxInfo->pfnglUniformMatrix4fvARB((GLint)location, 1, GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
@@ -1065,12 +1143,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1iArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
     
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
     
     /* Load attribute */
-    ctxProperties->pfnglUniform1ivARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform1ivARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1104,12 +1183,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1fArray(
        useShaderProgram(). */
     
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform1fvARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform1fvARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1142,12 +1222,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2ivARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform2ivARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1182,12 +1263,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform2fvARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform2fvARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1221,12 +1303,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3ivARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform3ivARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1260,12 +1343,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform3fvARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform3fvARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1299,12 +1383,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jint *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4ivARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform4ivARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1338,12 +1423,13 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray(
        useShaderProgram(). */
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
-    ctxProperties->pfnglUniform4fvARB((GLint)location, length, values);
+    glslCtxInfo->pfnglUniform4fvARB((GLint)location, length, values);
 
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
@@ -1378,13 +1464,14 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3fArray
        useShaderProgram(). */    
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
 
     /* Load attribute */
     /*  transpose is GL_TRUE : each matrix is supplied in row major order */
-    ctxProperties->pfnglUniformMatrix3fvARB((GLint)location, length,
+    glslCtxInfo->pfnglUniformMatrix3fvARB((GLint)location, length,
 					    GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
@@ -1419,13 +1506,14 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
        useShaderProgram(). */    
 
     GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
 
     /* Get array values */
     values = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env, vArray , NULL);
     
     /* Load attribute */
     /*  transpose is GL_TRUE : each matrix is supplied in row major order */
-    ctxProperties->pfnglUniformMatrix4fvARB((GLint)location, length,
+    glslCtxInfo->pfnglUniformMatrix4fvARB((GLint)location, length,
 					    GL_TRUE, (GLfloat *)values);
 
     /* Release array values */
@@ -1434,3 +1522,93 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
     /* TODO : We need to handle ShaderError. */
     return NULL;
 }
+
+
+/*
+ * GLSL vertex attribute functions
+ */
+
+static void
+glslVertexAttrPointer(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, int size, int type, int stride,
+    const void *pointer)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+    glslCtxInfo->pfnglVertexAttribPointerARB(index+1, size, type,
+					     GL_FALSE, stride, pointer);
+}
+
+static void
+glslEnableVertexAttrArray(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+    glslCtxInfo->pfnglEnableVertexAttribArrayARB(index+1);
+}
+
+static void
+glslDisableVertexAttrArray(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+    glslCtxInfo->pfnglDisableVertexAttribArrayARB(index+1);
+}
+
+static void
+glslVertexAttr1fv(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+#ifdef VERBOSE
+    fprintf(stderr, "glslVertexAttr1fv()\n");
+#endif
+    glslCtxInfo->pfnglVertexAttrib1fvARB(index+1, v);
+}
+
+static void
+glslVertexAttr2fv(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+#ifdef VERBOSE
+    fprintf(stderr, "glslVertexAttr2fv()\n");
+#endif
+    glslCtxInfo->pfnglVertexAttrib2fvARB(index+1, v);
+}
+
+static void
+glslVertexAttr3fv(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+#ifdef VERBOSE
+    fprintf(stderr, "glslVertexAttr3fv()\n");
+#endif
+    glslCtxInfo->pfnglVertexAttrib3fvARB(index+1, v);
+}
+
+static void
+glslVertexAttr4fv(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+    GLSLCtxInfo *glslCtxInfo = ctxProperties->glslCtxInfo;
+
+#ifdef VERBOSE
+    fprintf(stderr, "glslVertexAttr4fv()\n");
+#endif
+    glslCtxInfo->pfnglVertexAttrib4fvARB(index+1, v);
+}
+
