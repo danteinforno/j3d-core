@@ -264,6 +264,21 @@
 #define GA_BY_REFERENCE          javax_media_j3d_GeometryArray_BY_REFERENCE
 				
 				
+/*
+ * These match the constants in ShaderAttributeObjectRetained
+ */
+
+#define TYPE_INTEGER javax_media_j3d_ShaderAttributeObjectRetained_TYPE_INTEGER
+#define TYPE_FLOAT javax_media_j3d_ShaderAttributeObjectRetained_TYPE_FLOAT
+#define TYPE_TUPLE2I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2I
+#define TYPE_TUPLE2F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE2F
+#define TYPE_TUPLE3I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3I
+#define TYPE_TUPLE3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE3F
+#define TYPE_TUPLE4I javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4I
+#define TYPE_TUPLE4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_TUPLE4F
+#define TYPE_MATRIX3F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX3F
+#define TYPE_MATRIX4F javax_media_j3d_ShaderAttributeObjectRetained_TYPE_MATRIX4F
+
 
 /*
  * These match the constants in NativeConfigTemplate3D
@@ -397,11 +412,35 @@ typedef int (APIENTRY * MYPFNGLXVIDEORESIZESUN) (Display * dpy, GLXDrawable draw
 #endif /* UNIX_ */
 
 
-/* Typedefs for (opaque) CG context info */
+/* Typedef for context properties struct */
+typedef struct GraphicsContextPropertiesInfoRec GraphicsContextPropertiesInfo;
+
+/* Typedefs for language-independent vertex attribute functions */
+typedef void (*MYPFNVERTEXATTRPOINTER)(GraphicsContextPropertiesInfo *ctxProperties,
+				       int index, int size, int type, int stride,
+				       const void *pointer);
+typedef void (*MYPFNENABLEVERTEXATTRARRAY)(GraphicsContextPropertiesInfo *ctxProperties,
+					   int index);
+typedef void (*MYPFNDISABLEVERTEXATTRARRAY)(GraphicsContextPropertiesInfo *ctxProperties,
+					    int index);
+typedef void (*MYPFNVERTEXATTR1FV)(GraphicsContextPropertiesInfo *ctxProperties,
+				   int index, const float *v);
+typedef void (*MYPFNVERTEXATTR2FV)(GraphicsContextPropertiesInfo *ctxProperties,
+				   int index, const float *v);
+typedef void (*MYPFNVERTEXATTR3FV)(GraphicsContextPropertiesInfo *ctxProperties,
+				   int index, const float *v);
+typedef void (*MYPFNVERTEXATTR4FV)(GraphicsContextPropertiesInfo *ctxProperties,
+				   int index, const float *v);
+
+
+/* Typedefs for (opaque) GLSL context info */
+typedef struct GLSLCtxInfoRec GLSLCtxInfo;
+
+/* Typedefs for (opaque) Cg context info */
 typedef struct CgCtxInfoRec CgCtxInfo;
 
 /* define the structure to hold the properties of graphics context */
-typedef struct {
+struct GraphicsContextPropertiesInfoRec {
     jlong context;
 
     /* version and extension info */
@@ -601,52 +640,32 @@ typedef struct {
     MYPFNGLDETAILTEXFUNCSGI glDetailTexFuncSGIS;
     MYPFNGLTEXFILTERFUNCSGI glTexFilterFuncSGIS;
 
-    /* Programmable Shader */
-    PFNGLATTACHOBJECTARBPROC pfnglAttachObjectARB;
-    PFNGLCOMPILESHADERARBPROC pfnglCompileShaderARB;
-    PFNGLCREATEPROGRAMOBJECTARBPROC pfnglCreateProgramObjectARB;
-    PFNGLCREATESHADEROBJECTARBPROC pfnglCreateShaderObjectARB;
-    PFNGLDELETEOBJECTARBPROC pfnglglDeleteObjectARB;
-    PFNGLGETINFOLOGARBPROC pfnglGetInfoLogARB;
-    PFNGLGETOBJECTPARAMETERIVARBPROC pfnglGetObjectParameterivARB;
-    PFNGLLINKPROGRAMARBPROC pfnglLinkProgramARB;
-    PFNGLSHADERSOURCEARBPROC pfnglShaderSourceARB;
-    PFNGLUSEPROGRAMOBJECTARBPROC pfnglUseProgramObjectARB;
-    PFNGLGETUNIFORMLOCATIONARBPROC pfnglGetUniformLocationARB;
-    PFNGLGETATTRIBLOCATIONARBPROC pfnglGetAttribLocationARB;
-    PFNGLBINDATTRIBLOCATIONARBPROC pfnglBindAttribLocationARB;
-    PFNGLVERTEXATTRIB3FVARBPROC pfnglVertexAttrib3fvARB;
-    PFNGLGETACTIVEUNIFORMARBPROC pfnglGetActiveUniformARB;
-    PFNGLUNIFORM1IARBPROC pfnglUniform1iARB;
-    PFNGLUNIFORM1FARBPROC pfnglUniform1fARB;
-    PFNGLUNIFORM2IARBPROC pfnglUniform2iARB;
-    PFNGLUNIFORM2FARBPROC pfnglUniform2fARB;
-    PFNGLUNIFORM3IARBPROC pfnglUniform3iARB;
-    PFNGLUNIFORM3FARBPROC pfnglUniform3fARB;
-    PFNGLUNIFORM4IARBPROC pfnglUniform4iARB;
-    PFNGLUNIFORM4FARBPROC pfnglUniform4fARB;
-    PFNGLUNIFORM1IVARBPROC pfnglUniform1ivARB;
-    PFNGLUNIFORM1FVARBPROC pfnglUniform1fvARB;
-    PFNGLUNIFORM2IVARBPROC pfnglUniform2ivARB;
-    PFNGLUNIFORM2FVARBPROC pfnglUniform2fvARB;
-    PFNGLUNIFORM3IVARBPROC pfnglUniform3ivARB;
-    PFNGLUNIFORM3FVARBPROC pfnglUniform3fvARB;
-    PFNGLUNIFORM4IVARBPROC pfnglUniform4ivARB;
-    PFNGLUNIFORM4FVARBPROC pfnglUniform4fvARB;
-    PFNGLUNIFORMMATRIX3FVARBPROC pfnglUniformMatrix3fvARB;
-    PFNGLUNIFORMMATRIX4FVARBPROC pfnglUniformMatrix4fvARB;
-    
 #if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
 #endif /* UNIX_ */
 
+    /* Function pointers for language-independent vertex attribute functions */
+    MYPFNVERTEXATTRPOINTER vertexAttrPointer;
+    MYPFNENABLEVERTEXATTRARRAY enableVertexAttrArray;
+    MYPFNDISABLEVERTEXATTRARRAY disableVertexAttrArray;
+    MYPFNVERTEXATTR1FV vertexAttr1fv;
+    MYPFNVERTEXATTR2FV vertexAttr2fv;
+    MYPFNVERTEXATTR3FV vertexAttr3fv;
+    MYPFNVERTEXATTR4FV vertexAttr4fv;
+
     /* Pointer to currently bound shader program */
     jlong shaderProgramId;
+
+    /* Implementation-dependent maximum number of vertex attributes */
+    int maxVertexAttrs;
+
+    /* GLSL shader context information */
+    GLSLCtxInfo *glslCtxInfo;
 
     /* Cg shader context information */
     CgCtxInfo *cgCtxInfo;
 
-} GraphicsContextPropertiesInfo;
+};
 
 
 #ifdef WIN32

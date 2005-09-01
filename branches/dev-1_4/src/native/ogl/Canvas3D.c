@@ -428,6 +428,38 @@ getJavaBoolEnv(JNIEnv *env, char* envStr)
     return (*(table->GetBooleanField))(env, obj, fieldID);
 }
 
+/*
+ * Dummy functions for language-independent vertex attribute functions
+ */
+static void
+dummyVertexAttrPointer(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, int size, int type, int stride,
+    const void *pointer)
+{
+#ifdef DEBUG
+    fprintf(stderr, "dummyVertexAttrPointer()\n");
+#endif /* DEBUG */
+}
+
+static void
+dummyEnDisableVertexAttrArray(
+    GraphicsContextPropertiesInfo *ctxProperties, int index)
+{
+#ifdef DEBUG
+    fprintf(stderr, "dummyEnDisableVertexAttrArray()\n");
+#endif /* DEBUG */
+}
+
+static void
+dummyVertexAttr(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int index, const float *v)
+{
+#ifdef DEBUG
+    fprintf(stderr, "dummyVertexAttr()\n");
+#endif /* DEBUG */
+}
 
 /*
  * get properties from current context
@@ -3075,39 +3107,23 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->glDetailTexFuncSGIS = NULL;
     ctxInfo->glTexFilterFuncSGIS = NULL;
 
-    /* GLSL Shader */
-    ctxInfo->pfnglAttachObjectARB = NULL;
-    ctxInfo->pfnglCompileShaderARB = NULL;
-    ctxInfo->pfnglCreateProgramObjectARB = NULL;
-    ctxInfo->pfnglCreateShaderObjectARB = NULL;
-    ctxInfo->pfnglglDeleteObjectARB = NULL;
-    ctxInfo->pfnglGetInfoLogARB = NULL;
-    ctxInfo->pfnglGetObjectParameterivARB = NULL;
-    ctxInfo->pfnglLinkProgramARB = NULL;
-    ctxInfo->pfnglShaderSourceARB = NULL;
-    ctxInfo->pfnglUseProgramObjectARB = NULL;
-    ctxInfo->pfnglGetUniformLocationARB = NULL;
-    ctxInfo->pfnglGetActiveUniformARB = NULL;
-    ctxInfo->pfnglUniform1iARB = NULL;
-    ctxInfo->pfnglUniform1fARB = NULL;
-    ctxInfo->pfnglUniform2iARB = NULL;
-    ctxInfo->pfnglUniform2fARB = NULL;
-    ctxInfo->pfnglUniform3iARB = NULL;
-    ctxInfo->pfnglUniform3fARB = NULL;
-    ctxInfo->pfnglUniform4iARB = NULL;
-    ctxInfo->pfnglUniform4fARB = NULL; 
-    ctxInfo->pfnglUniform1ivARB = NULL;
-    ctxInfo->pfnglUniform1fvARB = NULL;
-    ctxInfo->pfnglUniform2ivARB = NULL;
-    ctxInfo->pfnglUniform2fvARB = NULL;
-    ctxInfo->pfnglUniform3ivARB = NULL;
-    ctxInfo->pfnglUniform3fvARB = NULL;
-    ctxInfo->pfnglUniform4ivARB = NULL;
-    ctxInfo->pfnglUniform4fvARB = NULL;
-    ctxInfo->pfnglUniformMatrix3fvARB = NULL; 
-    ctxInfo->pfnglUniformMatrix4fvARB = NULL; 
+    /* Initialize shader program Id */
+    ctxInfo->shaderProgramId = 0;
 
-    /* CG shader */
+    /* Initialize maximum number of vertex attrs */
+    ctxInfo->maxVertexAttrs = 0;
+
+    /* Initialize shader vertex attribute function pointers */
+    ctxInfo->vertexAttrPointer = dummyVertexAttrPointer;
+    ctxInfo->enableVertexAttrArray = dummyEnDisableVertexAttrArray;
+    ctxInfo->disableVertexAttrArray = dummyEnDisableVertexAttrArray;
+    ctxInfo->vertexAttr1fv = dummyVertexAttr;
+    ctxInfo->vertexAttr2fv = dummyVertexAttr;
+    ctxInfo->vertexAttr3fv = dummyVertexAttr;
+    ctxInfo->vertexAttr4fv = dummyVertexAttr;
+
+    /* Initialize shader info pointers */
+    ctxInfo->glslCtxInfo = NULL;
     ctxInfo->cgCtxInfo = NULL;
 
 #if defined(UNIX)
