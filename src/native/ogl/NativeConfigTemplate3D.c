@@ -1120,7 +1120,7 @@ int chooseSTDPixelFormat(
     
     ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
     pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;  /*TODO: when would this change? */
+    pfd.nVersion = 1;  /* When would this change? */
     pfd.iPixelType = PFD_TYPE_RGBA;
 
     /*

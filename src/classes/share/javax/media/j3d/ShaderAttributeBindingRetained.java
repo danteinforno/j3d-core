@@ -31,53 +31,6 @@ import javax.vecmath.*;
  * <code>attrName</code> variable in the shader in which it is
  * used. Otherwise, the shader will not be able to use the attribute
  * and a runtime error may be generated.
- *
- * <p>
- * Following is the list of predefined Java&nbsp;3D system attributes:<br>
- *
- * <ul>
- * <font color="#ff0000"><i>TODO: replace the following with
- * the real system attributes table</i></font><br>
- * <table BORDER=1 CELLSPACING=2 CELLPADDING=2>
- * <tr>
- * <td><b>Name</b></td>
- * <td><b>Type</b></td>
- * <td><b>Description</b></td>
- * </tr>
- * <tr>
- * <td><code>something</code></td>
- * <td>Float</td>
- * <td>This is something (of course)</td>
- * </tr>
- * <tr>
- * <td><code>somethingElse</code></td>
- * <td>Tuple3f</td>
- * <td>This is something else</td>
- * </tr>
- * </table>
- * </ul>
- *
- * <p>
- * Depending on the shading language (and profile) being used, several
- * Java 3D state attributes are automatically made available to the
- * shader program as pre-defined uniform attributes. The application
- * doesn't need to do anything to pass these attributes in to the
- * shader program. The implementation of each shader language (e.g.,
- * Cg, GLSL) defines its own mapping from Java 3D attribute to uniform
- * variable name.
- *
- * <p>
- * A list of these attributes for each shader language can be found in
- * the concrete subclass of ShaderProgram for that shader language.
- *
- * <p>
- * <font color="#ff0000"><i>NOTE: This class is not yet
- * implemented.</i></font><br>
- *
- * @see ShaderAttributeSet
- * @see ShaderProgram
- *
- * @since Java 3D 1.4
  */
 
 class ShaderAttributeBindingRetained extends ShaderAttributeRetained {

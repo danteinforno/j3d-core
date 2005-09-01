@@ -1314,7 +1314,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				//cfdata = null;
 				cfdata = mirrorFloatRefColors[0];
 				// if transparency switch between on/off
@@ -1337,7 +1337,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				// cbdata = null;
 				cbdata = mirrorUnsignedByteRefColors[0];
 				// if transparency switch between on/off

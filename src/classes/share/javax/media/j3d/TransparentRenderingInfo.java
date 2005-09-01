@@ -25,7 +25,7 @@ class TransparentRenderingInfo extends Object implements com.sun.j3d.utils.scene
     TransparentRenderingInfo next;
     GeometryAtom geometryAtom;
     double zVal; // Used in DepthSorted Transparency
-    // TODO: Add Dirty info
+    // XXXX: Add Dirty info
 
     /**
      * update state before rendering transparent objects 
@@ -58,7 +58,7 @@ class TransparentRenderingInfo extends Object implements com.sun.j3d.utils.scene
 	    return false;
 	}
 
-        // TODO : Code cleanup needed : The following code segment should simply test
+        // XXXX : Code cleanup needed : The following code segment should simply test
         //        each bin independently and update it if necessary.
         if (cv.environmentSet != attributeBin.environmentSet) {
             
@@ -112,7 +112,7 @@ class TransparentRenderingInfo extends Object implements com.sun.j3d.utils.scene
     }
 
     public Geometry getGeometry() {
-        // TODO verify 0 is always the correct index. Assumption is that for 
+        // XXXX: verify 0 is always the correct index. Assumption is that for 
         // Shape3D with multiple geometry each geometry is put in it's 
         // own geometryAtom.
         if (geometryAtom.geometryArray[0]==null)

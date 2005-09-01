@@ -557,7 +557,7 @@ public class VirtualUniverse extends Object {
     /**
      * This returns the next available nodeId as a string.
      */
-    // TODO: reuse of id's imply a slight collision problem in the
+    // XXXX: reuse of id's imply a slight collision problem in the
     // render queue's.
     // BUG 4181362
     String getNodeId() {

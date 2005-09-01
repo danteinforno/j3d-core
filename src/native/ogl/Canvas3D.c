@@ -38,6 +38,8 @@
 #endif /* DEBUG */
 
 
+extern void throwAssert(JNIEnv *env, char *str);
+
 static void initializeCtxInfo(JNIEnv *env, GraphicsContextPropertiesInfo* ctxInfo);
 static void cleanupCtxInfo(GraphicsContextPropertiesInfo* ctxInfo);
 static void disableAttribFor2D(GraphicsContextPropertiesInfo *ctxProperties);
@@ -536,13 +538,13 @@ getPropertiesFromCurrentContext(
     /* *********************************************************/
     /* setup the graphics context properties */
 
-    /* TODO: Check for OpenGL 1.3 core or better */
+    /* NOTE : At some point we will want to require OpenGL 1.3 */
     /* Check for OpenGL 1.2 core or better */
     if ((versionNumbers[0] > 1) ||
 	(versionNumbers[0] == 1 && versionNumbers[1] >= 2)) {
 
 	if (versionNumbers[0] == 1 && versionNumbers[1] == 2) {
-	fprintf(stderr,
+	    fprintf(stderr,
 		"Java 3D WARNING : OpenGL 1.3 will be required in the near future (GL_VERSION=%d.%d)\n",
 		versionNumbers[0], versionNumbers[1]);
 	}
@@ -611,7 +613,7 @@ getPropertiesFromCurrentContext(
 
     /*
      * TODO: Remove extension checks for those features that are core
-     * in OpenGL 1.3 and just use the core feature.
+     * in OpenGL 1.2 and just use the core feature.
      */
 
     /* check extensions for remaining of 1.1 and 1.2 */
@@ -1368,7 +1370,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
     fprintf(stderr, "Canvas3D.composite()\n");
 #endif
     /* Temporarily disable fragment and most 3D operations */
-    /* TODO: the GL_TEXTURE_BIT may not be necessary here */
+    /* XXXX: the GL_TEXTURE_BIT may not be necessary here */
     glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_DEPTH_BUFFER_BIT);
     disableAttribFor2D(ctxProperties);
 
@@ -1667,7 +1669,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 								   pixels_obj, NULL);
 
 	/* Temporarily disable fragment and most 3D operations */
-	/* TODO: the GL_TEXTURE_BIT may not be necessary */
+	/* XXXX: the GL_TEXTURE_BIT may not be necessary */
 	glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT); 
 	disableAttribFor2D(ctxProperties);
 
@@ -1702,7 +1704,8 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
             break;
         case FORMAT_BYTE_GRAY:
         case FORMAT_USHORT_GRAY:	    
-            /* TODO: throw exception */
+	default:
+	    throwAssert(env, "illegal format");
             break;
         }
 	
@@ -1947,9 +1950,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
 	    case FORMAT_BYTE_LA:  
 		gltype = GL_LUMINANCE_ALPHA;  
 		break;  
+
 	    case FORMAT_BYTE_GRAY:  
 	    case FORMAT_USHORT_GRAY:	       
-		/* TODO: throw exception */  
+	    default:
+		throwAssert(env, "illegal format");
 		break;  
 	    } 
 	
@@ -2982,9 +2987,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
     case FORMAT_BYTE_LA:
 	type = GL_LUMINANCE_ALPHA;
 	break;
+
     case FORMAT_BYTE_GRAY:
     case FORMAT_USHORT_GRAY:	    
-	/* TODO: throw exception */
+    default:
+	throwAssert(env, "illegal format");
 	break;
     }
   

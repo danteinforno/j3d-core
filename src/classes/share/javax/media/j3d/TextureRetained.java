@@ -949,7 +949,7 @@ abstract class TextureRetained extends NodeComponentRetained {
 
         super.doSetLive(backgroundGroup, refCount);
 
-	// TODO: for now, do setLive for all the defined images.
+	// XXXX: for now, do setLive for all the defined images.
 	// But in theory, we only need to setLive those within the
 	// baseLevel and maximumLevel range. But then we'll need
 	// setLive and clearLive image when the range changes.

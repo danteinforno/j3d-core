@@ -69,7 +69,7 @@ class AttributeBin extends Object implements ObjectUpdate {
     // for whether the definingRendering attrs is non-null;
     boolean ignoreVertexColors = false;
 
-    // TODO: use definingMaterial etc. instead of these
+    // XXXX: use definingMaterial etc. instead of these
     // when sole user is completely implement
     RenderingAttributesRetained renderingAttrs;
 

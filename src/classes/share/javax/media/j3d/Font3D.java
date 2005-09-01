@@ -458,7 +458,7 @@ public class Font3D extends NodeComponent {
 	      }
 	    }
 
-	    // TODO: Should use IndexedTriangleArray to avoid 
+	    // XXXX: Should use IndexedTriangleArray to avoid 
 	    // duplication of vertices. To create triangles for
 	    // side faces, every vertex is duplicated currently.
 	    TriangleArray triAry = new TriangleArray(vertCnt,

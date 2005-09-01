@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 
-// TODO : We should have a common Bin object that all other Bins extend from. 
+// XXXX : We should have a common Bin object that all other Bins extend from. 
 
 
 //class ShaderBin extends Object implements ObjectUpdate, NodeComponentUpdate {

@@ -115,7 +115,7 @@ class CompressedGeometryRetained extends GeometryRetained {
 		 boolean multiScreen, int screen,
 		 boolean ignoreVertexColors, int pass) {
 
-	// TODO: alpha udpate
+	// XXXX: alpha udpate
 	execute(cv.ctx, packedVersion, bufferType, bufferContents,
 		renderFlags, offset, size, compressedGeometry) ;
     }

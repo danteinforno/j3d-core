@@ -431,7 +431,7 @@ class CanvasViewCache extends Object {
 
 	// This flag is use to force a computation when a ViewPlatformTransform
 	// is detected. No sync. needed. We're doing a read of t/f.
-	// TODO: Peeking at the dirty flag is a hack. Need to revisit this.
+	// XXXX: Peeking at the dirty flag is a hack. Need to revisit this.
 	boolean vprNotDirty = (viewCache.vpRetained.vprDirtyMask == 0);
 
 	if(!canvas.offScreen &&
@@ -927,7 +927,7 @@ class CanvasViewCache extends Object {
      */
     private void cacheEyePosition() {
 	if (viewCache.compatibilityModeEnable) {
-	    // TODO: Compute compatibility mode eye position in ImagePlate???
+	    // XXXX: Compute compatibility mode eye position in ImagePlate???
 	    cacheEyePosScreenRelative(leftManualEyeInImagePlate,
 				      rightManualEyeInImagePlate);
 	}
@@ -984,7 +984,7 @@ class CanvasViewCache extends Object {
 
     private void computePlateToVworld() {
 	if (viewCache.compatibilityModeEnable) {
-	    // TODO: implement this correctly for compat mode
+	    // XXXX: implement this correctly for compat mode
 	    leftPlateToVworld.setIdentity();
 	    vworldToLeftPlate.setIdentity();
 	}
@@ -1046,7 +1046,7 @@ class CanvasViewCache extends Object {
         // Concatenate headToLeftImagePlate with leftPlateToVworld
 
 	if (viewCache.compatibilityModeEnable) {
-	    // TODO: implement this correctly for compat mode
+	    // XXXX: implement this correctly for compat mode
 	    headToVworld.setIdentity();
 	}
 	else {
@@ -1073,7 +1073,7 @@ class CanvasViewCache extends Object {
 	// Create a transform with the view platform to coexistence scale
 	tMat1.set(viewPlatformScale);
 
-	// TODO: Is this really correct to ignore HMD?
+	// XXXX: Is this really correct to ignore HMD?
 
 	if (viewCache.viewPolicy != View.HMD_VIEW) {
 	    switch (viewCache.coexistenceCenterInPworldPolicy) {
@@ -1180,7 +1180,7 @@ class CanvasViewCache extends Object {
 
     private void computeCoexistenceToPlate() {
 	if (viewCache.compatibilityModeEnable) {
-	    // TODO: implement this correctly
+	    // XXXX: implement this correctly
 	    coexistenceToLeftPlate.setIdentity();
 	    return;
 	}
@@ -1353,7 +1353,7 @@ class CanvasViewCache extends Object {
 	    B = scale * -backClipDistance;
 	}
 
-	// TODO: Can optimize for HMD case.
+	// XXXX: Can optimize for HMD case.
 	if (true /*viewCache.viewPolicy != View.HMD_VIEW*/) {
 
 	    // Call buildProjView to build the projection and view matrices.
@@ -1411,7 +1411,7 @@ class CanvasViewCache extends Object {
 		}
 	    }
 	}
-	// TODO: The following code has never been ported
+	// XXXX: The following code has never been ported
 //      else {
 //	    Point3d cen_eye;
 //
@@ -1486,14 +1486,14 @@ class CanvasViewCache extends Object {
 	ecToCc.setIdentity();
 
 
-	// TODO: we have no concept of glass correction in the Java 3D API
+	// XXXX: we have no concept of glass correction in the Java 3D API
 	//
 	// Correction in apparent 3D position of window due to glass/CRT
 	// and spherical/cylinderical curvarure of CRT.
 	// This boils down to producing modified values of Lx Ly Hx Hy
 	// and is different for hot spot vs. window center corrections.
 	//
-	/* TODO:
+	/* XXXX:
 	double		cx, cy;
 	if(viewPolicy != HMD_VIEW && enable_crt_glass_correction) {
 	    if (correction_point == CORRECTION_POINT_WINDOW_CENTER) {
@@ -1831,20 +1831,20 @@ class CanvasViewCache extends Object {
     }
 
     Transform3D getImagePlateToVworld() {
-	// TODO: Document -- This will return the transform of left plate.
+	// XXXX: Document -- This will return the transform of left plate.
 	return leftPlateToVworld;
     }
 
 
 
     Transform3D getLastVworldToImagePlate() {
-	// TODO: Document -- This will return the transform of left plate.
+	// XXXX: Document -- This will return the transform of left plate.
 	return lastVworldToLeftPlate;
 
     }
 
     Transform3D getVworldToImagePlate() {
-	// TODO: Document -- This will return the transform of left plate.
+	// XXXX: Document -- This will return the transform of left plate.
 	return vworldToLeftPlate;
     }
 

@@ -1180,7 +1180,7 @@ printf("orig: < %g %g %g >  transformed: < %g %g %g >\n",
     /* Restore the  vertex format */
     vformat = saveVformat;
 
-    
+
     (*(table->ReleasePrimitiveArrayCritical))(env, varray, verts, 0);
 
     if (texCoordSetMapLen > 0)
@@ -2041,7 +2041,7 @@ executeIndexedGeometryArray(
 
 	    if (vformat & GA_TEXTURE_COORDINATE) {
 
-/* TODO: texCoordoff == 0 ???*/
+		/* XXXX: texCoordoff == 0 ???*/
                 executeTexture(texUnitIndex, texCoordSetMapLen,
                                 texSize, bstride, texCoordoff,
                                 texCoordSetMapOffset, 
@@ -2133,7 +2133,7 @@ executeIndexedGeometryArray(
 
 	    if (vformat & GA_TEXTURE_COORDINATE) {
 
-/* TODO: texCoordoff == 0 ???*/
+		/* XXXX: texCoordoff == 0 ???*/
                 executeTexture(texUnitIndex, texCoordSetMapLen,
                                 texSize, bstride, texCoordoff,
                                 texCoordSetMapOffset, 

@@ -937,7 +937,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    }
 	    
 	    // lock list of dlist
-	    // TODO: Instead of copying could we keep 2 arrays
+	    // XXXX: Instead of copying could we keep 2 arrays
 	    // and just toggle?
 	    size = dirtyRenderMoleculeList.size();
 	    for (i = 0; i < size; i++) {
@@ -978,7 +978,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	RenderAtomListInfo arr[];
 	RenderAtomListInfo ra;
 	
-	// TODO: there is a possible problem in the case of multiple
+	// XXXX: there is a possible problem in the case of multiple
 	// renderers (i.e., multiple screens).  Unless the
 	// MasterControl sends us a separate message for each
 	// renderer, we won't create a new display list for renderers
@@ -1349,7 +1349,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 			    }
 			}			
 			texIdObj = new Integer(id);
-                        // TODO: The following code seems wrong -- why add it to
+                        // XXXX: The following code seems wrong -- why add it to
                         // the list if it is already there? Maybe one is for the
                         // texture and the other (idential value) is for the
                         // detail texture?
@@ -1719,7 +1719,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 			    updateViewPlatform((ViewPlatformRetained)vp.retained, 
 					       ((Float)m.args[1]).floatValue());
 			    visQuery = true;
-			    // TODO : Handle view.visibilityPolicy changed.
+			    // XXXX : Handle view.visibilityPolicy changed.
 			    if(((View.VISIBILITY_POLICY_DIRTY != 0) &&
 				(View.VISIBILITY_DRAW_ALL != view.viewCache.visibilityPolicy)) ||
 			       locale != ((ViewPlatformRetained) (vp.retained)).locale) {
@@ -2805,7 +2805,7 @@ System.out.println("......tb.soleUser= " +
 	Object[] users = (Object[])(args[3]);
 	int i;
 
-	// TODO: Handle other object affected by bounding leaf changes
+	// XXXX: Handle other object affected by bounding leaf changes
 	for (i = 0; i < users.length; i++) {
 	    LeafRetained leaf = (LeafRetained)users[i];
 	    switch(leaf.nodeType) {
@@ -3584,8 +3584,7 @@ System.out.println("......tb.soleUser= " +
 			else {
 			    app = ra.geometryAtom.source.appearance;
 			}
-			// TODO: Should we do a more extensive equals
-			// app?
+			// XXXX: Should we do a more extensive equals app?
 			if (ra.envSet.equals(ra, lights, fog, modelClip) &&
 			    app == ra.app) {
 
@@ -4115,7 +4114,7 @@ System.out.println("......tb.soleUser= " +
 	    // If the lights/fog/model_clip of the render atom is the same
 	    // as the old set of lights/fog/model_clip, then move on to the
 	    // next renderAtom
-	    // TODO: Should app test for equivalent?
+	    // XXXX: Should app test for equivalent?
 	    if (ra.envSet.equals(ra, lights, newfog, newModelClip) &&
 		app == ra.app)
 		continue;
@@ -7010,7 +7009,7 @@ System.out.println("......tb.soleUser= " +
 		// context creation bits for this canvas, but don't do anything
 		// with the geo's user list.
 		if (geo.dlistId > 0) {
-		    // TODO: for the shared ctx case, we really should
+		    // XXXX: for the shared ctx case, we really should
 		    // only free the display lists if this is the last
 		    // Canvas in the renderer.  However, since the
 		    // display lists will be recreated, it doesn't
@@ -7189,7 +7188,7 @@ System.out.println("......tb.soleUser= " +
 	}
 	else {
 	    
-	    // TODO: handle texture
+	    // XXXX: handle texture
 	}
 
 	

@@ -324,7 +324,7 @@ public class ViewSpecificGroup extends Group {
      */
     void duplicateAttributes(Node originalNode, boolean forceDuplicate) {
 
-	// TODO: implement this
+	// XXXX: implement this?
         super.duplicateAttributes(originalNode, forceDuplicate);
 
         ViewSpecificGroupRetained attr = (ViewSpecificGroupRetained) originalNode.retained;

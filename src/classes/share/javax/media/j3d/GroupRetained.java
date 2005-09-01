@@ -643,7 +643,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	}
 
 	/*
-	// TODO: lights may remove twice or more during clearLive(),
+	// XXXX: lights may remove twice or more during clearLive(),
 	// one from itself and one call from every LightRetained
 	// reference this.  So there is case that this procedure get
 	// called when light already removed.
@@ -1839,7 +1839,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	    }
 	    s.transformTargets = newTargets;
 	    
-	    // TODO - optimization for targetThreads computation, require
+	    // XXXX: optimization for targetThreads computation, require
 	    // cleanup in GroupRetained.doSetLive()
 	    //s.transformTargetThreads = 0;
 	}
@@ -2664,7 +2664,7 @@ class GroupRetained extends NodeRetained implements BHLeafInterface {
 	    }
 	}
 	// Has its own copy
-	// TODO: Handle the case of
+	// XXXX: Handle the case of
 	// was non-zero, gone to zero?
 	if (savedParentLights != null) {
 	    if (allocatedLights) {

@@ -472,7 +472,7 @@ class Text3DRetained extends GeometryRetained {
 				// use its bounds and not localBounds.
 				// bounds is actually a reference to
 				// mirrorShape3D.source.localBounds.
-				// TODO : Should only need to update distinct localBounds.
+				// XXXX : Should only need to update distinct localBounds.
 				s.getCombineBounds((BoundingBox)s.bounds);
 			    }
 

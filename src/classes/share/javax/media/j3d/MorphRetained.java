@@ -1804,7 +1804,7 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
 
         super.compile(compState);
 
-        // TODO: for now keep the static transform in the parent tg
+        // XXXX: for now keep the static transform in the parent tg
         compState.keepTG = true;
 
         if (J3dDebug.devPhase && J3dDebug.debug) {

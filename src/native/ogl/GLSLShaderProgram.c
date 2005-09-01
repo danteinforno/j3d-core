@@ -798,7 +798,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1i(
     /* Load attribute */
     glslCtxInfo->pfnglUniform1iARB((GLint)location, value);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -825,7 +824,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1f(
     /* Load attribute */
     glslCtxInfo->pfnglUniform1fARB((GLint)location, value);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -860,7 +858,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2i(
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -899,7 +896,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2f(
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -936,7 +932,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3i(
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -973,7 +968,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3f(
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
     
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1009,7 +1003,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4i(
     /* Release array values */
     (*env)->ReleaseIntArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -1045,7 +1038,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4f(
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1081,7 +1073,6 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -1116,7 +1107,6 @@ JNIEXPORT jobject JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUnif
     /* Release array values */
     (*env)->ReleaseFloatArrayElements(env, varray, values, JNI_ABORT);
     
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -1154,7 +1144,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1iArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1194,7 +1183,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform1fArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
   
 }
@@ -1233,7 +1221,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2iArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1274,7 +1261,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform2fArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1314,7 +1300,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3iArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1354,7 +1339,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform3fArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1394,7 +1378,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4iArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1434,7 +1417,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniform4fArray(
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 
 }
@@ -1477,7 +1459,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix3fArray
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
 
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
@@ -1519,7 +1500,6 @@ JNICALL Java_javax_media_j3d_GLSLShaderProgramRetained_setUniformMatrix4fArray
     /* Release array values */
     (*(table->ReleasePrimitiveArrayCritical))(env, vArray, values, 0);
     
-    /* TODO : We need to handle ShaderError. */
     return NULL;
 }
 
