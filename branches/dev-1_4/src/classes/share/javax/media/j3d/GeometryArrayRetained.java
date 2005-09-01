@@ -38,7 +38,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 
 
-    // TODO: Memory footprint reduction. Should have separate object to
+    // XXXX: Memory footprint reduction. Should have separate object to
     //       to contain specific data such as a ByRef object for
     //       all ByRef related data. So that incases where no
     //       ByRef is needed, the ByRef object reference is
@@ -218,7 +218,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     // pointers used, when transparency is turned on
     // or when its an object such as C3F, P3F etc ..
-    // TODO: Update this for J3DBuffer
+    // XXXX: Update this for J3DBuffer
     float[] mirrorFloatRefCoords = null;
     double[] mirrorDoubleRefCoords = null;
     float[] mirrorFloatRefNormals = null;
@@ -943,7 +943,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     }
 
-    // TODO: may not need this function in NIO buffer version
+    // XXXX: may not need this function in NIO buffer version
     // setup mirror vertex pointers for J3DBuffer version
     void setupMirrorVertexPointerNIOBuffer(int vType) {
 	int i, index = 0;
@@ -1273,7 +1273,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		vertexType |= CF;
 		vertexType &= ~CUB;
 		if (c4fAllocated == 0 && !force) {
-		    // TODO: make suren mirrorFloatRefColors[0] is set right
+		    // XXXX: make suren mirrorFloatRefColors[0] is set right
 		    mirrorFloatRefColors[0] = null; 
 		    mirrorColorAllocated &= ~CF;
 		}
@@ -1309,7 +1309,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		vertexType |= CUB;
 		vertexType &= ~CF;
 		if (c4fAllocated == 0 && !force) {
-		    // TODO: make suren mirrorUnsignedByteRefColors[0] is set right
+		    // XXXX: make suren mirrorUnsignedByteRefColors[0] is set right
 		    mirrorUnsignedByteRefColors[0] = null;
 		    mirrorColorAllocated &= ~CUB;;
 		}
@@ -2038,7 +2038,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	// allocate a copy of the vertex data for the screen if needed.
 	// this piece of code is mainly for multi-screens case
-	// TODO: this might not too much data for just to update alpha
+	// XXXX: this might not too much data for just to update alpha
 	if (mvertexData == null || mvertexData.length <= screen) {
 
 	    float[][] cfData = new float[screen + 1][];
@@ -2196,7 +2196,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	// allocate a copy of the vertex data for the screen if needed.
 	// this piece of code is mainly for multi-screens case
-	// TODO: this might not too much data for just to update alpha
+	// XXXX: this might not too much data for just to update alpha
 	if (mirrorInterleavedColorPointer.length <= screen) {
 
 	    float[][] cfData = new float[screen + 1][];
@@ -2524,7 +2524,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    cdirty = dirtyFlag;
 		    if (updateAlpha && !ignoreVertexColors) {
 			// update the alpha values
-			// TODO: to handle alpha case
+			// XXXX: to handle alpha case
 			retVal = updateAlphaInInterLeavedData(cv, screen, alpha);
 			useAlpha = (retVal[0] == Boolean.TRUE);
 			cdata = (float[])retVal[1];
@@ -2534,7 +2534,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			    cdirty |= COLOR_CHANGED;
 			}
 		    } else {
-			// TODO: to handle alpha case
+			// XXXX: to handle alpha case
 			cdata = null;
 			// if transparency switch between on/off
 			if (lastScreenAlpha != -1) {
@@ -2590,7 +2590,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				//cfdata = null;
 				cfdata = mirrorFloatRefColors[0]; 
 				// if transparency switch between on/off
@@ -2614,7 +2614,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				//cbdata = null;
 				cbdata = mirrorUnsignedByteRefColors[0]; 
 				// if transparency switch between on/off
@@ -3494,7 +3494,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 		// Send a message to renderBin to rebuild the display list or
 		// process the vertex array accordingly
-		// TODO: Should I send one per universe, isn't display list
+		// XXXX: Should I send one per universe, isn't display list
 		// shared by all context/universes?
 		int threads = J3dThread.UPDATE_RENDER;
 		// If the geometry type is Indexed then we need to clone the geometry
@@ -5823,7 +5823,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	inUpdater = false;
 	if ((vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
 	    if((vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
-		// TODO: handle the nio buffer
+		// XXXX: handle the nio buffer
 		if (!(this instanceof IndexedGeometryArrayRetained) ||
 		    (vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) {
 		    if (((vertexFormat & GeometryArray.INTERLEAVED) != 0)) {
@@ -8342,15 +8342,15 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		if ( !((FloatBufferWrapper)coords.getBufferImpl()).isDirect())
 		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
 
-		// TODO: may need to check whether it is direct and if so,
-		// whether it is consistent with native byte order
+		// TODO: need to check whether byte order is is consistent
+		// with native byte order
 		break;
 	    case J3DBuffer.TYPE_DOUBLE:
 		if ( !((DoubleBufferWrapper)coords.getBufferImpl()).isDirect())
 		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
 
-		// TODO: may need to check whether it is direct and if so,
-		// whether it is consistent with native byte order
+		// TODO: need to check whether byte order is is consistent
+		// with native byte order
 		break;
 	    case J3DBuffer.TYPE_NULL:
 		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray115"));
@@ -8376,7 +8376,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	if(coords == null) {
 	    floatBufferRefCoords = null;
 	    doubleBufferRefCoords = null;
-	    // TODO: if not mix java array with nio buffer
+	    // XXXX: if not mix java array with nio buffer
 	    // vertexType can be used as vertexTypeBuffer 
 	    vertexType &= ~PD;
 	    vertexType &= ~PF;
@@ -8403,7 +8403,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	// need not call setupMirrorVertexPointer() since
 	// we are not going to set mirror in NIO buffer case
-	// TODO: if we need to mix java array with buffer,
+	// XXXX: if we need to mix java array with buffer,
 	//        we may need to consider setupMirrorVertexPointer()
 
 	geomLock.unLock();
@@ -10566,7 +10566,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		if ((vertexFormat & GeometryArray.INTERLEAVED) == 0){
 		    switch ((vertexType & GeometryArrayRetained.VERTEX_DEFINED)) {
 		    case PF:
-			count =  floatBufferRefCoords.limit()/3; // TODO: limit or capacity
+			count =  floatBufferRefCoords.limit()/3; // XXXX: limit or capacity?
 			break;
 		    case PD:
 			count = doubleBufferRefCoords.limit()/3;

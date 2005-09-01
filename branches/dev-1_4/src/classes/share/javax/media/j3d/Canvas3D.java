@@ -1103,7 +1103,7 @@ public class Canvas3D extends Canvas {
     public Canvas3D(GraphicsConfiguration graphicsConfiguration) {
 	this(checkForValidGraphicsConfig(graphicsConfiguration), false);
 
-	// TODO 1.4: remove call to checkForValidGraphicsConfig.
+	// XXXX: ENHANCEMENT -- remove call to checkForValidGraphicsConfig.
 	// Call should then be:
 	// this(graphicsConfiguration, false);
     }
@@ -1842,7 +1842,7 @@ public class Canvas3D extends Canvas {
 	    width = height = 0;
 	}
 
-	// TODO: illegalSharing
+	// XXXX: illegalSharing
 	
 	if ((offScreenCanvasSize.width != width) ||
 	    (offScreenCanvasSize.height != height)) {
@@ -2064,7 +2064,7 @@ public class Canvas3D extends Canvas {
 		screen.renderer.doWork(0);
 	    } else {
 
-		// TODO: 
+		// XXXX: 
 		// Now we are in trouble, this will cause deadlock if
 		// waitForOffScreenRendering() is invoked
 		  J3dMessage createMessage = VirtualUniverse.mc.getMessage();
@@ -2589,7 +2589,7 @@ public class Canvas3D extends Canvas {
      * @param position the object that will receive the position
      * @see #setMonoscopicViewPolicy
      */
-    // TODO: This might not make sense for field-sequential HMD. 
+    // XXXX: This might not make sense for field-sequential HMD. 
     public void getCenterEyeInImagePlate(Point3d position) {
 	if (canvasViewCache != null) {
 	    synchronized(canvasViewCache) {

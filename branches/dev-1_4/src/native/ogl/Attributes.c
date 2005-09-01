@@ -819,7 +819,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetLineAttributes(
     glLineWidth(1.0f);
     glDisable(GL_LINE_STIPPLE);
 
-    /* TODO: Polygon Mode check, blend enable */
+    /* XXXX: Polygon Mode check, blend enable */
     glDisable (GL_LINE_SMOOTH);
 }
 
@@ -851,7 +851,7 @@ void JNICALL Java_javax_media_j3d_LineAttributesRetained_updateNative(
 	glEnable(GL_LINE_STIPPLE);
     }
 
-    /* TODO: Polygon Mode check, blend enable */
+    /* XXXX: Polygon Mode check, blend enable */
     if (lineAntialiasing == JNI_TRUE) {
         glEnable (GL_LINE_SMOOTH);
     } else {
@@ -867,7 +867,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetPointAttributes(
 {
     glPointSize(1.0f);
 
-    /* TODO: Polygon Mode check, blend enable */
+    /* XXXX: Polygon Mode check, blend enable */
     glDisable (GL_POINT_SMOOTH);
 }
 
@@ -881,7 +881,7 @@ void JNICALL Java_javax_media_j3d_PointAttributesRetained_updateNative(
 {
     glPointSize(pointSize);
 
-    /* TODO: Polygon Mode check, blend enable */
+    /* XXXX: Polygon Mode check, blend enable */
     if (pointAntialiasing == JNI_TRUE) {
         glEnable (GL_POINT_SMOOTH);
     } else {

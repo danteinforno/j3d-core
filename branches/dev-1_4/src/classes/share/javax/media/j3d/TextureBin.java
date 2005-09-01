@@ -905,7 +905,7 @@ class TextureBin extends Object implements ObjectUpdate {
     }
 
 
-    // TODO: Could the analysis be done during insertRenderMolecule?
+    // XXXX: Could the analysis be done during insertRenderMolecule?
     // Return the head of the list,
     // if the insertion occurred at beginning of the list
     RenderMolecule insertRenderMolecule(RenderMolecule r, 
@@ -1588,7 +1588,7 @@ class TextureBin extends Object implements ObjectUpdate {
 	    }
 	    // Issue 129: add the RM's render atoms to the list of
 	    // transparent render atoms
-	    // TODO: do we need to resort the list after the add???
+	    // XXXX: do we need to resort the list after the add???
 	    if ((renderBin.transpSortMode == View.TRANSPARENCY_SORT_GEOMETRY) &&
 		(environmentSet.lightBin.geometryBackground == null)) {
 		r.addRemoveTransparentObject(renderBin, true);

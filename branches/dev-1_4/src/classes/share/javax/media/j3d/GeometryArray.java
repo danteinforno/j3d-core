@@ -6995,7 +6995,7 @@ public abstract class GeometryArray extends Geometry {
 
 
     /*
-     * TODO: add the following to the javadoc if we ever add double-precision
+     * XXXX: add the following to the javadoc if we ever add double-precision
      * methods for vertex attribtues.
      *
      *-----------------------------------------------------------------

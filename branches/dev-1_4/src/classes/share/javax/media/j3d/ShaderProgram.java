@@ -52,10 +52,6 @@ public abstract class ShaderProgram extends NodeComponent {
      * Default values (copied from GeometryArray.java):
      *
      * vertexAttrNames : null<br>
-     *
-     * TODO: decide whether to make vertexAttrNames: A) immutable;
-     * B) mutable for non-live/non-compiled scene graphs only; or
-     * C) mutable at runtime (with a capability bit).
      */
 
     /**

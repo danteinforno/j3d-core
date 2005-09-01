@@ -1722,7 +1722,8 @@ public abstract class Texture extends NodeComponent {
 	  rt.initImage(i, image);
 	}
       }
-      // TODO: clone new v1.2 attributes
+      // XXXX: clone new v1.2 attributes?
+      // NOTE: This sppears to have already been done
     }
 
  /** 

@@ -919,7 +919,7 @@ public class Appearance extends NodeComponent {
 	if ((nc != null) && nc.getDuplicateOnCloneTree())
 	    return true;
 
-	// TODO: TextureUnitState
+	// XXXX: TextureUnitState
 	
 	return false;
     }

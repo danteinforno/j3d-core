@@ -45,7 +45,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 				AppearanceRetained.TRANSPARENCY|
 				AppearanceRetained.COLOR);
 
-    // TODO: use definingMaterial etc. instead of these
+    // XXXX: use definingMaterial etc. instead of these
     // when sole user is completely implement
     PolygonAttributesRetained polygonAttributes = null;
     LineAttributesRetained lineAttributes = null;
@@ -740,7 +740,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	    k++;
 	}
 
-	// TODO: Add tags
+	// XXXX: Add tags
 	switch (ga.geoType) {
 	case GeometryRetained.GEO_TYPE_POINT_SET:
 	case GeometryRetained.GEO_TYPE_INDEXED_POINT_SET:
@@ -788,7 +788,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	    return (false);
 	}
 	/*
-	// TODO : Check this 
+	// XXXX : Check this 
 	if (useDisplayList &&
 	    (ga.geometry.isEditable ||
 	     ga.geometry.refCount > 1 ||
@@ -811,7 +811,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	    return (false);
 	}
 
-	// TODO: Its is necessary to have same vformat for dl,
+	// XXXX: Its is necessary to have same vformat for dl,
 	// Howabout iteration, should we have 2 vformats in rm?
 	if (geo instanceof GeometryArrayRetained) {
 	    GeometryArrayRetained gr = (GeometryArrayRetained)geo;
@@ -845,7 +845,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	        return (false);
 	    }
 	} else {
-            //TODO: compare isEditable
+            //XXXX: compare isEditable
 	    if (this.vertexFormat != -1) {
 	        return (false);
 	    }
@@ -1907,7 +1907,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	    
 	}
 	
-	// TODO: In the case of independent primitives such as quads,
+	// XXXX: In the case of independent primitives such as quads,
 	// it would still be better to call multi draw arrays
 	if (vertexArrayRenderAtomList != null) {
 	    if (pass == TextureBin.USE_DISPLAYLIST) {
@@ -2161,7 +2161,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	//	System.out.println("r.isOpaque = "+isOpaque+" rinfo = "+tinfo.rInfo+" groupType = "+tinfo.rInfo.groupType);
 	// Only support individual dlist or varray
 	// If this rInfo is a part of a bigger dlist, render as VA
-	// TODO: What to do with Text3D, Raster, CG?
+	// XXXX: What to do with Text3D, Raster, CG?
 	if ((tinfo.rInfo.groupType & RenderAtom.SEPARATE_DLIST_PER_RINFO) != 0) {
 	    RenderAtomListInfo save= tinfo.rInfo.next;
 	    // Render only one geometry
@@ -2326,7 +2326,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 
     void checkEquivalenceWithLeftNeighbor(RenderMolecule rm, int dirtyBits) {
 	boolean reload_color = reloadColor(rm);
-	// TODO : For now ignore the dirtyBits being sent in
+	// XXXX : For now ignore the dirtyBits being sent in
 	dirtyAttrsAcrossRms = ALL_DIRTY_BITS ;
 	
 	

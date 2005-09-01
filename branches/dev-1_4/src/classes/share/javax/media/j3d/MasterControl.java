@@ -809,7 +809,7 @@ class MasterControl {
 		    // If it is a Windows OS, we want to support dynamic native library selection (ogl, d3d)
 		    String osName = System.getProperty("os.name");
 		    if (osName != null && osName.startsWith("Windows")) {
-			// TODO : Should eventually support a more flexible dynamic 
+			// XXXX : Should eventually support a more flexible dynamic 
 			// selection scheme via an API call.
 			String str = System.getProperty("j3d.rend");
 			if (str != null && str.equals("d3d")) {
@@ -3620,7 +3620,7 @@ class MasterControl {
     static {
 	/*
         // Determine whether the JVM is version JDK1.5 or later.
-        // TODO: replace this with code that checks for the existence
+        // XXXX: replace this with code that checks for the existence
 	// of a class or method that is defined in 1.5, but not in 1.4
         String versionString =
             (String) java.security.AccessController.doPrivileged(

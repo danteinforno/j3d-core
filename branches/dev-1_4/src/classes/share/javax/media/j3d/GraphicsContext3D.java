@@ -183,7 +183,7 @@ public class GraphicsContext3D extends Object   {
     boolean lightsChanged = false;
 
     // A boolean that indicates the sounds have changed
-    // TODO: the soundsChanged flag are set like lights methods set 
+    // XXXX: the soundsChanged flag are set like lights methods set 
     //       lightsChanged? but where is this supposed to be check???
     //       lightsChanged tested in 'draw'; but Sound are not processed
     //       in draw.
@@ -1285,7 +1285,7 @@ public class GraphicsContext3D extends Object   {
         if (view != null) {
             SoundScheduler soundScheduler = getSoundScheduler();
             if (soundScheduler == null) {
-		// TODO: Re-implement
+		// XXXX: Re-implement
                 // start up SoundScheduler since it hasn't already been started
             }
         }
@@ -1296,13 +1296,13 @@ public class GraphicsContext3D extends Object   {
 	   this.modelTransform.transform(cs.direction, cs.xformDirection);
            cs.xformDirection.normalize();
 	   this.modelTransform.transform(cs.position, cs.xformPosition);
-           // TODO (Question) Is drawTranform equivalent to Vworld-to-Local?
+           // XXXX (Question) Is drawTranform equivalent to Vworld-to-Local?
            cs.trans.setWithLock(drawTransform);
 
    	} else if (sound instanceof PointSoundRetained) {
 	   PointSoundRetained ps = (PointSoundRetained) sound;
            this.modelTransform.transform(ps.position, ps.xformPosition);
-           // TODO (Question) Is drawTranform equivalent to Vworld-to-Local?
+           // XXXX (Question) Is drawTranform equivalent to Vworld-to-Local?
            ps.trans.setWithLock(drawTransform);
        }
     }
@@ -1564,7 +1564,7 @@ public class GraphicsContext3D extends Object   {
 	else
 	    back = this.black;
 
-	// TODO: This should ideally be done by the renderer (or by the
+	// XXXX: This should ideally be done by the renderer (or by the
 	// canvas itself) when the canvas is first added to a view.
 	/*
 	if ((canvas3d.screen.renderer != null) &&
@@ -1580,7 +1580,7 @@ public class GraphicsContext3D extends Object   {
 
         try {
 	    if (canvas3d.drawingSurfaceObject.renderLock()) {
-		// TODO : Fix texture
+		// XXXX : Fix texture
 		/*
 		if (canvas3d.useSharedCtx) {
 		    if (canvas3d.screen.renderer.sharedCtx == 0) {
@@ -1829,7 +1829,7 @@ public class GraphicsContext3D extends Object   {
 	//	rb.setVworldToVpc(vp.getVworldToVpc());
 	//	rb.setVpcToVworld(vp.getVpcToVworld());
 
-	// TODO: Fix this
+	// XXXX: Fix this
 	rb.vpcToVworld = vpR.getVpcToVworld();
 	rb.vworldToVpc = vpR.getVworldToVpc();
 
@@ -1889,7 +1889,7 @@ public class GraphicsContext3D extends Object   {
 		switch(stereoMode) {
 		case STEREO_RIGHT:
 		    vpcToEc = cvCache.getRightVpcToEc();
-		    // TODO: move this under check for 
+		    // XXXX: move this under check for 
 		    // (dirtyMask & BUFFER_MODE) above after testing
 		    // PureImmediate mode
 		    canvas3d.setProjectionMatrix(canvas3d.ctx,
@@ -1900,7 +1900,7 @@ public class GraphicsContext3D extends Object   {
 		case STEREO_BOTH:
 		default:
 		    vpcToEc = cvCache.getLeftVpcToEc();
-		    // TODO: move this under check for 
+		    // XXXX: move this under check for 
 		    // (dirtyMask & BUFFER_MODE) above after testing
 		    // PureImmediate mode
 		    canvas3d.setProjectionMatrix(canvas3d.ctx,
@@ -2037,7 +2037,7 @@ public class GraphicsContext3D extends Object   {
 				ignoreVertexColors, 
 				-1);
 	    } else {
-		// TODO: need to leverage the code in textureBin
+		// XXXX: need to leverage the code in textureBin
 		boolean startToSimulate = false;
 		if (numActiveTexUnit < 1) {
 		    // no active texture unit
@@ -2228,7 +2228,7 @@ public class GraphicsContext3D extends Object   {
            throw new IllegalSharingException(J3dI18N.getString("GraphicsContext3D21"));
         }
 
-	// TODO: implement illegal argument exception
+	// XXXX: implement illegal argument exception
 	/*
 	if (ras.image.byReference &&
 	    !(ras.image.imageReference instanceof BufferedImage)) {
@@ -2418,7 +2418,7 @@ public class GraphicsContext3D extends Object   {
 
 	if (canvas3d.enableMask != enableMask) {
 	    canvas3d.canvasDirty |= Canvas3D.LIGHTENABLES_DIRTY;
-	    // TODO: 32 => renderBin.maxLights
+	    // XXXX: 32 => renderBin.maxLights
 	    canvas3d.setLightEnables(canvas3d.ctx, enableMask, 32);
 	    canvas3d.enableMask = enableMask;
 	}

@@ -301,7 +301,6 @@ public class CompressedGeometry extends Geometry {
 	// the same number of Shape3D objects as TriangleArray using 1/2
 	// to 2/3 of the vertices, with only a marginal performance penalty.
 	//
-	// TODO revisit this
 	return decompressor.toTriangleStripArrays(cgr) ;
     }
 

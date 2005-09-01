@@ -498,7 +498,7 @@ public class Locale extends Object {
 	createMessage.args[4] = universe.setLiveState.ogCIOTableList.toArray();
 	VirtualUniverse.mc.processMessage(createMessage);
 
-	// TODO: make these two into one message
+	// XXXX: make these two into one message
 	createMessage = VirtualUniverse.mc.getMessage();
         createMessage.threads = universe.setLiveState.notifyThreads;
         createMessage.type = J3dMessage.INSERT_NODES;
