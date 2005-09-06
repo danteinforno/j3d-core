@@ -408,7 +408,200 @@ class Picking {
 	sgpath.setTransform(shape.getCurrentLocalToVworld(0));
 	return sgpath;
     }
+    
+    
+    
+    static private Node[] createPath(NodeRetained srcNode,
+            BranchGroupRetained bgRetained,
+            GeometryAtom geomAtom,
+            ArrayList initpath) {
+        
+        ArrayList path = retrievePath(srcNode, bgRetained,
+                geomAtom.source.key);
+        assert(path != null);
+        
+        return mergePath(path, initpath);
+    }
+    
+    /**
+     * return all PickInfo[] of the geomAtoms.
+     * If initpath is null, the path is search from 
+     * geomAtom Shape3D/Morph Node up to Locale
+     * (assume the same locale).
+     * Otherwise, the path is search up to node or 
+     * null is return if it is not hit.
+     */
+    
+    static ArrayList getPickInfo(ArrayList initpath, 
+                                  BranchGroupRetained bgRetained, 
+				  GeometryAtom geomAtoms[],
+			          Locale locale, int flags) {
 
+        PickInfo pickInfo; 
+        ArrayList pickInfoList = new ArrayList(5);
+        NodeRetained srcNode;
+        ArrayList text3dList = null;
+
+        if ((geomAtoms == null) || (geomAtoms.length == 0)) {
+            return null;
+        }
+        
+	for (int i=0; i < geomAtoms.length; i++) {
+            
+            assert((geomAtoms[i] != null) &&
+                    (geomAtoms[i].source != null));
+            
+            Shape3DRetained shape = geomAtoms[i].source;
+            srcNode = shape.sourceNode;           
+            
+            if (srcNode == null) {
+                // The node is just detach from branch so sourceNode = null
+                continue;
+            }
+            
+            // Special case, for Text3DRetained, it is possible
+            // for different geomAtoms pointing to the same
+            // source Text3DRetained. So we need to combine
+            // those cases and report only once.
+            if (srcNode instanceof Shape3DRetained) {
+                Shape3DRetained s3dR = (Shape3DRetained) srcNode;
+                GeometryRetained geomR = null;
+                for(int cnt=0; cnt<s3dR.geometryList.size(); cnt++) {
+                    geomR = (GeometryRetained) s3dR.geometryList.get(cnt);
+                    if(geomR != null)
+                        break;
+                }
+                
+                if (geomR == null)
+                    continue;
+                
+                if (geomR instanceof Text3DRetained) {
+                    // assume this case is not frequent, we allocate
+                    // ArrayList only when necessary and we use ArrayList
+                    // instead of HashMap since the case of when large
+                    // number of distingish Text3DRetained node hit is
+                    // rare.
+                    if (text3dList == null) {
+                        text3dList = new ArrayList(3);
+                    } else {
+                        int size = text3dList.size();
+                        boolean found = false;
+                        for (int j=0; j < size; j++) {
+                            if (text3dList.get(j) == srcNode) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            continue;  // try next geomAtom
+                        }
+                    }
+                    text3dList.add(srcNode);
+                }
+            }
+                        
+            // If srcNode is instance of compile retained, then loop thru
+            // the entire source list and add it to the scene graph path
+            if (srcNode instanceof Shape3DCompileRetained) {
+                Shape3DCompileRetained s3dCR = (Shape3DCompileRetained)srcNode;
+                
+                Node[] mpath = null;
+                boolean first = true;
+                
+                for (int n = 0; n < s3dCR.srcList.length; n++) {
+                    
+                    pickInfo = new PickInfo();
+                    
+                    // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
+                    if (((flags & PickInfo.SCENEGRAPHPATH) != 0) && 
+                         (inside(shape.branchGroupPath,bgRetained))){
+                        
+                        if(first) {
+                            mpath = createPath(srcNode, bgRetained, geomAtoms[i], initpath);
+                            first = false;
+                        }
+                        
+                        if(mpath != null) {
+                            SceneGraphPath sgpath = new SceneGraphPath(locale,
+                                    mpath, (Node) s3dCR.srcList[n]);
+                            sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+                            pickInfo.setSceneGraphPath(sgpath);
+                        }
+                    }
+
+                    // PickInfo.NODE - request for computed intersected Node.
+                    if ((flags & PickInfo.NODE) != 0) {
+                        pickInfo.setNode((Node) s3dCR.srcList[n]);
+                    }
+                    
+                    // PickInfo.LOCAL_TO_VWORLD
+                    //    - request for computed local to virtual world transform.
+                    if ((flags & PickInfo.LOCAL_TO_VWORLD) != 0) {
+                        Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                        pickInfo.setLocalToVWorld( new Transform3D(l2vw));
+                    }
+
+                    // NOTE : Piggy bag for geometry computation by caller.
+                    if (((flags & PickInfo.CLOSEST_DISTANCE) != 0) ||
+                        ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) ||
+                        ((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) ||
+                        ((flags & PickInfo.ALL_GEOM_INFO) != 0)) {
+
+                        pickInfo.setNode((Node) s3dCR.srcList[n]);
+                        Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                        pickInfo.setLocalToVWorldRef(l2vw);
+                    }
+                    
+                    pickInfoList.add(pickInfo);
+                }    
+            }
+            else {
+                Node[] mpath = null;
+                pickInfo = new PickInfo();
+                
+                // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
+                if (((flags & PickInfo.SCENEGRAPHPATH) != 0)  && 
+                    (inside(shape.branchGroupPath,bgRetained))) {
+                    
+                    mpath = createPath(srcNode, bgRetained, geomAtoms[i], initpath);
+                    
+                    if(mpath != null) {
+                        SceneGraphPath sgpath = new SceneGraphPath(locale, mpath,
+                                (Node) srcNode.source);
+                        sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+                        pickInfo.setSceneGraphPath(sgpath);
+                    }
+                }
+                
+                // PickInfo.NODE - request for computed intersected Node.
+                if ((flags & PickInfo.NODE) != 0) {
+                    pickInfo.setNode((Node) srcNode.source);
+                }
+                
+                // PickInfo.LOCAL_TO_VWORLD
+                //    - request for computed local to virtual world transform.
+                if ((flags & PickInfo.LOCAL_TO_VWORLD) != 0) {
+                    Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                    pickInfo.setLocalToVWorld( new Transform3D(l2vw));
+                }
+                
+                // NOTE : Piggy bag for geometry computation by caller.
+                if (((flags & PickInfo.CLOSEST_DISTANCE) != 0) ||
+                    ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) ||
+                    ((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) ||
+                    ((flags & PickInfo.ALL_GEOM_INFO) != 0)) {
+
+                    pickInfo.setNodeRef((Node) srcNode.source);                    
+                    Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                    pickInfo.setLocalToVWorldRef(l2vw);
+                }
+
+                pickInfoList.add(pickInfo);
+            }
+        }
+	return pickInfoList;
+    }    
+    
     /**
      * Return true if bg is inside cachedBG or bg is null
      */
@@ -471,7 +664,7 @@ class Picking {
 
 
     /**
-     * search the full path from the botton of the scene graph -
+     * search the full path from the bottom of the scene graph -
      * startNode, up to the Locale if endNode is null.
      * If endNode is not null, the path is found up to, but not
      * including, endNode or return null if endNode not hit 

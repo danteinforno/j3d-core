@@ -557,7 +557,47 @@ public class Locale extends Object {
 
 	return branchGroups.elements();
     }
+
     
+    void validateModeFlagAndPickShape(int mode, int flags, PickShape pickShape) {
+
+        if (universe == null) {
+	    throw new IllegalStateException(J3dI18N.getString("Locale4"));
+	}
+        
+        if((mode != PickInfo.PICK_BOUNDS) && (mode != PickInfo.PICK_GEOMETRY)) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("Locale5"));
+        }
+        
+        if((pickShape instanceof PickPoint) && (mode != PickInfo.PICK_GEOMETRY)) {
+          throw new IllegalArgumentException(J3dI18N.getString("Locale6"));
+        }
+        
+        if(((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) &&
+                ((flags & PickInfo.ALL_GEOM_INFO) != 0)) {
+            throw new IllegalArgumentException(J3dI18N.getString("Locale7"));
+        }
+        
+        if((mode != PickInfo.PICK_BOUNDS) && 
+                (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
+                            PickInfo.ALL_GEOM_INFO |
+                            PickInfo.CLOSEST_DISTANCE |
+                            PickInfo.CLOSEST_INTERSECTION_POINT)) != 0))) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("Locale8"));
+        }
+  
+        if((pickShape instanceof PickBounds) && 
+                (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
+                            PickInfo.ALL_GEOM_INFO |
+                            PickInfo.CLOSEST_DISTANCE |
+                            PickInfo.CLOSEST_INTERSECTION_POINT)) != 0))) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("Locale9"));
+        }        
+    }
+
     /**
      * Returns an array referencing all the items that are pickable below this
      * <code>Locale</code> that intersect with PickShape.
@@ -604,14 +644,22 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO are set.
+     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO set.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
      * is set to PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     *
+     * @exception IllegalArgumentException if pickShape is PickBounds 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
@@ -623,8 +671,12 @@ public class Locale extends Object {
      *
      */
     public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
+        
+        validateModeFlagAndPickShape(mode, flags, pickShape);   
 
-	throw new RuntimeException("pickAll method not implemented yet");
+	GeometryAtom geomAtoms[] = universe.geometryStructure.pickAll(this, pickShape);
+        
+        return PickInfo.pickAll(this, geomAtoms, mode, flags, pickShape);
 
     }
 
@@ -679,14 +731,22 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO are set.
+     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO set.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
      * is set to PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     *
+     * @exception IllegalArgumentException if pickShape is PickBounds 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
@@ -698,9 +758,8 @@ public class Locale extends Object {
      *
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
-
-	throw new RuntimeException("pickAllSorted method not implemented yet");
-
+        PickInfo[] pickArr = pickAll(mode, flags, pickShape);
+        return PickInfo.sortPickInfoArray(pickArr);
     }
 
     /**
@@ -721,7 +780,6 @@ public class Locale extends Object {
 	if (universe == null) {
 	    throw new IllegalStateException(J3dI18N.getString("Locale4"));
 	}
-
 	return Picking.pickClosest( this, pickShape );
     }
 
@@ -751,14 +809,22 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO are set.
+     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO set.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
      * is set to PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     *
+     * @exception IllegalArgumentException if pickShape is PickBounds 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.     
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
@@ -771,7 +837,8 @@ public class Locale extends Object {
      */
     public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
 
-	throw new RuntimeException("pickAllSorted method not implemented yet");
+        validateModeFlagAndPickShape(mode, flags, pickShape);
+	throw new RuntimeException("pickClosest method not implemented yet");
 
     }
 
@@ -819,14 +886,22 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO are set.
+     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO set.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
      * is set to PickInfo.PICK_GEOMETRY.
      *
      * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
      * nor PickInfo.PICK_GEOMETRY.
+     *
+     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     *
+     * @exception IllegalArgumentException if pickShape is PickBounds 
+     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
@@ -839,7 +914,8 @@ public class Locale extends Object {
      */
     public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
 
-	throw new RuntimeException("pickAllSorted method not implemented yet");
+        validateModeFlagAndPickShape(mode, flags, pickShape);
+	throw new RuntimeException("pickAny method not implemented yet");
 
     }
 

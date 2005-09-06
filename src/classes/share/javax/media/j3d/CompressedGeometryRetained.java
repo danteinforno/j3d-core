@@ -321,12 +321,12 @@ class CompressedGeometryRetained extends GeometryRetained {
     // The following intersect() methods are used to implement geometry-based
     // picking and collision.
     //
-    boolean intersect(PickShape pickShape, double dist[], Point3d iPnt) {
+    boolean intersect(PickShape pickShape, PickInfo.IntersectionInfo iInfo,  int flags, Point3d iPnt) {
 	GeometryRetained geom = getPickGeometry() ;
 	return (geom != null ?
-		geom.intersect(pickShape, dist, iPnt) : false);
+		geom.intersect(pickShape, iInfo, flags, iPnt) : false);
     }
-
+    
     boolean intersect(Bounds targetBound) {
 	GeometryRetained geom = getPickGeometry() ;
 	return (geom != null ? geom.intersect(targetBound) : false);
