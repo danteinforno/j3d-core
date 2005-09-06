@@ -229,7 +229,8 @@ abstract class GeometryRetained extends NodeComponentRetained {
 	return 0 ;
     }
 
-    abstract boolean intersect(PickShape pickShape, double dist[], Point3d iPnt);
+   // New -- Chien.
+    abstract boolean intersect(PickShape pickShape, PickInfo.IntersectionInfo iInfo, int flags, Point3d iPnt);   
     abstract boolean intersect(Bounds targetBound);
     abstract boolean intersect(Point3d[] pnts);
     abstract boolean intersect(Transform3D thisToOtherVworld, GeometryRetained geom);

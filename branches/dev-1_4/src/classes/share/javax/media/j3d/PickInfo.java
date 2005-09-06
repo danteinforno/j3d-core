@@ -13,6 +13,7 @@
 package javax.media.j3d;
 
 import javax.vecmath.*;
+import java.util.*;
 
 /**
  * The PickInfo object contains the computed information about a pick hit.  
@@ -48,9 +49,14 @@ public class PickInfo extends Object {
     private double  closestDistance;
 
     /* An array to store intersection results */
-    private IntersectionInfo[] intersectionInfos;
-
-
+    // private IntersectionInfo[] intersectionInfos;
+    private ArrayList intersectionInfoList = new ArrayList();
+    private boolean intersectionInfoListSorted = false;
+    
+    /* The following references are for internal geometry computation use only */
+    private Transform3D l2vwRef;
+    private Node nodeRef;
+    
     /**
      * Specifies a Pick using the bounds of the pickable nodes.
      */
@@ -64,39 +70,39 @@ public class PickInfo extends Object {
     /**
    * Specifies that this PickInfo returns the computed SceneGraphPath object.
    */
-    static final int SCENEGRAPHPATH  = 0x04;
+    public static final int SCENEGRAPHPATH  = 0x04;
     
     /**
      * Specifies that this PickInfo returns the computed intersected Node object.
      */
-    static final int NODE = 0x08;
+    public static final int NODE = 0x08;
     
     /**
      * Specifies that this PickInfo returns the computed local to vworld transform.
      */
-    public static final int LOCAL_TO_VWORLD = 0x08;
+    public static final int LOCAL_TO_VWORLD = 0x10;
     
     /**
      * Specifies that this PickInfo returns the closest intersection point.
      */
-    public static final int CLOSEST_INTERSECTION_POINT = 0x10;
+    public static final int CLOSEST_INTERSECTION_POINT = 0x20;
 
     /**
      * Specifies that this PickInfo returns the closest intersection distance.
      */
-    public static final int CLOSEST_DISTANCE = 0x20;
+    public static final int CLOSEST_DISTANCE = 0x40;
 
     /**
      * Specifies that this PickInfo returns only the closest intersection 
      * geometry information.
      */
-    public static final int CLOSEST_GEOM_INFO = 0x40;
+    public static final int CLOSEST_GEOM_INFO = 0x80;
 
     /**
      * Specifies that this PickInfo returns all the closest intersection 
      * geometry informations.
      */
-    public static final int ALL_GEOM_INFO = 0x80;
+    public static final int ALL_GEOM_INFO = 0x100;
 
 
     /** PickInfo Constructor */
@@ -104,7 +110,53 @@ public class PickInfo extends Object {
 
     }
     
+    void setSceneGraphPath(SceneGraphPath sgp) {
+        this.sgp = sgp;
+    }
+    
+    void setNode(Node node) {
+        this.node = node;
+    }
+    
+    void setLocalToVWorld(Transform3D l2vw) {
+        this.l2vw = l2vw;
+    }
+    
+    void setClosestInteresectionPoint(Point3d cIPt) {
+        this.closestIntersectionPoint = cIPt;
+    }
+    
+    void setClosestDistance(double cDist) {
+        this.closestDistance = cDist;
+    }
+    
+    void setLocalToVWorldRef(Transform3D l2vwRef) {
+        this.l2vwRef = l2vwRef;
+    }
+    
+    void setNodeRef(Node nodeRef) {
+        this.nodeRef = nodeRef;
+    }
+    
+    IntersectionInfo createIntersectionInfo() {
+        return new IntersectionInfo();
+    }
+    
+    void insertIntersectionInfo(IntersectionInfo iInfo) {
+        intersectionInfoList.add(iInfo);
+        intersectionInfoListSorted = false;
+    }
+    
+    void sortIntersectionInfoList() {
+        System.out.println("PickInfo.sortIntersectionInfoList is not implemented yet");
+        intersectionInfoListSorted = true;
+    }
 
+    static PickInfo[] sortPickInfoArray(PickInfo[] pickInfoArr) {
+        System.out.println("PickInfo.sortPickInfoArr is not implemented yet");
+        return pickInfoArr;
+    }
+    
     /**
      * Retrieves the reference to the SceneGraphPath in this PickInfo object.
      * @return the SceneGraphPath object, or null if  flag is not set with SCENEGRAPHPATH.
@@ -112,11 +164,8 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public SceneGraphPath getSceneGraphPath() {
-
 	return sgp;
-
     }
-    
 
     /**
      * Retrieves the reference to the picked node, either a Shape3D or a Morph, in this PickInfo object.
@@ -125,7 +174,6 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public Node getNode() {
-
 	return node;
     }
 
@@ -136,9 +184,7 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public Transform3D getLocalToVWorld() {
-	
 	return l2vw;
-
     }
 	
     /**
@@ -148,9 +194,7 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public Point3d getClosestIntersectionPoint() {
-
 	return closestIntersectionPoint;
-    
     }
 
     /**
@@ -160,10 +204,17 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public double getClosestDistance() {
-
 	return closestDistance;
     }
 
+    Transform3D getLocalToVWorldRef() {
+        return l2vwRef;
+    }
+    
+    Node getNodeRef() {
+        return nodeRef;
+    }
+    
     /**
      * Retrieves the reference to the array of intersection results in this PickInfo object.
      * @return an array of  IntersectionInfo, with length 1, if  flag is to set  CLOSEST_GEOM_INFO,
@@ -173,9 +224,46 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public IntersectionInfo[] getIntersectionInfos() {
-
-	return intersectionInfos;	
+   	IntersectionInfo iInfoArray[] = new IntersectionInfo[intersectionInfoList.size()];
+	return (IntersectionInfo []) intersectionInfoList.toArray(iInfoArray);	
     }
+     
+    static PickInfo[] pickAll(Locale locale, GeometryAtom[] geomAtoms,
+            int mode, int flags, PickShape pickShape) {
+
+        int pickInfoListSize;
+        ArrayList pickInfoList = Picking.getPickInfo(null, null, geomAtoms,
+                locale, flags);
+        
+        // We done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
+        if((mode == PICK_GEOMETRY) && ((flags & PickInfo.CLOSEST_DISTANCE) != 0) &&
+                ((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) && 
+                ((pickInfoListSize = pickInfoList.size()) > 0)) {
+            
+            PickInfo pickInfo = null;
+            Node node = null;
+            
+            // Need to do in reverse order.    
+            for(int i = pickInfoListSize - 1; i >= 0; i--) {
+                pickInfo = (PickInfo) pickInfoList.get(i);
+                
+                if (node instanceof Shape3D) {
+                    if (((Shape3DRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
+                        pickInfoList.remove(i);
+                    }
+                } else if (node instanceof Morph) {
+                    if (((MorphRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
+                        pickInfoList.remove(i);                        
+                    } 
+                }
+            }
+        }
+
+        PickInfo[] pickInfoArr = new PickInfo[pickInfoList.size()];
+        return (PickInfo []) pickInfoList.toArray(pickInfoArr);
+        
+    }
+    
     
     /**
      * The IntersectionInfo object holds extra information about an intersection 
@@ -221,6 +309,30 @@ public class PickInfo extends Object {
 
 	}
 
+        void setGeometryIndex(int geomIndex) {
+            this.geomIndex = geomIndex;
+        }
+        
+        void setGeometry(Geometry geom) {
+            this.geom = geom;
+        }
+        
+        void setIntersectionPoint(Point3d intersectionPoint) {
+            this.intersectionPoint = intersectionPoint;
+        }
+        
+        void setDistance(double distance) {
+            this.distance = distance;
+        }       
+        
+        void setVertexIndices(int[] vertexIndices) {
+	    this.vertexIndices = vertexIndices;
+	}
+
+        void setWeights(float[] weights) {
+	    this.weights = weights;
+	}
+        
 	/**
 	 * Retrieves the index to the intersected geometry in the picked node, either a Shape3D or Morph.
 	 * @return the index of the intersected geometry in the pickable node.
@@ -251,10 +363,10 @@ public class PickInfo extends Object {
 	 * @return distance between the start point of the pickShape and the 
 	 * intersection point.
 	 */
-	public double getDistance() {
-	    
+	public double getDistance() {	    
 	    return distance;
 	}
+        
 	/**
 	 * Retrieves the vertex indices of the intersected primitive in the geometry.
 	 * @return the vertex indices of the intersected primitive.

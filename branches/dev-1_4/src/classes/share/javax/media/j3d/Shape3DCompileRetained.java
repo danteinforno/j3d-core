@@ -424,7 +424,29 @@ class Shape3DCompileRetained extends Shape3DRetained {
      * @exception IllegalArgumentException if <code>path</code> is
      * invalid.
      */
+    boolean intersect(SceneGraphPath path,
+		      PickShape pickShape, double[] dist) {
+	
+	// This method will not do bound intersect check, as it assume
+	// caller has already done that. ( For performance and code
+	// simplification reasons. )
+       
+	Transform3D localToVworld = path.getTransform();
+	int i;
 
+	if (localToVworld == null) {
+	    throw new IllegalArgumentException(J3dI18N.getString("Shape3DRetained3"));   
+	}
+        
+        // TODO : Need to implement this --- Chien.
+	throw new RuntimeException("intersect method not implemented yet");
+        
+        
+    }
+    
+
+   
+/* Old code -- Chien.
     boolean intersect(SceneGraphPath path,
 		      PickShape pickShape, double[] dist) {
 	
@@ -501,4 +523,5 @@ class Shape3DCompileRetained extends Shape3DRetained {
 	Shape3DRetained.freePoint3d(iPnt);
 	return false;
     }
+ */
 }

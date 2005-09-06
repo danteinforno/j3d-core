@@ -7558,7 +7558,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	direction.z = end.z - start.z;
 	result = intersectRayOrSegment(coordinates, direction, start, dist, iPnt, true);
 	freeVector3d(direction);
-	return result;
+        if((result == true) && (dist[0] <= 1.0)) {
+            return true;
+        }
+        
+        return false;
+        
     }
     
 
