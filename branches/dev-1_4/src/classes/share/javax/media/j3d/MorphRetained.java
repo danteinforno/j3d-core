@@ -499,7 +499,7 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
                     intersectionInfo.setGeometryIndex(0);
                     intersectionInfo.setIntersectionPoint(iPnt);
                     intersectionInfo.setDistance(distance);
-                    // intersectionInfo.setVertexIndices(vertexIndices);
+                    // VertexIndices has been computed in intersect method.
                     pickInfo.insertIntersectionInfo(intersectionInfo);
                 }
                 return true;

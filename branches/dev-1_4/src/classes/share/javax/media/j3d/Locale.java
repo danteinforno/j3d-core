@@ -758,8 +758,12 @@ public class Locale extends Object {
      *
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
+
+	// Need to have closestDistance set
+	flags |= PickInfo.CLOSEST_DISTANCE;
         PickInfo[] pickArr = pickAll(mode, flags, pickShape);
-        return PickInfo.sortPickInfoArray(pickArr);
+	PickInfo.sortPickInfoArray(pickArr);
+        return pickArr;
     }
 
     /**

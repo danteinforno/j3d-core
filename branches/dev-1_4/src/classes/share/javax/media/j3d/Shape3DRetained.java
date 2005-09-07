@@ -685,8 +685,7 @@ class Shape3DRetained extends LeafRetained {
                                 closestInfo.setGeometryIndex(i);
                                 closestInfo.setIntersectionPoint(closestIPnt);
                                 closestInfo.setDistance(distance);
-// TODO: Need to handle this -- Chien
-                                //closestInfo.setVertexIndices(vertexIndices);
+                                closestInfo.setVertexIndices(intersectionInfo.getVertexIndices());
                             }
                         }
                         
@@ -696,9 +695,7 @@ class Shape3DRetained extends LeafRetained {
                             intersectionInfo.setGeometryIndex(i);
                             intersectionInfo.setIntersectionPoint(iPnt);
                             intersectionInfo.setDistance(distance);
-//TODO: Need to handle this -- Chien
-                            // intersectionInfo.setVertexIndices(vertexIndices);
-                            
+                           // VertexIndices has been computed in intersect method.
                             pickInfo.insertIntersectionInfo(intersectionInfo);
                             intersectionInfo = pickInfo.createIntersectionInfo();
                         }
@@ -713,10 +710,7 @@ class Shape3DRetained extends LeafRetained {
                 if((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) {
                     pickInfo.setClosestInteresectionPoint(closestIPnt);
                 }
-                if ((flags & PickInfo.ALL_GEOM_INFO) != 0) {
-// TODO : Need to implement sort routine. - Chien.
-                    pickInfo.sortIntersectionInfoList();
-                } else if ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) {
+		if ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) {
                     pickInfo.insertIntersectionInfo(closestInfo);
                 }
                 return true;
