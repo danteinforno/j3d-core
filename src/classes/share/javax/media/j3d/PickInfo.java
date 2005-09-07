@@ -60,49 +60,49 @@ public class PickInfo extends Object {
     /**
      * Specifies a Pick using the bounds of the pickable nodes.
      */
-    public static final int PICK_BOUNDS = 0x1;
+    public static final int PICK_BOUNDS = 1;
     
     /**
      * Specifies a Pick using the geometry of the pickable nodes.
      */
-    public static final int PICK_GEOMETRY = 0x2;
+    public static final int PICK_GEOMETRY = 2;
     
     /**
    * Specifies that this PickInfo returns the computed SceneGraphPath object.
    */
-    public static final int SCENEGRAPHPATH  = 0x04;
+    public static final int SCENEGRAPHPATH  = 0x01;
     
     /**
      * Specifies that this PickInfo returns the computed intersected Node object.
      */
-    public static final int NODE = 0x08;
+    public static final int NODE = 0x02;
     
     /**
      * Specifies that this PickInfo returns the computed local to vworld transform.
      */
-    public static final int LOCAL_TO_VWORLD = 0x10;
+    public static final int LOCAL_TO_VWORLD = 0x04;
     
     /**
      * Specifies that this PickInfo returns the closest intersection point.
      */
-    public static final int CLOSEST_INTERSECTION_POINT = 0x20;
+    public static final int CLOSEST_INTERSECTION_POINT = 0x08;
 
     /**
      * Specifies that this PickInfo returns the closest intersection distance.
      */
-    public static final int CLOSEST_DISTANCE = 0x40;
+    public static final int CLOSEST_DISTANCE = 0x10;
 
     /**
      * Specifies that this PickInfo returns only the closest intersection 
      * geometry information.
      */
-    public static final int CLOSEST_GEOM_INFO = 0x80;
+    public static final int CLOSEST_GEOM_INFO = 0x20;
 
     /**
      * Specifies that this PickInfo returns all the closest intersection 
      * geometry informations.
      */
-    public static final int ALL_GEOM_INFO = 0x100;
+    public static final int ALL_GEOM_INFO = 0x40;
 
 
     /** PickInfo Constructor */
@@ -148,7 +148,6 @@ public class PickInfo extends Object {
     }
     
     void sortIntersectionInfoArray(IntersectionInfo[] iInfoArr) {
-        System.out.println("PickInfo.sortIntersectionInfoList is not implemented yet");
 
         class Sort {
 	    
@@ -207,9 +206,7 @@ public class PickInfo extends Object {
         intersectionInfoListSorted = true;
     }
 
-    // New code --- Chien.
     static void sortPickInfoArray(PickInfo[] pickInfoArr) {
-        System.out.println("PickInfo.sortPickInfoArr is not implemented yet");
 
         class Sort {
 	    
@@ -311,7 +308,9 @@ public class PickInfo extends Object {
 
     /**
      * Retrieves the distance between the start point of the pickShape and the closest intersection point.
-     * @return double, or null if  flag is not set with CLOSEST_INTERSECTION_POINT.
+     * @return the closest distance in double, or NaN if  flag is not set with CLOSEST_INTERSECTION_POINT.
+     * Note : If this PickInfo object is returned by either pickClosest or pickAllSorted method, the return
+     * value is the closest distance in double even if flag is not set with CLOSET_INTERSECTION_POINT.
      * @see Locale
      * @see BranchGroup
      */
@@ -329,9 +328,10 @@ public class PickInfo extends Object {
     
     /**
      * Retrieves the reference to the array of intersection results in this PickInfo object.
-     * @return an array of  IntersectionInfo, with length 1, if  flag is to set  CLOSEST_GEOM_INFO,
-     * or an array of IntersectionInfo contains all intersections of the picked node in sorted order.
-     * @exception IllegalStateException if  both CLOSEST_GEOM_INFO and ALL_GEOM_INFO are set.
+     * @return an array of 1 IntersectionInfo object if flag is to set  CLOSEST_GEOM_INFO,
+     * or an array of <i>N</i> IntersectionInfo objects containing all intersections of 
+     * the picked node in sorted order if flag is to set ALL_GEOM_INFO, or null if neither 
+     * bit is set.
      * @see Locale
      * @see BranchGroup
      */
