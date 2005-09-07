@@ -49,11 +49,11 @@ public class PickInfo extends Object {
     private double  closestDistance;
 
     /* An array to store intersection results */
-    // private IntersectionInfo[] intersectionInfos;
-    private ArrayList intersectionInfoList = new ArrayList();
-    private boolean intersectionInfoListSorted = false;
+    private IntersectionInfo[] intersectionInfoArr;
     
     /* The following references are for internal geometry computation use only */
+    private ArrayList intersectionInfoList = new ArrayList();
+    private boolean intersectionInfoListSorted = false;
     private Transform3D l2vwRef;
     private Node nodeRef;
     
@@ -147,15 +147,127 @@ public class PickInfo extends Object {
         intersectionInfoListSorted = false;
     }
     
-    void sortIntersectionInfoList() {
+    void sortIntersectionInfoArray(IntersectionInfo[] iInfoArr) {
         System.out.println("PickInfo.sortIntersectionInfoList is not implemented yet");
+
+        class Sort {
+	    
+	    IntersectionInfo iInfoArr[];
+
+	    Sort(IntersectionInfo[] iInfoArr) {
+                System.out.println("Sort IntersectionInfo ...");
+		this.iInfoArr = iInfoArr;
+	    }
+
+	    void sorting() {
+		if (iInfoArr.length < 7) {
+                    System.out.println(" -- insertSort.");
+		    insertSort();
+	    	} else {
+                    System.out.println(" -- quicksort.");                    
+		    quicksort(0, iInfoArr.length-1);
+    		}
+	    }
+
+	    // Insertion sort on smallest arrays
+	    final void insertSort() {
+		for (int i=0; i<iInfoArr.length; i++) {
+		    for (int j=i; j>0 && 
+                             (iInfoArr[j-1].distance > iInfoArr[j].distance); j--) {
+			IntersectionInfo iInfo = iInfoArr[j];
+			iInfoArr[j] = iInfoArr[j-1];
+			iInfoArr[j-1] = iInfo;
+		    }
+		}
+	    }
+
+            final void quicksort( int l, int r ) {
+		int i = l;
+		int j = r;
+		double k = iInfoArr[(l+r) / 2].distance;
+
+		do {
+		    while (iInfoArr[i].distance<k) i++;
+		    while (k<iInfoArr[j].distance) j--;
+		    if (i<=j) {			
+			IntersectionInfo iInfo = iInfoArr[i];
+			iInfoArr[i] = iInfoArr[j];
+			iInfoArr[j] = iInfo;
+			i++;
+			j--;
+		    }
+		} while (i<=j);
+		
+		if (l<j) quicksort(l,j);
+		if (l<r) quicksort(i,r);
+	    }
+	}
+
+	(new Sort(iInfoArr)).sorting();            
         intersectionInfoListSorted = true;
     }
 
-    static PickInfo[] sortPickInfoArray(PickInfo[] pickInfoArr) {
+    // New code --- Chien.
+    static void sortPickInfoArray(PickInfo[] pickInfoArr) {
         System.out.println("PickInfo.sortPickInfoArr is not implemented yet");
-        return pickInfoArr;
+
+        class Sort {
+	    
+	    PickInfo pIArr[];
+
+	    Sort(PickInfo[] pIArr) {
+                System.out.println("Sort PickInfo ...");
+		this.pIArr = pIArr;
+	    }
+
+	    void sorting() {
+		if (pIArr.length < 7) {
+                    System.out.println(" -- insertSort.");
+		    insertSort();
+	    	} else {
+                    System.out.println(" -- quicksort.");                    
+		    quicksort(0, pIArr.length-1);
+    		}
+	    }
+
+	    // Insertion sort on smallest arrays
+	    final void insertSort() {
+		for (int i=0; i<pIArr.length; i++) {
+		    for (int j=i; j>0 && 
+                             (pIArr[j-1].closestDistance > pIArr[j].closestDistance); j--) {
+			PickInfo pI = pIArr[j];
+			pIArr[j] = pIArr[j-1];
+			pIArr[j-1] = pI;
+		    }
+		}
+	    }
+
+            final void quicksort( int l, int r ) {
+		int i = l;
+		int j = r;
+		double k = pIArr[(l+r) / 2].closestDistance;
+
+		do {
+		    while (pIArr[i].closestDistance<k) i++;
+		    while (k<pIArr[j].closestDistance) j--;
+		    if (i<=j) {			
+			PickInfo pI = pIArr[i];
+			pIArr[i] = pIArr[j];
+			pIArr[j] = pI;
+			i++;
+			j--;
+		    }
+		} while (i<=j);
+		
+		if (l<j) quicksort(l,j);
+		if (l<r) quicksort(i,r);
+	    }
+	}
+
+	(new Sort(pickInfoArr)).sorting();        
+        
     }
+
     
     /**
      * Retrieves the reference to the SceneGraphPath in this PickInfo object.
@@ -277,7 +389,7 @@ public class PickInfo extends Object {
      * If the Shape3D being picked has multiple geometry arrays, the possible arrays
      * of IntersectionInfo are stored in the PickInfo and referred to by a geometry 
      * index. If the picked geometry is of type, Text3D or CompressGeometry, 
-     * getVertexIndices and getWeights are invalid. If the picked Node is an Morph 
+     * getVertexIndices is invalid. If the picked Node is an Morph 
      * object, the geometry used in pick computation is alway at index 0.
      * <p>
      *
@@ -302,7 +414,7 @@ public class PickInfo extends Object {
 	private int[] vertexIndices;
 
 	/* The interpolation weights for each of the verticies of the primitive */
-	private float[] weights;     
+	// private float[] weights;  Not supported. Should be done in util. package  
 
 	/** IntersectionInfo Constructor */
 	IntersectionInfo() {
@@ -329,9 +441,6 @@ public class PickInfo extends Object {
 	    this.vertexIndices = vertexIndices;
 	}
 
-        void setWeights(float[] weights) {
-	    this.weights = weights;
-	}
         
 	/**
 	 * Retrieves the index to the intersected geometry in the picked node, either a Shape3D or Morph.
@@ -373,15 +482,6 @@ public class PickInfo extends Object {
 	 */
 	public int[] getVertexIndices() {
 	    return vertexIndices;
-	}
-
-	/**
-	 * Retrieves the interpolation weights for each of the verticies of the  intersected primitive.
-	 * Quad needs to be co-planar.
-	 * @return the interpolation weights for each of the verticies.
-	 */
-	public float[] getWeights() {
-	    return weights;
 	}
 
     }
