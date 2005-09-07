@@ -622,12 +622,16 @@ public class Locale extends Object {
     /**
      * Returns an array unsorted references to all the PickInfo objects that are pickable 
      * below this <code>Locale</code> that intersect with PickShape. 
-     * The detail level of picking is set by the pick mode. The mode include : 
+     * The accuracy of the pick is set by the pick mode. The mode include : 
      * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
      * is specified via a masked variable, flags, indicating which components are 
-     * present in each returned PickInfo object. This is specified as one or more 
-     * individual flags that are bitwise "OR"ed together to describe the returned per 
-     * PickInfo data. The flags include: <br><br>
+     * present in each returned PickInfo object. 
+     *
+     * @param mode  picking mode, one of <code>PickInfo.PICK_BOUNDS</code> or <code>PickInfo.PICK_GEOMETRY</code>.
+     *
+     * @param flags a mask indicating which components are present in each PickInfo object.  
+     * This is specified as one or more individual bits that are bitwise "OR"ed together to 
+     * describe the PickInfo data. The flags include :
      * <ul>
      * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
      * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
@@ -637,10 +641,6 @@ public class Locale extends Object {
      * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
      * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
      * </ul>
-     *
-     * @param mode  specifies the detail level of picking.
-     *
-     * @param flags specifies amount of returned information in each PickInfo object.
      *
      * @param pickShape the description of this picking volume or area.
      *
@@ -709,12 +709,16 @@ public class Locale extends Object {
      * items that intersect with the pickShape. Element [0] references 
      * the item closest to <i>origin</i> of PickShape successive array
      * elements are further from the <i>origin</i>
-     * The detail level of picking is set by the pick mode. The mode include : 
+     * The accuracy of the pick is set by the pick mode. The mode include : 
      * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
      * is specified via a masked variable, flags, indicating which components are 
-     * present in each returned PickInfo object. This is specified as one or more 
-     * individual flags that are bitwise "OR"ed together to describe the returned per 
-     * PickInfo data. The flags include: <br><br>
+     * present in each returned PickInfo object. 
+     *
+     * @param mode  picking mode, one of <code>PickInfo.PICK_BOUNDS</code> or <code>PickInfo.PICK_GEOMETRY</code>.
+     *
+     * @param flags a mask indicating which components are present in each PickInfo object.  
+     * This is specified as one or more individual bits that are bitwise "OR"ed together to 
+     * describe the PickInfo data. The flags include :
      * <ul>
      * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
      * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
@@ -724,10 +728,6 @@ public class Locale extends Object {
      * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
      * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
      * </ul>
-     *
-     * @param mode  specifies the detail level of picking.
-     *
-     * @param flags specifies amount of returned information in each PickInfo object.
      *
      * @param pickShape the description of this picking volume or area.
      *
@@ -791,12 +791,16 @@ public class Locale extends Object {
     /**
      * Returns a PickInfo which references the pickable item
      * which is closest to the origin of <code>pickShape</code>.
-     * The detail level of picking is set by the pick mode. The mode include : 
+     * The accuracy of the pick is set by the pick mode. The mode include : 
      * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
      * is specified via a masked variable, flags, indicating which components are 
-     * present in each returned PickInfo object. This is specified as one or more 
-     * individual flags that are bitwise "OR"ed together to describe the returned per 
-     * PickInfo data. The flags include: <br><br>
+     * present in each returned PickInfo object. 
+     *
+     * @param mode  picking mode, one of <code>PickInfo.PICK_BOUNDS</code> or <code>PickInfo.PICK_GEOMETRY</code>.
+     *
+     * @param flags a mask indicating which components are present in each PickInfo object.  
+     * This is specified as one or more individual bits that are bitwise "OR"ed together to 
+     * describe the PickInfo data. The flags include :
      * <ul>
      * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
      * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
@@ -806,10 +810,6 @@ public class Locale extends Object {
      * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
      * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
      * </ul>
-     *
-     * @param mode  specifies the detail level of picking.
-     *
-     * @param flags specifies amount of returned information in each PickInfo object.
      *
      * @param pickShape the description of this picking volume or area.
      *
@@ -868,12 +868,16 @@ public class Locale extends Object {
     /**
      * Returns a PickInfo which references the pickable item  below this
      * Locale which intersects with <code>pickShape</code>.
-     * The detail level of picking is set by the pick mode. The mode include : 
+     * The accuracy of the pick is set by the pick mode. The mode include : 
      * PickInfo.PICK_BOUNDS and PickInfo.PICK_GEOMETRY. The amount of information returned 
      * is specified via a masked variable, flags, indicating which components are 
-     * present in each returned PickInfo object. This is specified as one or more 
-     * individual flags that are bitwise "OR"ed together to describe the returned per 
-     * PickInfo data. The flags include: <br><br>
+     * present in each returned PickInfo object. 
+     *
+     * @param mode  picking mode, one of <code>PickInfo.PICK_BOUNDS</code> or <code>PickInfo.PICK_GEOMETRY</code>.
+     *
+     * @param flags a mask indicating which components are present in each PickInfo object.  
+     * This is specified as one or more individual bits that are bitwise "OR"ed together to 
+     * describe the PickInfo data. The flags include :
      * <ul>
      * <code>PickInfo.SCENEGRAPHPATH</code> - request for computed SceneGraphPath.<br>    
      * <code>PickInfo.NODE</code> - request for computed intersected Node.<br>
@@ -883,10 +887,6 @@ public class Locale extends Object {
      * <code>PickInfo.CLOSEST_GEOM_INFO</code> - request for only the closest intersection geometry information.<br>
      * <code>PickInfo.ALL_GEOM_INFO</code> - request for all intersection geometry information.<br>
      * </ul>
-     *
-     * @param mode  specifies the detail level of picking.
-     *
-     * @param flags specifies amount of returned information in each PickInfo object.
      *
      * @param pickShape the description of this picking volume or area.
      *
