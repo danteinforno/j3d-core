@@ -851,6 +851,9 @@ cgToJ3dType(CGtype type)
     case CG_HALF1:
     case CG_INT:
     case CG_INT1:
+    case CG_SAMPLER2D:
+    case CG_SAMPLER3D:
+    case CG_SAMPLERCUBE:
 	return TYPE_INTEGER;
 
     case CG_BOOL2:
@@ -889,6 +892,13 @@ cgToJ3dType(CGtype type)
 
     case CG_FLOAT4x4:
 	return TYPE_MATRIX4F;
+
+    /*
+     * Java 3D does not support the following sampler types:
+     *
+     * case CG_SAMPLER1D:
+     * case CG_SAMPLERRECT:
+     */
     }
 
     return -1;
