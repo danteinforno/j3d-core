@@ -34,6 +34,7 @@
 
 
 extern char *strJavaToC(JNIEnv *env, jstring str);
+extern void throwAssert(JNIEnv *env, char *str);
 extern jobject createShaderError(JNIEnv *env,
 				 int errorCode,
 				 const char *errorMsg,
@@ -401,6 +402,19 @@ Java_javax_media_j3d_GLSLShaderProgramRetained_compileNativeShader(
     GLcharARB *shaderString = NULL;
     const GLcharARB *shaderStringArr[1];
 
+
+    /* Assertion check the shaderId */
+    if (shaderId == 0) {
+	throwAssert(env, "shaderId == 0");
+	return NULL;
+    }
+
+    /* Assertion check the program string */
+    if (program == NULL) {
+	throwAssert(env, "shader program string is NULL");
+	return NULL;
+    }
+
     shaderString = (GLcharARB *)strJavaToC(env, program);
     if (shaderString == NULL) {	
 	/* Just return, since strJavaToC will throw OOM if it returns NULL */
@@ -575,6 +589,9 @@ glslToJ3dType(GLint type)
     switch (type) {
     case GL_BOOL_ARB:
     case GL_INT:
+    case GL_SAMPLER_2D_ARB:
+    case GL_SAMPLER_3D_ARB:
+    case GL_SAMPLER_CUBE_ARB:
 	return TYPE_INTEGER;
 
     case GL_FLOAT:
@@ -608,6 +625,16 @@ glslToJ3dType(GLint type)
 
     case GL_FLOAT_MAT4_ARB:
 	return TYPE_MATRIX4F;
+
+    /*
+     * Java 3D does not support the following sampler types:
+     *
+     * case GL_SAMPLER_1D_ARB:
+     * case GL_SAMPLER_1D_SHADOW_ARB:
+     * case GL_SAMPLER_2D_SHADOW_ARB:
+     * case GL_SAMPLER_2D_RECT_ARB:
+     * case GL_SAMPLER_2D_RECT_SHADOW_ARB:
+     */
     }
 
     return -1;

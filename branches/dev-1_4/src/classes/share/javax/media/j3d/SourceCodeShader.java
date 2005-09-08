@@ -44,10 +44,15 @@ public class SourceCodeShader extends Shader {
      * <code>SHADER_TYPE_FRAGMENT</code>.
      *
      * @param shaderSource the shader source code
+     *
+     * @exception NullPointerException if shaderSource is null.
      */
 
     public SourceCodeShader(int shadingLanguage, int shaderType, String shaderSource) {
 	super(shadingLanguage, shaderType);
+        if (shaderSource == null) {
+            throw new NullPointerException();
+        }
 	((SourceCodeShaderRetained)this.retained).initShaderSource(shaderSource);
     }
 
@@ -111,8 +116,6 @@ public class SourceCodeShader extends Shader {
 	if (sc != null) {
 	    ((SourceCodeShaderRetained) retained).setShaderSource(sc);
 	}
-
-
     }
 
 }
