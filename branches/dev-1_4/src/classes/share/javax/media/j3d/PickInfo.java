@@ -33,6 +33,10 @@ import java.util.*;
 
 public class PickInfo extends Object {
     
+    static final int PICK_ALL = 1;
+
+    static final int PICK_ANY = 2;
+
     /* The SceneGraphPath of the intersected pickable item */
     private SceneGraphPath sgp;
 
@@ -207,7 +211,7 @@ public class PickInfo extends Object {
     }
 
     static void sortPickInfoArray(PickInfo[] pickInfoArr) {
-
+    
         class Sort {
 	    
 	    PickInfo pIArr[];
@@ -340,17 +344,16 @@ public class PickInfo extends Object {
 	return (IntersectionInfo []) intersectionInfoList.toArray(iInfoArray);	
     }
      
-    static PickInfo[] pickAll(Locale locale, GeometryAtom[] geomAtoms,
-            int mode, int flags, PickShape pickShape) {
+    static PickInfo[] pick(Locale locale, GeometryAtom[] geomAtoms,
+            int mode, int flags, PickShape pickShape, int pickType) {
 
         int pickInfoListSize;
-        ArrayList pickInfoList = Picking.getPickInfo(null, null, geomAtoms,
-                locale, flags);
+        PickInfo[] pickInfoArr = null;
+        ArrayList pickInfoList = Picking.getPickInfos(null, null, geomAtoms,
+                locale, flags, pickType);
         
         // We done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
-        if((mode == PICK_GEOMETRY) && ((flags & PickInfo.CLOSEST_DISTANCE) != 0) &&
-                ((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) && 
-                ((pickInfoListSize = pickInfoList.size()) > 0)) {
+        if((mode == PICK_GEOMETRY) && ((pickInfoListSize = pickInfoList.size()) > 0)) {
             
             PickInfo pickInfo = null;
             Node node = null;
@@ -363,15 +366,25 @@ public class PickInfo extends Object {
                     if (((Shape3DRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         pickInfoList.remove(i);
                     }
+                    else if(pickType == PICK_ANY) {
+                        pickInfoArr = new PickInfo[1];
+                        pickInfoArr[0] = pickInfo;
+                        return pickInfoArr;
+                    }
                 } else if (node instanceof Morph) {
                     if (((MorphRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         pickInfoList.remove(i);                        
-                    } 
+                    }
+                    else if(pickType == PICK_ANY) {
+                        pickInfoArr = new PickInfo[1];
+                        pickInfoArr[0] = pickInfo;
+                        return pickInfoArr;                        
+                    }                    
                 }
             }
         }
 
-        PickInfo[] pickInfoArr = new PickInfo[pickInfoList.size()];
+        pickInfoArr = new PickInfo[pickInfoList.size()];
         return (PickInfo []) pickInfoList.toArray(pickInfoArr);
         
     }

@@ -102,6 +102,46 @@ public class BranchGroup extends Group {
       ((BranchGroupRetained)this.retained).detach();
   }
 
+    
+    void validateModeFlagAndPickShape(int mode, int flags, PickShape pickShape) {
+
+        if(isLive()==false) {
+	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));
+        }
+        
+        if((mode != PickInfo.PICK_BOUNDS) && (mode != PickInfo.PICK_GEOMETRY)) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("BranchGroup4"));
+        }
+        
+        if((pickShape instanceof PickPoint) && (mode != PickInfo.PICK_GEOMETRY)) {
+          throw new IllegalArgumentException(J3dI18N.getString("BranchGroup5"));
+        }
+        
+        if(((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) &&
+                ((flags & PickInfo.ALL_GEOM_INFO) != 0)) {
+            throw new IllegalArgumentException(J3dI18N.getString("BranchGroup6"));
+        }
+        
+        if((mode != PickInfo.PICK_BOUNDS) && 
+                (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
+                            PickInfo.ALL_GEOM_INFO |
+                            PickInfo.CLOSEST_DISTANCE |
+                            PickInfo.CLOSEST_INTERSECTION_POINT)) != 0))) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("BranchGroup7"));
+        }
+  
+        if((pickShape instanceof PickBounds) && 
+                (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
+                            PickInfo.ALL_GEOM_INFO |
+                            PickInfo.CLOSEST_DISTANCE |
+                            PickInfo.CLOSEST_INTERSECTION_POINT)) != 0))) {
+          
+          throw new IllegalArgumentException(J3dI18N.getString("BranchGroup8"));
+        }        
+    }    
+    
   /**
    * Returns an array referencing all the items that are pickable below this
    * <code>BranchGroup</code> that intersect with PickShape.
@@ -166,8 +206,9 @@ public class BranchGroup extends Group {
      */
 
     public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
-
-	throw new RuntimeException("pickAll method not implemented yet");
+        
+        validateModeFlagAndPickShape(mode, flags, pickShape);
+        throw new RuntimeException("pickAll method not implemented yet");
 
     }
 
@@ -241,7 +282,7 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
-
+        validateModeFlagAndPickShape(mode, flags, pickShape);
 	throw new RuntimeException("pickAllSorted method not implemented yet");
 
     }
@@ -310,7 +351,7 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
-
+        validateModeFlagAndPickShape(mode, flags, pickShape);
 	throw new RuntimeException("pickAllSorted method not implemented yet");
 
     }
@@ -377,7 +418,7 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
-
+        validateModeFlagAndPickShape(mode, flags, pickShape);
 	throw new RuntimeException("pickAllSorted method not implemented yet");
 
     }
