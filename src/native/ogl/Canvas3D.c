@@ -573,7 +573,8 @@ getPropertiesFromCurrentContext(
 
 	if(isExtensionSupported(tmpExtensionStr, "GL_ARB_imaging")){	
 	    ctxInfo->blend_color_ext = JNI_TRUE;
-	    ctxInfo->blendFunctionTable[7] = GL_CONSTANT_COLOR;
+	    
+	    ctxInfo->blendFunctionTable[BLEND_CONSTANT_COLOR] = GL_CONSTANT_COLOR;
 #if defined(UNIX)
 	    ctxInfo->glBlendColor = (MYPFNGLBLENDCOLORPROC )dlsym(RTLD_DEFAULT, "glBlendColor");
 #endif
@@ -3023,15 +3024,16 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     
     /* 1.2 and GL_ARB_imaging */
     ctxInfo->blend_color_ext = JNI_FALSE;
-    ctxInfo->color_table_ext = JNI_FALSE;    
-    ctxInfo->blendFunctionTable[0] = GL_ZERO;
-    ctxInfo->blendFunctionTable[1] = GL_ONE;
-    ctxInfo->blendFunctionTable[2] = GL_SRC_ALPHA;
-    ctxInfo->blendFunctionTable[3] = GL_ONE_MINUS_SRC_ALPHA;
-    ctxInfo->blendFunctionTable[4] = GL_DST_COLOR;
-    ctxInfo->blendFunctionTable[5] = GL_SRC_COLOR;
-    ctxInfo->blendFunctionTable[6] = GL_ONE_MINUS_SRC_COLOR;
-    ctxInfo->blendFunctionTable[7] = GL_SRC_COLOR;
+    ctxInfo->color_table_ext = JNI_FALSE;
+    ctxInfo->blendFunctionTable[BLEND_ZERO] = GL_ZERO;
+    ctxInfo->blendFunctionTable[BLEND_ONE] = GL_ONE;
+    ctxInfo->blendFunctionTable[BLEND_SRC_ALPHA] = GL_SRC_ALPHA;
+    ctxInfo->blendFunctionTable[BLEND_ONE_MINUS_SRC_ALPHA] = GL_ONE_MINUS_SRC_ALPHA;
+    ctxInfo->blendFunctionTable[BLEND_DST_COLOR] = GL_DST_COLOR;
+    ctxInfo->blendFunctionTable[BLEND_ONE_MINUS_DST_COLOR] = GL_ONE_MINUS_DST_COLOR;
+    ctxInfo->blendFunctionTable[BLEND_SRC_COLOR] = GL_SRC_COLOR;
+    ctxInfo->blendFunctionTable[BLEND_ONE_MINUS_SRC_COLOR] = GL_ONE_MINUS_SRC_COLOR;
+    ctxInfo->blendFunctionTable[BLEND_CONSTANT_COLOR] = GL_CONSTANT_COLOR;
 
     /* 1.1 extensions or 1.2 extensions */
     /* sun extensions */

@@ -432,10 +432,10 @@ class Picking {
      * null is return if it is not hit.
      */
     
-    static ArrayList getPickInfo(ArrayList initpath, 
+    static ArrayList getPickInfos(ArrayList initpath, 
                                   BranchGroupRetained bgRetained, 
 				  GeometryAtom geomAtoms[],
-			          Locale locale, int flags) {
+			          Locale locale, int flags, int pickType) {
 
         PickInfo pickInfo; 
         ArrayList pickInfoList = new ArrayList(5);
@@ -547,12 +547,15 @@ class Picking {
                         ((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) ||
                         ((flags & PickInfo.ALL_GEOM_INFO) != 0)) {
 
-                        pickInfo.setNode((Node) s3dCR.srcList[n]);
+                        pickInfo.setNodeRef((Node) s3dCR.srcList[n]);
                         Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
                         pickInfo.setLocalToVWorldRef(l2vw);
                     }
                     
                     pickInfoList.add(pickInfo);
+                    if(pickType == PickInfo.PICK_ANY) {
+                        return pickInfoList;                      
+                    }
                 }    
             }
             else {
@@ -597,6 +600,9 @@ class Picking {
                 }
 
                 pickInfoList.add(pickInfo);
+                if(pickType == PickInfo.PICK_ANY) {
+                    return pickInfoList;                      
+                }
             }
         }
 	return pickInfoList;
@@ -758,7 +764,7 @@ class Picking {
      * Select the closest geomAtoms from shape
      * geomAtoms.length must be >= 1
      */
-    static private GeometryAtom selectClosest(GeometryAtom geomAtoms[], 
+    static GeometryAtom selectClosest(GeometryAtom geomAtoms[], 
 					      PickShape shape) {
 	Point4d pickPos = new Point4d();
 	GeometryAtom closestAtom = geomAtoms[0];
@@ -779,7 +785,7 @@ class Picking {
      * Sort the GeometryAtoms distance from shape in ascending order
      * geomAtoms.length must be >= 1
      */
-    static private void sortGeomAtoms(GeometryAtom geomAtoms[], 
+    static void sortGeomAtoms(GeometryAtom geomAtoms[], 
 				      PickShape shape) {
 
 	final double distance[] = new double[geomAtoms.length];

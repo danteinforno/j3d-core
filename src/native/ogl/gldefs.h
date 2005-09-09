@@ -319,6 +319,24 @@
 #define J3D_RGB          javax_media_j3d_Texture_RGB
 #define J3D_RGBA         javax_media_j3d_Texture_RGBA
 
+
+/*
+ * These match the constants in TransparencyAttributes.java
+ */
+#define BLEND_ZERO javax_media_j3d_TransparencyAttributes_BLEND_ZERO
+#define BLEND_ONE javax_media_j3d_TransparencyAttributes_BLEND_ONE
+#define BLEND_SRC_ALPHA javax_media_j3d_TransparencyAttributes_BLEND_SRC_ALPHA
+#define BLEND_ONE_MINUS_SRC_ALPHA javax_media_j3d_TransparencyAttributes_BLEND_ONE_MINUS_SRC_ALPHA
+#define BLEND_DST_COLOR javax_media_j3d_TransparencyAttributes_BLEND_DST_COLOR
+#define BLEND_ONE_MINUS_DST_COLOR javax_media_j3d_TransparencyAttributes_BLEND_ONE_MINUS_DST_COLOR
+#define BLEND_SRC_COLOR javax_media_j3d_TransparencyAttributes_BLEND_SRC_COLOR
+#define BLEND_ONE_MINUS_SRC_COLOR javax_media_j3d_TransparencyAttributes_BLEND_ONE_MINUS_SRC_COLOR
+#define BLEND_CONSTANT_COLOR javax_media_j3d_TransparencyAttributes_BLEND_CONSTANT_COLOR
+#define MAX_BLEND_FUNC_TABLE_SIZE javax_media_j3d_TransparencyAttributes_MAX_BLEND_FUNC_TABLE_SIZE
+
+
+
+
 #ifndef D3D
 #if defined(UNIX)
 extern void APIENTRY glBlendColor (GLclampf, GLclampf, GLclampf, GLclampf);
@@ -467,7 +485,8 @@ struct GraphicsContextPropertiesInfoRec {
     /* GL_ARB_imaging subset */
     /* GL_EXT_blend_color or GL_BLEND_COLOR */
     jboolean blend_color_ext;
-    GLenum blendFunctionTable[8]; 
+    GLenum blendFunctionTable[MAX_BLEND_FUNC_TABLE_SIZE];
+    
     /* GL_SGI_color_table or GL_COLOR_TABLE */
     jboolean color_table_ext;
 

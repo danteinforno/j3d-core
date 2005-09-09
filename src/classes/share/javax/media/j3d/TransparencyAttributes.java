@@ -260,6 +260,10 @@ public class TransparencyAttributes extends NodeComponent {
      */
     public static final int BLEND_ONE_MINUS_SRC_COLOR = 7;
 
+    static final int BLEND_CONSTANT_COLOR = 8;
+
+    static final int MAX_BLEND_FUNC_TABLE_SIZE = 9;
+
 
     /**
      * Constructs a TransparencyAttributes object with default parameters.

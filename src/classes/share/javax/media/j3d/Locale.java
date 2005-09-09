@@ -676,7 +676,7 @@ public class Locale extends Object {
 
 	GeometryAtom geomAtoms[] = universe.geometryStructure.pickAll(this, pickShape);
         
-        return PickInfo.pickAll(this, geomAtoms, mode, flags, pickShape);
+        return PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ALL);
 
     }
 
@@ -759,11 +759,23 @@ public class Locale extends Object {
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
 
-	// Need to have closestDistance set
-	flags |= PickInfo.CLOSEST_DISTANCE;
-        PickInfo[] pickArr = pickAll(mode, flags, pickShape);
-	PickInfo.sortPickInfoArray(pickArr);
-        return pickArr;
+        validateModeFlagAndPickShape(mode, flags, pickShape);   
+        GeometryAtom geomAtoms[] = universe.geometryStructure.pickAll(this, pickShape);
+        
+        PickInfo[] pickInfoArr  = null;
+        
+	if (mode == PickInfo.PICK_GEOMETRY) {
+            // Need to have closestDistance set
+            flags |= PickInfo.CLOSEST_DISTANCE;
+            pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ALL);
+            PickInfo.sortPickInfoArray(pickInfoArr);
+        }
+        else {
+            Picking.sortGeomAtoms(geomAtoms, pickShape);
+            pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ALL);          
+        }
+        
+        return pickInfoArr;
     }
 
     /**
@@ -841,9 +853,16 @@ public class Locale extends Object {
      */
     public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
 
-        validateModeFlagAndPickShape(mode, flags, pickShape);
-	throw new RuntimeException("pickClosest method not implemented yet");
+        PickInfo[] pickInfoArr = null;
 
+        pickInfoArr = pickAllSorted( mode, flags, pickShape );
+        
+        if(pickInfoArr == null) {
+            return null;
+        }
+        
+        return pickInfoArr[0];
+        
     }
 
     /**
@@ -919,8 +938,16 @@ public class Locale extends Object {
     public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
 
         validateModeFlagAndPickShape(mode, flags, pickShape);
-	throw new RuntimeException("pickAny method not implemented yet");
-
+	GeometryAtom geomAtoms[] = universe.geometryStructure.pickAll(this, pickShape);
+        
+        PickInfo[] pickInfoArr = PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ANY);
+        
+        if(pickInfoArr == null) {
+            return null;
+        }
+        
+        return pickInfoArr[0];
+        
     }
 
     /**
