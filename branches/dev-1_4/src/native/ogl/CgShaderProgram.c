@@ -851,47 +851,64 @@ cgToJ3dType(CGtype type)
     case CG_HALF1:
     case CG_INT:
     case CG_INT1:
-    case CG_SAMPLER2D:
-    case CG_SAMPLER3D:
-    case CG_SAMPLERCUBE:
 	return TYPE_INTEGER;
+
+    /*
+     * TODO: add ShaderAttribute support for setting samplers. In the
+     * mean time, the binding between sampler and texture unit will
+     * need to be specified in the shader itself (which it already is
+     * in most example shaders).
+     *
+     * case CG_SAMPLER2D:
+     * case CG_SAMPLER3D:
+     * case CG_SAMPLERCUBE:
+     *
+     */
 
     case CG_BOOL2:
     case CG_FIXED2:
     case CG_HALF2:
     case CG_INT2:
-	return TYPE_TUPLE2I;
+	/* TODO: return TYPE_TUPLE2I; */
+	return -1;
 
     case CG_BOOL3:
     case CG_FIXED3:
     case CG_HALF3:
     case CG_INT3:
-	return TYPE_TUPLE3I;
+	/*TODO: return TYPE_TUPLE3I; */
+	return -1;
 
     case CG_BOOL4:
     case CG_FIXED4:
     case CG_HALF4:
     case CG_INT4:
-	return TYPE_TUPLE4I;
+	/*TODO: return TYPE_TUPLE4I; */
+	return -1;
 
     case CG_FLOAT:
     case CG_FLOAT1:
 	return TYPE_FLOAT;
 
     case CG_FLOAT2:
-	return TYPE_TUPLE2F;
+	/*TODO: return TYPE_TUPLE2F; */
+	return -1;
 
     case CG_FLOAT3:
-	return TYPE_TUPLE3F;
+	/*TODO: return TYPE_TUPLE3F; */
+	return -1;
 
     case CG_FLOAT4:
-	return TYPE_TUPLE4F;
+	/*TODO: return TYPE_TUPLE4F; */
+	return -1;
 
     case CG_FLOAT3x3:
-	return TYPE_MATRIX3F;
+	/*TODO: return TYPE_MATRIX3F; */
+	return -1;
 
     case CG_FLOAT4x4:
-	return TYPE_MATRIX4F;
+	/*TODO: return TYPE_MATRIX4F; */
+	return -1;
 
     /*
      * Java 3D does not support the following sampler types:
@@ -1130,8 +1147,6 @@ Java_javax_media_j3d_CgShaderProgramRetained_useShaderProgram(
     CgCtxInfo *cgCtxInfo = ctxProperties->cgCtxInfo;
     CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
 
-    int i;
-
     CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
 
     cgWrapperInfo->cgGLDisableProfile(cgCtxInfo->vProfile);
@@ -1147,6 +1162,9 @@ Java_javax_media_j3d_CgShaderProgramRetained_useShaderProgram(
 	    cgWrapperInfo->cgGLBindProgram(shaderProgramInfo->fShader->cgShader);
 	    cgWrapperInfo->cgGLEnableProfile(shaderProgramInfo->fShader->shaderProfile);
 	}
+    }
+    else {
+	/* TODO: Unbind old shader program */
     }
 
     ctxProperties->shaderProgramId = shaderProgramId;
@@ -1213,8 +1231,6 @@ Java_javax_media_j3d_CgShaderProgramRetained_setUniform1f(
     CgWrapperInfo *cgWrapperInfo = cgCtxInfo->cgWrapperInfo;
     CgShaderProgramInfo *shaderProgramInfo = (CgShaderProgramInfo*)shaderProgramId;
     CgParameterInfo *cgParamInfo = (CgParameterInfo *)location;
-
-    int i;
 
     if (cgParamInfo->vParam != NULL) {
 	cgWrapperInfo->cgSetParameter1f(cgParamInfo->vParam, value);
