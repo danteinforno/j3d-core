@@ -782,6 +782,10 @@ public class Locale extends Object {
 
         validateModeFlagAndPickShape(mode, flags, pickShape);   
         GeometryAtom geomAtoms[] = universe.geometryStructure.pickAll(this, pickShape);
+
+        if ((geomAtoms == null) || (geomAtoms.length == 0)) {
+            return null;
+        }
         
         PickInfo[] pickInfoArr  = null;
         

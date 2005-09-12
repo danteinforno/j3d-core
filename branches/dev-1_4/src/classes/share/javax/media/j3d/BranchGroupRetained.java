@@ -273,6 +273,11 @@ class BranchGroupRetained extends GroupRetained {
 
         PickInfo[] pickInfoArr  = null;
         
+	
+        if ((geomAtoms == null) || (geomAtoms.length == 0)) {
+            return null;
+        }
+
 	if (mode == PickInfo.PICK_GEOMETRY) {
             // Need to have closestDistance set
             flags |= PickInfo.CLOSEST_DISTANCE;
