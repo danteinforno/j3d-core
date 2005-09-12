@@ -344,26 +344,443 @@ public class PickInfo extends Object {
 	return (IntersectionInfo []) intersectionInfoList.toArray(iInfoArray);	
     }
      
-    static PickInfo[] pick(Locale locale, GeometryAtom[] geomAtoms,
+    /**
+     * Search the path from nodeR up to Locale.
+     * Return the search path as ArrayList if found.
+     * Note that the locale will not insert into path.
+     */
+    static ArrayList initSceneGraphPath(NodeRetained nodeR) { 
+	ArrayList path = new ArrayList(5);
+
+	do {
+	    if (nodeR.source.getCapability(Node.ENABLE_PICK_REPORTING)){
+		path.add(nodeR);  
+	    }
+	    nodeR = nodeR.parent;
+	} while (nodeR != null);  // reach Locale
+
+	return path;
+    }    
+
+    static private Node[] createPath(NodeRetained srcNode,
+				     BranchGroupRetained bgRetained,
+				     GeometryAtom geomAtom,
+				     ArrayList initpath) {
+        
+        ArrayList path = retrievePath(srcNode, bgRetained,
+				      geomAtom.source.key);
+        assert(path != null);
+        
+        return mergePath(path, initpath);
+
+    }
+    
+    
+    /**
+     * Return true if bg is inside cachedBG or bg is null
+     */
+    static private boolean inside(BranchGroupRetained bgArr[],
+				  BranchGroupRetained bg) {
+
+	if ((bg == null) || (bgArr == null)) {
+	    return true;
+	}
+
+	for (int i=0; i < bgArr.length; i++) {
+	    if (bgArr[i] == bg) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    /**
+     * search the full path from the bottom of the scene graph -
+     * startNode, up to the Locale if endNode is null.
+     * If endNode is not null, the path is found up to, but not
+     * including, endNode or return null if endNode not hit 
+     * during the search.
+     */
+    static private ArrayList retrievePath(NodeRetained startNode, 
+					  NodeRetained endNode,
+					  HashKey key) {
+
+	ArrayList path = new ArrayList(5);
+	NodeRetained nodeR = startNode;
+	
+	if (nodeR.inSharedGroup) {
+	    // getlastNodeId() will destroy this key
+	    key = new HashKey(key);
+	}
+
+	do {
+	    if (nodeR == endNode) { // we found it !
+		return path;
+	    }
+
+	    if (nodeR.source.getCapability(Node.ENABLE_PICK_REPORTING)) {
+		path.add(nodeR);  
+	    }
+
+	    if (nodeR instanceof SharedGroupRetained) {
+		// retrieve the last node ID
+		String nodeId = key.getLastNodeId();
+		Vector parents = ((SharedGroupRetained) nodeR).parents;
+		int sz = parents.size();
+		NodeRetained prevNodeR = nodeR;
+		for(int i=0; i< sz; i++) {
+		    NodeRetained linkR = (NodeRetained) parents.elementAt(i);
+		    if (linkR.nodeId.equals(nodeId)) {
+			nodeR = linkR;
+			// Need to add Link to the path report
+			path.add(nodeR);
+			// since !(endNode instanceof Link), we 
+			// can skip the check (nodeR == endNode) and
+			// proceed to parent of link below
+			break;
+		    }
+		}
+		if (nodeR == prevNodeR) { 
+		    // branch is already detach
+		    return null;
+		}
+	    }
+	    nodeR = nodeR.parent;
+	} while (nodeR != null); // reach Locale
+	
+	if (endNode == null) {
+	    // user call pickxxx(Locale locale, PickShape shape)
+	    return path;
+	}
+
+	// user call pickxxx(BranchGroup endNode, PickShape shape)
+	// if locale is reached and endNode not hit, this is not
+	// the path user want to select 
+	return null;
+    }
+    
+    /**
+     * copy p1, (follow by) p2 into a new array, p2 can be null
+     * The path is then reverse before return.
+     */
+    static private Node[] mergePath(ArrayList p1, ArrayList p2) {
+	int s = p1.size();
+	int len;
+	int i;
+	int l;
+	if (p2 == null) {
+	    len = s;
+	} else {
+	    len = s + p2.size();
+	}
+
+	Node nodes[] = new Node[len];
+	l = len-1;
+	for (i=0; i < s; i++) {
+	    nodes[l-i] = (Node) ((NodeRetained) p1.get(i)).source;
+	}
+	for (int j=0; i< len; i++, j++) {
+	    nodes[l-i] = (Node) ((NodeRetained) p2.get(j)).source;
+	}
+	return nodes;
+    }
+
+    /**
+     * Sort the GeometryAtoms distance from shape in ascending order
+     * geomAtoms.length must be >= 1
+     */
+    static void sortGeomAtoms(GeometryAtom geomAtoms[], 
+				      PickShape shape) {
+
+	final double distance[] = new double[geomAtoms.length];
+	Point4d pickPos = new Point4d();
+
+	for (int i=0; i < geomAtoms.length; i++) {
+	    shape.intersect(geomAtoms[i].source.vwcBounds, pickPos);	    
+	    distance[i] = pickPos.w;
+	}
+
+	class Sort {
+	    
+	    GeometryAtom atoms[];
+
+	    Sort(GeometryAtom[] atoms) {
+		this.atoms = atoms;
+	    }
+
+	    void sorting() {
+		if (atoms.length < 7) {
+		    insertSort();
+	    	} else {
+		    quicksort(0, atoms.length-1);
+    		}
+	    }
+
+	    // Insertion sort on smallest arrays
+	    final void insertSort() {
+		for (int i=0; i<atoms.length; i++) {
+		    for (int j=i; j>0 && 
+			     (distance[j-1] > distance[j]); j--) {
+			double t = distance[j];
+			distance[j] = distance[j-1];
+			distance[j-1] = t;
+			GeometryAtom p = atoms[j];
+			atoms[j] = atoms[j-1];
+			atoms[j-1] = p;
+		    }
+		}
+	    }
+
+            final void quicksort( int l, int r ) {
+		int i = l;
+		int j = r;
+		double k = distance[(l+r) / 2];
+
+		do {
+		    while (distance[i]<k) i++;
+		    while (k<distance[j]) j--;
+		    if (i<=j) {
+			double tmp = distance[i];
+			distance[i] =distance[j];
+			distance[j] = tmp;
+			
+			GeometryAtom p=atoms[i];
+			atoms[i]=atoms[j];
+			atoms[j]=p;
+			i++;
+			j--;
+		    }
+		} while (i<=j);
+		
+		if (l<j) quicksort(l,j);
+		if (l<r) quicksort(i,r);
+	    }
+	}
+
+	(new Sort(geomAtoms)).sorting();
+    }
+
+
+    /**
+     * return all PickInfo[] of the geomAtoms.
+     * If initpath is null, the path is search from 
+     * geomAtom Shape3D/Morph Node up to Locale
+     * (assume the same locale).
+     * Otherwise, the path is search up to node or 
+     * null is return if it is not hit.
+     */   
+    static ArrayList getPickInfos(ArrayList initpath, 
+                                  BranchGroupRetained bgRetained, 
+				  GeometryAtom geomAtoms[],
+			          Locale locale, int flags, int pickType) {
+
+        PickInfo pickInfo; 
+        ArrayList pickInfoList = new ArrayList(5);
+        NodeRetained srcNode;
+        ArrayList text3dList = null;
+
+        if ((geomAtoms == null) || (geomAtoms.length == 0)) {
+            return null;
+        }
+        
+	for (int i=0; i < geomAtoms.length; i++) {
+            
+            assert((geomAtoms[i] != null) &&
+                    (geomAtoms[i].source != null));
+            
+            Shape3DRetained shape = geomAtoms[i].source;
+            srcNode = shape.sourceNode;           
+            
+            if (srcNode == null) {
+                // The node is just detach from branch so sourceNode = null
+                continue;
+            }
+            
+            // Special case, for Text3DRetained, it is possible
+            // for different geomAtoms pointing to the same
+            // source Text3DRetained. So we need to combine
+            // those cases and report only once.
+            if (srcNode instanceof Shape3DRetained) {
+                Shape3DRetained s3dR = (Shape3DRetained) srcNode;
+                GeometryRetained geomR = null;
+                for(int cnt=0; cnt<s3dR.geometryList.size(); cnt++) {
+                    geomR = (GeometryRetained) s3dR.geometryList.get(cnt);
+                    if(geomR != null)
+                        break;
+                }
+                
+                if (geomR == null)
+                    continue;
+                
+                if (geomR instanceof Text3DRetained) {
+                    // assume this case is not frequent, we allocate
+                    // ArrayList only when necessary and we use ArrayList
+                    // instead of HashMap since the case of when large
+                    // number of distingish Text3DRetained node hit is
+                    // rare.
+                    if (text3dList == null) {
+                        text3dList = new ArrayList(3);
+                    } else {
+                        int size = text3dList.size();
+                        boolean found = false;
+                        for (int j=0; j < size; j++) {
+                            if (text3dList.get(j) == srcNode) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            continue;  // try next geomAtom
+                        }
+                    }
+                    text3dList.add(srcNode);
+                }
+            }
+                        
+            // If srcNode is instance of compile retained, then loop thru
+            // the entire source list and add it to the scene graph path
+            if (srcNode instanceof Shape3DCompileRetained) {
+                Shape3DCompileRetained s3dCR = (Shape3DCompileRetained)srcNode;
+                
+                Node[] mpath = null;
+                boolean first = true;
+                
+                for (int n = 0; n < s3dCR.srcList.length; n++) {
+                    
+                    pickInfo = new PickInfo();
+                    
+                    // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
+                    if (((flags & SCENEGRAPHPATH) != 0) && 
+                         (inside(shape.branchGroupPath,bgRetained))){
+                        
+                        if(first) {
+                            mpath = createPath(srcNode, bgRetained, geomAtoms[i], initpath);
+                            first = false;
+                        }
+                        
+                        if(mpath != null) {
+                            SceneGraphPath sgpath = new SceneGraphPath(locale,
+                                    mpath, (Node) s3dCR.srcList[n]);
+                            sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+                            pickInfo.setSceneGraphPath(sgpath);
+                        }
+                    }
+
+                    // PickInfo.NODE - request for computed intersected Node.
+                    if ((flags & NODE) != 0) {
+                        pickInfo.setNode((Node) s3dCR.srcList[n]);
+                    }
+                    
+                    // PickInfo.LOCAL_TO_VWORLD
+                    //    - request for computed local to virtual world transform.
+                    if ((flags & LOCAL_TO_VWORLD) != 0) {
+                        Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                        pickInfo.setLocalToVWorld( new Transform3D(l2vw));
+                    }
+
+                    // NOTE : Piggy bag for geometry computation by caller.
+                    if (((flags & CLOSEST_DISTANCE) != 0) ||
+                        ((flags & CLOSEST_GEOM_INFO) != 0) ||
+                        ((flags & CLOSEST_INTERSECTION_POINT) != 0) ||
+                        ((flags & ALL_GEOM_INFO) != 0)) {
+
+                        pickInfo.setNodeRef((Node) s3dCR.srcList[n]);
+                        Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                        pickInfo.setLocalToVWorldRef(l2vw);
+                    }
+                    
+                    pickInfoList.add(pickInfo);
+                    if(pickType == PICK_ANY) {
+                        return pickInfoList;                      
+                    }
+                }    
+            }
+            else {
+                Node[] mpath = null;
+                pickInfo = new PickInfo();
+                
+                // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
+                if (((flags & SCENEGRAPHPATH) != 0)  && 
+                    (inside(shape.branchGroupPath,bgRetained))) {
+                    
+                    mpath = createPath(srcNode, bgRetained, geomAtoms[i], initpath);
+                    
+                    if(mpath != null) {
+                        SceneGraphPath sgpath = new SceneGraphPath(locale, mpath,
+                                (Node) srcNode.source);
+                        sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+                        pickInfo.setSceneGraphPath(sgpath);
+                    }
+                }
+                
+                // PickInfo.NODE - request for computed intersected Node.
+                if ((flags & NODE) != 0) {
+                    pickInfo.setNode((Node) srcNode.source);
+                }
+                
+                // PickInfo.LOCAL_TO_VWORLD
+                //    - request for computed local to virtual world transform.
+                if ((flags & LOCAL_TO_VWORLD) != 0) {
+                    Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                    pickInfo.setLocalToVWorld( new Transform3D(l2vw));
+                }
+                
+                // NOTE : Piggy bag for geometry computation by caller.
+                if (((flags & CLOSEST_DISTANCE) != 0) ||
+                    ((flags & CLOSEST_GEOM_INFO) != 0) ||
+                    ((flags & CLOSEST_INTERSECTION_POINT) != 0) ||
+                    ((flags & ALL_GEOM_INFO) != 0)) {
+
+                    pickInfo.setNodeRef((Node) srcNode.source);                    
+                    Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+                    pickInfo.setLocalToVWorldRef(l2vw);
+                }
+
+                pickInfoList.add(pickInfo);
+                if(pickType == PICK_ANY) {
+                    return pickInfoList;                      
+                }
+            }
+        }
+	return pickInfoList;
+    }
+
+    static PickInfo[] pick(Object node, GeometryAtom[] geomAtoms,
             int mode, int flags, PickShape pickShape, int pickType) {
 
         int pickInfoListSize;
         PickInfo[] pickInfoArr = null;
-        ArrayList pickInfoList = Picking.getPickInfos(null, null, geomAtoms,
+        Locale locale = null;
+        BranchGroupRetained bgRetained = null;
+        ArrayList initPath = null;
+        ArrayList pickInfoList = null;
+
+        if (node instanceof Locale) {
+            locale = (Locale) node;
+        } else if ( node instanceof BranchGroupRetained) {
+            bgRetained = (BranchGroupRetained) node;
+            locale = bgRetained.locale;
+        }
+        synchronized (locale.universe.sceneGraphLock) {
+            if ( bgRetained != null) {
+                initPath = initSceneGraphPath(bgRetained);                
+            }
+            pickInfoList = getPickInfos(initPath, bgRetained, geomAtoms,
                 locale, flags, pickType);
+        }
         
         // We done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
         if((mode == PICK_GEOMETRY) && ((pickInfoListSize = pickInfoList.size()) > 0)) {
             
             PickInfo pickInfo = null;
-            Node node = null;
+            Node pickNode = null;
             
             // Need to do in reverse order.    
             for(int i = pickInfoListSize - 1; i >= 0; i--) {
                 pickInfo = (PickInfo) pickInfoList.get(i);
                 
-                if (node instanceof Shape3D) {
-                    if (((Shape3DRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
+                if (pickNode instanceof Shape3D) {
+                    if (((Shape3DRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         pickInfoList.remove(i);
                     }
                     else if(pickType == PICK_ANY) {
@@ -371,8 +788,8 @@ public class PickInfo extends Object {
                         pickInfoArr[0] = pickInfo;
                         return pickInfoArr;
                     }
-                } else if (node instanceof Morph) {
-                    if (((MorphRetained)(node.retained)).intersect(pickInfo, pickShape, flags) == false) {
+                } else if (pickNode instanceof Morph) {
+                    if (((MorphRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         pickInfoList.remove(i);                        
                     }
                     else if(pickType == PICK_ANY) {
@@ -384,10 +801,16 @@ public class PickInfo extends Object {
             }
         }
 
-        pickInfoArr = new PickInfo[pickInfoList.size()];
-        return (PickInfo []) pickInfoList.toArray(pickInfoArr);
-        
+        if ((pickInfoList != null) && (pickInfoList.size() > 0)) {
+		pickInfoArr = new PickInfo[pickInfoList.size()];
+		return (PickInfo []) pickInfoList.toArray(pickInfoArr); 
+	}
+	
+	return null;
+	    
     }
+
+    
     
     
     /**
