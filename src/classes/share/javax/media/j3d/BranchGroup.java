@@ -86,22 +86,22 @@ public class BranchGroup extends Group {
    * Detaches this BranchGroup from its parent.
    */
     public void detach() {
-       Group parent;
-
-       if (isLiveOrCompiled()) {
-           if(!this.getCapability(ALLOW_DETACH))
-               throw new CapabilityNotSetException(J3dI18N.getString("BranchGroup1"));
-
-           if (((BranchGroupRetained)this.retained).parent != null) {
-	       parent = (Group)((BranchGroupRetained)this.retained).parent.source;
-               if(!parent.getCapability(Group.ALLOW_CHILDREN_WRITE))
-                   throw new CapabilityNotSetException(J3dI18N.getString("BranchGroup2"));
-	   }
-       }
-
-      ((BranchGroupRetained)this.retained).detach();
-  }
-
+	Group parent;
+	
+	if (isLiveOrCompiled()) {
+	    if(!this.getCapability(ALLOW_DETACH))
+		throw new CapabilityNotSetException(J3dI18N.getString("BranchGroup1"));
+	    
+	    if (((BranchGroupRetained)this.retained).parent != null) {
+		parent = (Group)((BranchGroupRetained)this.retained).parent.source;
+		if(!parent.getCapability(Group.ALLOW_CHILDREN_WRITE))
+		    throw new CapabilityNotSetException(J3dI18N.getString("BranchGroup2"));
+	    }
+	}
+	
+	((BranchGroupRetained)this.retained).detach();
+    }
+    
     
     void validateModeFlagAndPickShape(int mode, int flags, PickShape pickShape) {
 
@@ -140,6 +140,7 @@ public class BranchGroup extends Group {
           
           throw new IllegalArgumentException(J3dI18N.getString("BranchGroup8"));
         }        
+
     }    
     
   /**
@@ -156,11 +157,13 @@ public class BranchGroup extends Group {
    *
    */
     public SceneGraphPath[] pickAll( PickShape pickShape ) {
+
         if(isLive()==false)
 	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));
-    
-	return Picking.pickAll( this, pickShape );
-    }
+
+        return ((BranchGroupRetained)this.retained).pickAll(pickShape);           
+        
+ }
     
     /**
      * Returns an array unsorted references to all the PickInfo objects that are 
@@ -206,9 +209,9 @@ public class BranchGroup extends Group {
      */
 
     public PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
-        
-        validateModeFlagAndPickShape(mode, flags, pickShape);
-        throw new RuntimeException("pickAll method not implemented yet");
+
+        validateModeFlagAndPickShape(mode, flags, pickShape);      
+        return ((BranchGroupRetained)this.retained).pickAll(mode, flags, pickShape);           
 
     }
 
@@ -230,10 +233,12 @@ public class BranchGroup extends Group {
    *  
    */
     public SceneGraphPath[] pickAllSorted( PickShape pickShape ) {
+
         if(isLive()==false)
-	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));
-    
-	return Picking.pickAllSorted( this, pickShape );
+	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));    
+
+        return ((BranchGroupRetained)this.retained).pickAllSorted(pickShape);           
+
     }
 
 
@@ -282,8 +287,9 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
+
         validateModeFlagAndPickShape(mode, flags, pickShape);
-	throw new RuntimeException("pickAllSorted method not implemented yet");
+        return ((BranchGroupRetained)this.retained).pickAllSorted(mode, flags, pickShape);
 
     }
 
@@ -302,10 +308,12 @@ public class BranchGroup extends Group {
    *  
    */
     public SceneGraphPath pickClosest( PickShape pickShape ) {
+
         if(isLive()==false)
 	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));
 
-	return Picking.pickClosest( this, pickShape );
+        return ((BranchGroupRetained)this.retained).pickClosest(pickShape);           
+
     }
 
     /**
@@ -351,8 +359,9 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
+
         validateModeFlagAndPickShape(mode, flags, pickShape);
-	throw new RuntimeException("pickAllSorted method not implemented yet");
+        return ((BranchGroupRetained)this.retained).pickClosest(mode, flags, pickShape);
 
     }
 
@@ -369,10 +378,12 @@ public class BranchGroup extends Group {
    *  
    */
     public SceneGraphPath pickAny( PickShape pickShape ) {
+
         if(isLive()==false)
 	    throw new IllegalStateException(J3dI18N.getString("BranchGroup3"));
+
+        return ((BranchGroupRetained)this.retained).pickAny(pickShape);           
     
-	return Picking.pickAny( this, pickShape );
     }
 
     /**
@@ -418,10 +429,12 @@ public class BranchGroup extends Group {
      *
      */
     public PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
+
         validateModeFlagAndPickShape(mode, flags, pickShape);
-	throw new RuntimeException("pickAllSorted method not implemented yet");
+        return ((BranchGroupRetained)this.retained).pickAny(mode, flags, pickShape);
 
     }
+
    /**
     * Creates a new instance of the node.  This routine is called
     * by <code>cloneTree</code> to duplicate the current node.
@@ -437,8 +450,11 @@ public class BranchGroup extends Group {
     * @see NodeComponent#setDuplicateOnCloneTree
     */
     public Node cloneNode(boolean forceDuplicate) {
+
         BranchGroup bg = new BranchGroup();
 	bg.duplicateNode(this, forceDuplicate);
 	return bg;
+
     }
+
 }

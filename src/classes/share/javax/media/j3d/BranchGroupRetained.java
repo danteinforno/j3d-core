@@ -213,4 +213,138 @@ class BranchGroupRetained extends GroupRetained {
 	// without any capabilities set
 	mergeFlag = SceneGraphObjectRetained.DONT_MERGE;
     }
+    
+    SceneGraphPath[] pickAll(PickShape pickShape) {
+        
+        PickInfo[] pickInfoArr = pickAll(PickInfo.PICK_BOUNDS,
+					 PickInfo.SCENEGRAPHPATH, pickShape);
+	
+	if(pickInfoArr == null) {
+            return null;
+	}
+
+        SceneGraphPath[] sgpArr = new SceneGraphPath[pickInfoArr.length];
+        for( int i=0; i<sgpArr.length; i++) {
+            sgpArr[i] = pickInfoArr[i].getSceneGraphPath();
+        }
+
+        return sgpArr;              
+    }
+    
+    PickInfo[] pickAll( int mode, int flags, PickShape pickShape ) {
+        
+	if (inSharedGroup) {
+	    throw new RestrictedAccessException(J3dI18N.getString("BranchGroup9"));
+	}
+        
+	GeometryAtom geomAtoms[] =
+	    locale.universe.geometryStructure.pickAll(locale, pickShape);
+
+        return PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ALL);
+
+    }
+    
+    SceneGraphPath[] pickAllSorted(PickShape pickShape) {
+        
+        PickInfo[] pickInfoArr = pickAllSorted(PickInfo.PICK_BOUNDS,
+					       PickInfo.SCENEGRAPHPATH, pickShape);
+	
+	if(pickInfoArr == null) {
+            return null;
+	}
+
+        SceneGraphPath[] sgpArr = new SceneGraphPath[pickInfoArr.length];
+        for( int i=0; i<sgpArr.length; i++) {
+            sgpArr[i] = pickInfoArr[i].getSceneGraphPath();
+        }
+	
+        return sgpArr;
+
+    }
+    
+    PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape ) {
+        
+	if (inSharedGroup) {
+	    throw new RestrictedAccessException(J3dI18N.getString("BranchGroup9"));
+	}
+        
+	GeometryAtom geomAtoms[] =
+	    locale.universe.geometryStructure.pickAll(locale, pickShape);
+
+        PickInfo[] pickInfoArr  = null;
+        
+	if (mode == PickInfo.PICK_GEOMETRY) {
+            // Need to have closestDistance set
+            flags |= PickInfo.CLOSEST_DISTANCE;
+            pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, 
+				       pickShape, PickInfo.PICK_ALL);
+            PickInfo.sortPickInfoArray(pickInfoArr);
+        }
+        else {
+            PickInfo.sortGeomAtoms(geomAtoms, pickShape);
+            pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, 
+				       pickShape, PickInfo.PICK_ALL);          
+        }
+        
+        return pickInfoArr;
+        
+    }
+
+    SceneGraphPath pickClosest( PickShape pickShape ) {
+
+        PickInfo pickInfo = pickClosest( PickInfo.PICK_BOUNDS,
+					 PickInfo.SCENEGRAPHPATH, pickShape);
+        
+        if(pickInfo == null) {
+            return null;
+        }
+
+        return pickInfo.getSceneGraphPath();
+
+    }
+    
+    PickInfo pickClosest( int mode, int flags, PickShape pickShape ) {
+
+        PickInfo[] pickInfoArr = null;
+
+        pickInfoArr = pickAllSorted( mode, flags, pickShape );
+        
+        if(pickInfoArr == null) {
+            return null;
+        }
+        
+        return pickInfoArr[0];
+        
+    }
+ 
+    SceneGraphPath pickAny( PickShape pickShape ) {
+
+        PickInfo pickInfo = pickAny( PickInfo.PICK_BOUNDS,
+				     PickInfo.SCENEGRAPHPATH, pickShape);
+        
+        if(pickInfo == null) {
+            return null;
+        }
+        return pickInfo.getSceneGraphPath();
+    }
+    
+    PickInfo pickAny( int mode, int flags, PickShape pickShape ) {
+
+	if (inSharedGroup) {
+	    throw new RestrictedAccessException(J3dI18N.getString("BranchGroup9"));
+	}
+
+	GeometryAtom geomAtoms[] =
+	    locale.universe.geometryStructure.pickAll(locale, pickShape);
+        
+        PickInfo[] pickInfoArr = PickInfo.pick(this, geomAtoms, mode, 
+					       flags, pickShape, PickInfo.PICK_ANY);
+        
+        if(pickInfoArr == null) {
+            return null;
+        }
+        
+        return pickInfoArr[0];
+        
+    }    
 }
