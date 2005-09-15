@@ -283,7 +283,9 @@ class BranchGroupRetained extends GroupRetained {
             flags |= PickInfo.CLOSEST_DISTANCE;
             pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, 
 				       pickShape, PickInfo.PICK_ALL);
-            PickInfo.sortPickInfoArray(pickInfoArr);
+            if (pickInfoArr != null) {
+                PickInfo.sortPickInfoArray(pickInfoArr);
+            }
         }
         else {
             PickInfo.sortGeomAtoms(geomAtoms, pickShape);
