@@ -576,7 +576,7 @@ public class Locale extends Object {
             throw new IllegalArgumentException(J3dI18N.getString("Locale7"));
         }
         
-        if((mode != PickInfo.PICK_BOUNDS) && 
+        if((mode == PickInfo.PICK_BOUNDS) && 
                 (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
                             PickInfo.ALL_GEOM_INFO |
                             PickInfo.CLOSEST_DISTANCE |
@@ -793,7 +793,9 @@ public class Locale extends Object {
             // Need to have closestDistance set
             flags |= PickInfo.CLOSEST_DISTANCE;
             pickInfoArr= PickInfo.pick(this, geomAtoms, mode, flags, pickShape, PickInfo.PICK_ALL);
-            PickInfo.sortPickInfoArray(pickInfoArr);
+	    if (pickInfoArr != null) {
+		PickInfo.sortPickInfoArray(pickInfoArr);
+	    }
         }
         else {
             PickInfo.sortGeomAtoms(geomAtoms, pickShape);

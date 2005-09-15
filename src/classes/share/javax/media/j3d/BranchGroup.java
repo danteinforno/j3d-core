@@ -123,7 +123,7 @@ public class BranchGroup extends Group {
             throw new IllegalArgumentException(J3dI18N.getString("BranchGroup6"));
         }
         
-        if((mode != PickInfo.PICK_BOUNDS) && 
+        if((mode == PickInfo.PICK_BOUNDS) && 
                 (((flags & (PickInfo.CLOSEST_GEOM_INFO | 
                             PickInfo.ALL_GEOM_INFO |
                             PickInfo.CLOSEST_DISTANCE |

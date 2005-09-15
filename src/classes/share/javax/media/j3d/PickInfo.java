@@ -158,16 +158,16 @@ public class PickInfo extends Object {
 	    IntersectionInfo iInfoArr[];
 
 	    Sort(IntersectionInfo[] iInfoArr) {
-                System.out.println("Sort IntersectionInfo ...");
+                // System.out.println("Sort IntersectionInfo ...");
 		this.iInfoArr = iInfoArr;
 	    }
 
 	    void sorting() {
 		if (iInfoArr.length < 7) {
-                    System.out.println(" -- insertSort.");
+                    // System.out.println(" -- insertSort.");
 		    insertSort();
 	    	} else {
-                    System.out.println(" -- quicksort.");                    
+                    // System.out.println(" -- quicksort.");                    
 		    quicksort(0, iInfoArr.length-1);
     		}
 	    }
@@ -217,16 +217,16 @@ public class PickInfo extends Object {
 	    PickInfo pIArr[];
 
 	    Sort(PickInfo[] pIArr) {
-                System.out.println("Sort PickInfo ...");
+                // System.out.println("Sort PickInfo ...");
 		this.pIArr = pIArr;
 	    }
 
 	    void sorting() {
 		if (pIArr.length < 7) {
-                    System.out.println(" -- insertSort.");
+                    // System.out.println(" -- insertSort.");
 		    insertSort();
 	    	} else {
-                    System.out.println(" -- quicksort.");                    
+                    // System.out.println(" -- quicksort.");                    
 		    quicksort(0, pIArr.length-1);
     		}
 	    }
@@ -340,8 +340,15 @@ public class PickInfo extends Object {
      * @see BranchGroup
      */
     public IntersectionInfo[] getIntersectionInfos() {
-   	IntersectionInfo iInfoArray[] = new IntersectionInfo[intersectionInfoList.size()];
-	return (IntersectionInfo []) intersectionInfoList.toArray(iInfoArray);	
+        if (intersectionInfoListSorted == false) {
+            intersectionInfoArr = new IntersectionInfo[intersectionInfoList.size()];
+            intersectionInfoArr =
+                    (IntersectionInfo []) intersectionInfoList.toArray(intersectionInfoArr);
+            
+            sortIntersectionInfoArray(intersectionInfoArr);                    
+         }
+        
+        return intersectionInfoArr;
     }
      
     /**
@@ -757,7 +764,8 @@ public class PickInfo extends Object {
 
         if (node instanceof Locale) {
             locale = (Locale) node;
-        } else if ( node instanceof BranchGroupRetained) {
+        }
+        else if ( node instanceof BranchGroupRetained) {
             bgRetained = (BranchGroupRetained) node;
             locale = bgRetained.locale;
         }
@@ -772,15 +780,20 @@ public class PickInfo extends Object {
         // We done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
         if((mode == PICK_GEOMETRY) && ((pickInfoListSize = pickInfoList.size()) > 0)) {
             
+            //System.out.println("PickInfo.pick() - In geometry case : pickInfoList.size() is " + pickInfoListSize);
             PickInfo pickInfo = null;
             Node pickNode = null;
             
             // Need to do in reverse order.    
             for(int i = pickInfoListSize - 1; i >= 0; i--) {
                 pickInfo = (PickInfo) pickInfoList.get(i);
+                pickNode = pickInfo.getNode();
                 
                 if (pickNode instanceof Shape3D) {
+                    
                     if (((Shape3DRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
+                        // System.out.println("  ---- geom " + i + " not intersected");
+                        
                         pickInfoList.remove(i);
                     }
                     else if(pickType == PICK_ANY) {
