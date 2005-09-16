@@ -31,8 +31,8 @@ import com.sun.j3d.internal.DoubleBufferWrapper;
 abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
     // arrays to save indices for coord, color, normal, texcoord
-    int		indexCoord[], indexColor[], indexNormal[];
-    Object	indexTexCoord[];
+    int[]	indexCoord, indexColor, indexNormal;
+    int[][]	indexTexCoord;
 
     int		indexCount;
 
@@ -65,7 +65,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     	this.indexColor   = new int[indexCount];
     
     if((this.vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-	this.indexTexCoord = new Object[this.texCoordSetCount];
+	this.indexTexCoord = new int[this.texCoordSetCount][];
         if(notUCIO) {
             for (int i = 0; i < this.texCoordSetCount; i++) {
                 this.indexTexCoord[i] = new int[indexCount];
@@ -404,6 +404,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
     }
 
+    // TODO KCR : implement the following method.
+    //void doVertexAttrCheck(...)
+
 
     /**
      * Sets the coordinate index associated with the vertex at
@@ -718,7 +721,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      */
     final void setTextureCoordinateIndex(int texCoordSet, int index, int texCoordIndex) {
 	int newMax;
-	int [] indices = (int[])this.indexTexCoord[texCoordSet];
+	int [] indices = this.indexTexCoord[texCoordSet];
 	
 	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
 	    newMax = doIndexCheck(index, maxTexCoordIndices[texCoordSet],indices, texCoordIndex);
@@ -756,7 +759,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      */
   final void setTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
       int i, j, num = texCoordIndices.length;
-      int [] indices = (int[])this.indexTexCoord[texCoordSet];
+      int [] indices = this.indexTexCoord[texCoordSet];
 
       int newMax;
 	
@@ -902,7 +905,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @return the texture coordinate index
      */
     final int getTextureCoordinateIndex(int texCoordSet, int index) {
-	int [] indices = (int[])this.indexTexCoord[texCoordSet];
+	int [] indices = this.indexTexCoord[texCoordSet];
         if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
 	   ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)) {
             if (indices == null) {
@@ -923,7 +926,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      */
   final void getTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
     int i, j, num = texCoordIndices.length;
-    int [] indices = (int[])this.indexTexCoord[texCoordSet];
+    int [] indices = this.indexTexCoord[texCoordSet];
     if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
        ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)) {
         if (indices == null) {
@@ -940,7 +943,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
   }
 
     // used for GeometryArrays
-    native void executeIndexedGeometry(long ctx,
+    private native void executeIndexedGeometry(long ctx,
 			GeometryArrayRetained geo, int geo_type, 
 			boolean isNonUniformScale,
 			boolean useAlpha,
@@ -959,7 +962,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 			int[] indexCoord);
 
     // used for interleaved, by reference, nio buffer 
-    native void executeIndexedGeometryBuffer(long ctx,
+    private native void executeIndexedGeometryBuffer(long ctx,
 				       GeometryArrayRetained geo, int geo_type, 
 				       boolean isNonUniformScale,
 				       boolean useAlpha,
@@ -979,7 +982,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
 
 	
-    native void executeIndexedGeometryVA(long ctx,
+    private native void executeIndexedGeometryVA(long ctx,
 					 GeometryArrayRetained geo, int geo_type, 
 					 boolean isNonUniformScale, 
 					 boolean multiScreen,
@@ -1000,7 +1003,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					 int[] indexCoord);
 
     // non interleaved, by reference, nio buffer
-    native void executeIndexedGeometryVABuffer(long ctx,
+    private native void executeIndexedGeometryVABuffer(long ctx,
 					       GeometryArrayRetained geo, int geo_type, 
 					       boolean isNonUniformScale, 
 					       boolean multiScreen,
@@ -1022,7 +1025,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					       int[] indexCoord);
 
     // used for IndexedGeometry
-    native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
+    private native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
 				     boolean isNonUniformScale, boolean updateAlpha,
 				     float alpha,
 				     boolean ignoreVertexColors,
@@ -1311,7 +1314,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				//cfdata = null;
 				cfdata = mirrorFloatRefColors[0];
 				// if transparency switch between on/off
@@ -1334,7 +1337,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				    cdirty |= COLOR_CHANGED;
 				}
 			    } else {
-				// TODO: handle transparency case
+				// XXXX: handle transparency case
 				// cbdata = null;
 				cbdata = mirrorUnsignedByteRefColors[0];
 				// if transparency switch between on/off
@@ -1480,9 +1483,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
                 indexNormal = new int[indexCount];
             // We only merge if texCoordSetCount = 1
             if ((vertexFormat  &  GeometryArray.TEXTURE_COORDINATE) != 0) {
-                indexTexCoord = new Object[1];
+                indexTexCoord = new int[1][];
                 indexTexCoord[0] = new int[indexCount];
-                texCoord = (int[])indexTexCoord[0];
+                texCoord = indexTexCoord[0];
             }
         }
 	int curDataOffset = 0;
@@ -1500,7 +1503,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	            if ((vertexFormat  &  GeometryArray.NORMALS) != 0) 
 	                indexNormal[j+curIndexOffset] = geo.indexNormal[j+geo.initialIndexIndex]+curDataOffset;
 	            if ((vertexFormat  &  GeometryArray.TEXTURE_COORDINATE) != 0) 
-	                texCoord[j+curIndexOffset] = ((int[])geo.indexTexCoord[0])[j+geo.initialIndexIndex]+curDataOffset;
+	                texCoord[j+curIndexOffset] = geo.indexTexCoord[0][j+geo.initialIndexIndex]+curDataOffset;
                 }
 	    }
 	    maxCoordIndex = geo.maxCoordIndex +curDataOffset;
@@ -1569,7 +1572,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		newTexCoordIndex = new int[texCoordSetCount];
 		for (int i = 0; i < texCoordSetCount; i++) {
 		   newTexCoordIndex[i] =  computeMaxIndex(initialIndexIndex,validIndexCount,
-								  (int[])indexTexCoord[i]);
+								  indexTexCoord[i]);
 		   doTexCoordCheck(newTexCoordIndex[i], i);
 		}
 	    }
@@ -1629,7 +1632,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		newTexCoordIndex = new int[texCoordSetCount];
 		for (int i = 0; i < texCoordSetCount; i++) {
 		   newTexCoordIndex[i] =  computeMaxIndex(initialIndexIndex,validIndexCount,
-							  (int[])indexTexCoord[i]);
+							  indexTexCoord[i]);
 		   doTexCoordCheck(newTexCoordIndex[i], i);
 		}
 	    }

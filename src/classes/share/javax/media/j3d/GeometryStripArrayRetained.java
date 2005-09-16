@@ -191,8 +191,8 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 		    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 			for (k = 0; k < texCoordSetCount; k++) {
                              System.arraycopy(vdata,
-                            	(((int[])src.indexTexCoord[k])[index])
-					*src.stride + src.textureOffset +
+                            	(src.indexTexCoord[k][index])
+					* src.stride + src.textureOffset +
 					src.texCoordSetMapOffset[k],
                             	vertexData,
                             	vOffset + textureOffset + 
@@ -363,7 +363,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 			    for (k = 0, tOffset = vOffset; 
 					k < texCoordSetCount; k++) {
                                  System.arraycopy(src.refTexCoords[k],
-                                     ((int[])src.indexTexCoord[k])[index]
+                                     src.indexTexCoord[k][index]
 					*texCoordStride,
                                 	vertexData, tOffset, texCoordStride);
                             	 tOffset += texCoordStride;
@@ -380,7 +380,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 			    for (k = 0, tOffset = vOffset;
 				    k < texCoordSetCount; k++) {
                              	 srcOffset = 
-				    ((int[])src.indexTexCoord[k])[index];
+				    src.indexTexCoord[k][index];
                                  vertexData[tOffset] = ((TexCoord2f[])
 					src.refTexCoords[k])[srcOffset].x;
                                  vertexData[tOffset+1] = ((TexCoord2f[])
@@ -399,7 +399,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 			    for (k = 0, tOffset = vOffset;
 				    k < texCoordSetCount; k++) {
                              	 srcOffset = 
-				    ((int[])src.indexTexCoord[k])[index];
+				    src.indexTexCoord[k][index];
                                  vertexData[tOffset] = ((TexCoord3f[])
 					src.refTexCoords[k])[srcOffset].x;
                                  vertexData[tOffset+1] = ((TexCoord3f[])
@@ -508,7 +508,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 		    }
 		    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 			for (k = 0; k < texCoordSetCount; k++) {
-			    src.interleavedFloatBufferImpl.position((((int[])src.indexTexCoord[k])[index])
+			    src.interleavedFloatBufferImpl.position((src.indexTexCoord[k][index])
 					*src.stride + src.textureOffset +
 					src.texCoordSetMapOffset[k]);
 			    
@@ -605,7 +605,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
 			    for (k = 0, tOffset = vOffset; 
 					k < texCoordSetCount; k++) {
 				texBuffer = (FloatBufferWrapper)(((J3DBuffer) (src.refTexCoordsBuffer[k])).getBufferImpl());
-				texBuffer.position(((int[])src.indexTexCoord[k])[index]*texCoordStride);
+				texBuffer.position(src.indexTexCoord[k][index]*texCoordStride);
 				texBuffer.get(vertexData, tOffset, texCoordStride);
 				tOffset += texCoordStride;
                             }

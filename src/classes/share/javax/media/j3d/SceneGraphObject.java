@@ -43,6 +43,9 @@ public abstract class SceneGraphObject extends Object {
     // A reference to user data
     private Object userData = null;
 
+    // Optional name for object.
+    private String objectName = null;
+
     // use for cloneTree/cloneNode only, set to null after the operation
     Hashtable nodeHashtable = null;
 
@@ -331,6 +334,28 @@ public abstract class SceneGraphObject extends Object {
     public void updateNodeReferences(NodeReferenceTable referenceTable) {
     }
 
+    /**
+     * Sets the name of this object. Object names are for information
+     * only.
+     *
+     * @param name the new name of this object
+     *
+     * @since Java 3D 1.4
+     */
+    public void setName( String name ) {
+        objectName = name;
+    }
+
+    /**
+     * Returns the name of this object.
+     *
+     * @return the name of this object
+     *
+     * @since Java 3D 1.4
+     */             
+    public String getName() {
+	return objectName;
+    }
 
     /**
      * Copies all SceneGraphObject information from
@@ -353,6 +378,7 @@ public abstract class SceneGraphObject extends Object {
         // Duplicate any class specific data here.
 	capabilityBits = originalNode.capabilityBits;
         userData = originalNode.userData;
+        objectName = originalNode.objectName;
     }
 
 
@@ -402,4 +428,25 @@ public abstract class SceneGraphObject extends Object {
 	    return originalNodeComponent;
 	}
     }
+
+    // Internal method to make a prefix out of the name of this object
+    String getNamePrefix() {
+	String name = getName();
+
+	if (name != null) {
+	    return "[" + name + "] ";
+	}
+
+	return "";
+    }
+
+    /**
+     * Returns a String representation of this SceneGraphObject.
+     * If its name is non-null, then it is concatenated with
+     * super.toString().
+     */
+    public String toString() {
+	return getNamePrefix() + super.toString();
+    }
+
 }
