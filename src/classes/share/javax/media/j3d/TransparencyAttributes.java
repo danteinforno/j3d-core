@@ -329,11 +329,10 @@ public class TransparencyAttributes extends NodeComponent {
         case BLEND_ONE:
         case BLEND_SRC_ALPHA:
         case BLEND_ONE_MINUS_SRC_ALPHA:
-            break;
         case BLEND_DST_COLOR:
         case BLEND_ONE_MINUS_DST_COLOR:
-            throw new RuntimeException("blend functions DST_COLOR/ONE_MINUS_DST_COLOR not implemented");
-        default:
+            break;
+            default:
             throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes7"));
         }
 
@@ -342,11 +341,10 @@ public class TransparencyAttributes extends NodeComponent {
         case BLEND_ONE:
         case BLEND_SRC_ALPHA:
         case BLEND_ONE_MINUS_SRC_ALPHA:
-            break;
         case BLEND_SRC_COLOR:
         case BLEND_ONE_MINUS_SRC_COLOR:
-            throw new RuntimeException("blend functions SRC_COLOR/ONE_MINUS_SRC_COLOR not implemented");
-        default:
+            break;
+            default:
             throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes8"));
         }
 
@@ -468,11 +466,10 @@ public class TransparencyAttributes extends NodeComponent {
         case BLEND_ONE:
         case BLEND_SRC_ALPHA:
         case BLEND_ONE_MINUS_SRC_ALPHA:
-            break;
         case BLEND_DST_COLOR:
         case BLEND_ONE_MINUS_DST_COLOR:
-            throw new RuntimeException("blend functions DST_COLOR/ONE_MINUS_DST_COLOR not implemented");
-        default:
+            break;
+            default:
             throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes7"));
         }
 
@@ -530,11 +527,10 @@ public class TransparencyAttributes extends NodeComponent {
         case BLEND_ONE:
         case BLEND_SRC_ALPHA:
         case BLEND_ONE_MINUS_SRC_ALPHA:
-            break;
         case BLEND_SRC_COLOR:
         case BLEND_ONE_MINUS_SRC_COLOR:
-            throw new RuntimeException("blend functions SRC_COLOR/ONE_MINUS_SRC_COLOR not implemented");
-        default:
+            break;
+            default:
             throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes8"));
         }
 
