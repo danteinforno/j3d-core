@@ -727,9 +727,13 @@ public class RenderingAttributes extends NodeComponent {
     /**
      * Enables or disables depth buffer mode for this RenderingAttributes
      * component object.
+     *
      * @param state true or false to enable or disable depth buffer mode
+     *
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
+     *
+     * @see GraphicsConfigTemplate3D#setDepthSize
      */
     public void setDepthBufferEnable(boolean state){
 	if (isLiveOrCompiled())
@@ -1152,7 +1156,10 @@ public class RenderingAttributes extends NodeComponent {
 
     /**
      * Enables or disables the stencil buffer for this RenderingAttributes
-     * component object.
+     * component object. If the stencil buffer is disabled, the
+     * stencil operation and function are ignored.  If a scene graph
+     * is rendered on a Canvas3D that does not have a stencil buffer,
+     * the stencil buffer will be implicitly disabled for that canvas.
      *
      * @param state true or false to enable or disable stencil buffer
      * operations.
@@ -1161,6 +1168,8 @@ public class RenderingAttributes extends NodeComponent {
      *
      * @exception CapabilityNotSetException if appropriate capability is 
      * not set and this object is part of live or compiled scene graph
+     *
+     * @see GraphicsConfigTemplate3D#setStencilSize
      *
      * @since Java 3D 1.4
      */
