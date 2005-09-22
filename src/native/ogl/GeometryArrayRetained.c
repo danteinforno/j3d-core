@@ -1786,7 +1786,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_setVertexFormat(
 #endif /* VERBOSE */
 
     /* Disable texture coordinate arrays for all texture units */
-    for (i = 0; i < ctxProperties->textureUnitCount; i++) {
+    for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
 
@@ -2829,7 +2829,7 @@ Java_javax_media_j3d_IndexedGeometryArrayRetained_buildIndexedGeometry(
     geo_class =  (jclass) (*(table->GetObjectClass))(env, geo);
 
     /* Disable texture coordinate arrays for all texture units */
-    for (i = 0; i < ctxProperties->textureUnitCount; i++) {
+    for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
 
@@ -3260,7 +3260,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForByRef(
     table = *env;
 
     /* Disable texture coordinate arrays for all texture units */
-    for (i = 0; i < ctxProperties->textureUnitCount; i++) {
+    for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
 
@@ -3606,7 +3606,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForBuffer(
     table = *env;
 
     /* Disable texture coordinate arrays for all texture units */
-    for (i = 0; i < ctxProperties->textureUnitCount; i++) {
+    for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
 

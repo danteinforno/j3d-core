@@ -538,7 +538,11 @@ struct GraphicsContextPropertiesInfoRec {
 
     /* GL_ARB_multitexture */
     jboolean arb_multitexture;
-    int textureUnitCount;
+    int maxTexCoordSets; /* maximum number of texture coordinate sets */
+    int maxTextureUnits; /* number of fixed-function texture units */
+    int maxTextureImageUnits; /* number of fragment shader texture units */
+    int maxVertexTextureImageUnits; /* number of vertex shader texture units */
+    int maxCombinedTextureImageUnits; /* total number of shader texture units */
 
     /* GL_SGI_texture_color_table */
     jboolean textureColorTableAvailable;
@@ -623,10 +627,6 @@ struct GraphicsContextPropertiesInfoRec {
     jint extMask;
     jint textureExtMask;
 
-    /* shader language  support */
-    jboolean  shadingLanguageGLSL;
-    jboolean  shadingLanguageCg;
-    
     /* function pointers */
     MYPFNGLBLENDCOLORPROC glBlendColor;
     MYPFNGLBLENDCOLOREXTPROC glBlendColorEXT;
@@ -662,6 +662,10 @@ struct GraphicsContextPropertiesInfoRec {
 #if defined(UNIX)
     MYPFNGLXVIDEORESIZESUN glXVideoResizeSUN;
 #endif /* UNIX_ */
+
+    /* Shading language support */
+    jboolean shadingLanguageGLSL;
+    jboolean shadingLanguageCg;
 
     /* Function pointers for language-independent vertex attribute functions */
     MYPFNVERTEXATTRPOINTER vertexAttrPointer;

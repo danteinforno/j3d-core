@@ -724,21 +724,10 @@ class Renderer extends J3dThread {
 				    NodeComponentRetained nc = (NodeComponentRetained)renderBin.nodeComponentList.get(i);
 				    nc.evaluateExtensions(canvas.extensionsSupported);
 				}
-			    }
-		
+                            }
 
-			    // query for the number of texture units supported
-			    if (canvas.multiTexAccelerated) {
-			        canvas.numTexUnitSupported = 
-					canvas.getTextureUnitCount(canvas.ctx);
-				if (VirtualUniverse.mc.textureUnitMax < canvas.numTexUnitSupported) {
-				    canvas.numTexUnitSupported = VirtualUniverse.mc.textureUnitMax;
-				}
-			    }
-
-			    // enable separate specular color
+                            // enable separate specular color
 			    canvas.enableSeparateSpecularColor();
-
 			}
 
 
@@ -748,9 +737,8 @@ class Renderer extends J3dThread {
 			if (canvas.texUnitState == null) {
 			    canvas.texUnitState = 
 				new TextureUnitStateRetained[
-					canvas.numTexCoordSupported];
-			    for (int t = 0; t < canvas.numTexCoordSupported;
-					t++) {
+                                    canvas.maxAvailableTextureUnits];
+			    for (int t = 0; t < canvas.maxAvailableTextureUnits; t++) {
 				canvas.texUnitState[t] = 
 					new TextureUnitStateRetained();
 				canvas.texUnitState[t].texture = null;
@@ -762,10 +750,15 @@ class Renderer extends J3dThread {
 			// also create the texture unit state map
 			// which is a mapping from texture unit state to
 			// the actual underlying texture unit
+                        // NOTE: since this is now required to be a 1-to-1
+                        // mapping, we will initialize it as such
 
         		if (canvas.texUnitStateMap == null) {
-            		    canvas.texUnitStateMap = 
-					new int[canvas.numTexCoordSupported];
+                            canvas.texUnitStateMap =
+                                    new int[canvas.maxAvailableTextureUnits];
+                            for (int t = 0; t < canvas.maxAvailableTextureUnits; t++) {
+                                canvas.texUnitStateMap[t] = t;
+                            }
         		}
 			
 			canvas.resetImmediateRendering(Canvas3D.NOCHANGE);

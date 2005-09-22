@@ -525,9 +525,11 @@ class TextureAttributesRetained extends NodeComponentRetained {
 				int[] combineRgbFcn, int[] combineAlphaFcn,
 				int combineRgbScale, int combineAlphaScale);
 
-    native void restoreBlend1Pass(long ctx);
-    native void updateBlend2Pass(long ctx);
-
+    // NOTE: the following native methods are not used any more, since
+    // we no longer do simulated multi-pass by default
+    // (and with shaders, this won't work anyway)
+//    native void restoreBlend1Pass(long ctx);
+//    native void updateBlend2Pass(long ctx);
 
     void updateNative(Canvas3D cv, boolean simulate, int textureFormat) {
 
