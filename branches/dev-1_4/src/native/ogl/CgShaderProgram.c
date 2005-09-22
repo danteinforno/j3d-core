@@ -370,10 +370,20 @@ checkCgShaderExtensions(
 	/* TODO: need to free ctxInfo->cgCtxInfo when ctxInfo is freed */
 	ctxInfo->cgCtxInfo = createCgShaderContext(env, ctxInfo);
 	if (ctxInfo->cgCtxInfo != NULL) {
+            CgWrapperInfo *cgWrapperInfo = ctxInfo->cgCtxInfo->cgWrapperInfo;
+
 	    /*
 	    fprintf(stderr, "Cg ctx is available\n");
 	    */
 	    ctxInfo->shadingLanguageCg = JNI_TRUE;
+
+            /* TODO: Query Cg texture sampler limits */
+            ctxInfo->maxTextureImageUnits = ctxInfo->maxTextureUnits;
+            ctxInfo->maxVertexTextureImageUnits = 0;
+            ctxInfo->maxCombinedTextureImageUnits = ctxInfo->maxTextureUnits;
+
+            /* TODO: Query max vertex attrs */
+            ctxInfo->maxVertexAttrs = 2;
 
 	    /* Initialize shader vertex attribute function pointers */
 	    ctxInfo->vertexAttrPointer = cgVertexAttrPointer;

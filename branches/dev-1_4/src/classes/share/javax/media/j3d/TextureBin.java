@@ -27,10 +27,10 @@ class TextureBin extends Object implements ObjectUpdate {
     TextureUnitStateRetained [] texUnitState = null;
 
     // last active texture unit
-    int lastActiveTexUnitIndex;
+    private int lastActiveTexUnitIndex;
 
     // number of active texture unit
-    int numActiveTexUnit;
+    private int numActiveTexUnit;
 
     /**
      * The RenderBin for this object
@@ -182,7 +182,6 @@ class TextureBin extends Object implements ObjectUpdate {
         int i, j;
 	boolean foundDisableUnit = false;
 	numActiveTexUnit = 0;
-	boolean d3dBlendMode = false;
 	lastActiveTexUnitIndex = 0;
 	boolean soleUser = ((tbFlag & TextureBin.SOLE_USER) != 0);
 	TextureRetained prevFirstTexture = null;
@@ -331,11 +330,13 @@ class TextureBin extends Object implements ObjectUpdate {
 		    }
 
 
-		    // track the last active texture unit
-		    // and the total number of active texture unit
+		    // Track the last active texture unit and the total number
+                    // of active texture units. Note that this total number
+                    // now includes disabled units so that there is always
+                    // a one-to-one mapping. We no longer remap texture units.
 		    if (texUnitState[i].isTextureEnabled()) {
-			numActiveTexUnit++;
 			lastActiveTexUnitIndex = i;
+                        numActiveTexUnit = i + 1;
 
 			if (foundDisableUnit) {
 
@@ -347,7 +348,7 @@ class TextureBin extends Object implements ObjectUpdate {
 			foundDisableUnit = true;
 		    }
 		}
-	    } 
+	    }
 
 	    // check to see if the TextureBin sorting criteria is
 	    // modified for this textureBin; if yes, mark that
@@ -708,12 +709,14 @@ class TextureBin extends Object implements ObjectUpdate {
 	    tbFlag |= TextureBin.CONTIGUOUS_ACTIVE_UNITS;
 	    for (int i = 0; i < texUnitState.length; i++) {
 
-                // track the last active texture unit
-		// and the total number of active texture unit
+                // Track the last active texture unit and the total number
+                // of active texture units. Note that this total number
+                // now includes disabled units so that there is always
+                // a one-to-one mapping. We no longer remap texture units.
                 if (texUnitState[i] != null &&
 			texUnitState[i].isTextureEnabled()) {
-                    numActiveTexUnit++;
                     lastActiveTexUnitIndex = i;
+                    numActiveTexUnit = i + 1;
 
                     if (foundDisableUnit) {
 
@@ -1087,7 +1090,7 @@ class TextureBin extends Object implements ObjectUpdate {
      * state update.
      */
     void updateAttributes(Canvas3D cv, int pass) {
-	
+
         boolean dirty = ((cv.canvasDirty & (Canvas3D.TEXTUREBIN_DIRTY|
 					    Canvas3D.TEXTUREATTRIBUTES_DIRTY)) != 0);
 
@@ -1096,18 +1099,39 @@ class TextureBin extends Object implements ObjectUpdate {
 	}
 
 	cv.textureBin = this;
-
+        
 	// save the current number of active texture unit so as
         // to be able to reset the one that is not enabled in this bin
 
 	int lastActiveTexUnitIdx = -1;
 
-	// set the number active texture unit in Canvas3D
-	cv.setNumActiveTexUnit(numActiveTexUnit);
+        // Get the number of available texture units; this depends on
+        // whether or not shaders are being used.
+        boolean useShaders = (shaderBin.shaderProgram != null);
+        int availableTextureUnits =
+                useShaders ? cv.maxTextureImageUnits : cv.maxTextureUnits;
+
+        // If the number of active texture units is greater than the number of
+        // supported units, and we don't allow simulated multi-texture, then we
+        // need to set a flag indicating that the texture units are invalid.
+        boolean disableTexture = false;
+
+        if (pass < 0 && numActiveTexUnit > availableTextureUnits) {
+            disableTexture = true;
+//            System.err.println("*** TextureBin : number of texture units exceeded");
+        }
+
+        // set the number active texture unit in Canvas3D
+        if (disableTexture) {
+            cv.setNumActiveTexUnit(0);
+        }
+        else {
+            cv.setNumActiveTexUnit(numActiveTexUnit);
+        }
 
 	// state update
-	if (numActiveTexUnit <= 0) {
-	    if (cv.getLastActiveTexUnit() >= 0) {
+	if (numActiveTexUnit <= 0 || disableTexture) {
+            if (cv.getLastActiveTexUnit() >= 0) {
 	        // no texture units enabled
 
 	        // when the canvas supports multi texture units,
@@ -1125,20 +1149,8 @@ class TextureBin extends Object implements ObjectUpdate {
 		cv.setLastActiveTexUnit(-1);
 	    }
 	} else if (pass < 0) {
-	    int j = 0;		
-	    boolean oneToOneMapping;
 
-	    if ((pass == USE_VERTEXARRAY) || VirtualUniverse.mc.isD3D()) {
-		// d3d  or when the texUnitStateMap requires more texture
-		// units than what is supported by the canvas, then
-		// we'll need a compact texture unit mapping, that is,
-		// only the enabled texUnitStates will be mapped to 
-		// texture units. And as a matter of fact, the
-		// render atoms will be rendered as vertex array.
-		oneToOneMapping = false;
-	    } else {
-		oneToOneMapping = true;
-	    }
+            int j = 0;
 
 	    for (int i = 0; i < texUnitState.length; i++) {
 
@@ -1164,24 +1176,13 @@ class TextureBin extends Object implements ObjectUpdate {
 		    // unit to a texture unit state
 
 		    lastActiveTexUnitIdx = j;
-		    cv.setTexUnitStateMap(i, j++);
-
-
-		} else if (oneToOneMapping) {
-		    // one to one mapping is needed when display list
-		    // is used to render multi-textured geometries,
-		    // since when display list is created, the texture
-		    // unit state to texture unit mapping is based on
-		    // the geometry texCoordMap only. At render time,
-		    // the texture unit state enable flags could have
-		    // been changed. In keeping a one to one mapping,
-		    // we'll not need to rebuild the display list
+		} else {
 		    if (j <= cv.getLastActiveTexUnit()) { 
 			cv.resetTexture(cv.ctx, j);
 		    }
-
-		    cv.setTexUnitStateMap(i, j++);
 		}
+                
+                j++;
 	    }
 
             // make sure to disable the remaining texture units
@@ -1204,7 +1205,7 @@ class TextureBin extends Object implements ObjectUpdate {
             cv.activeTextureUnit(cv.ctx, 0);
 
 	} else {
-	    // update the last active texture unit state
+            // update the last active texture unit state
 	    if (dirty || cv.texUnitState[0].mirror == null ||
 			cv.texUnitState[0].mirror != 
 		    		texUnitState[lastActiveTexUnitIndex].mirror) {
@@ -1213,7 +1214,6 @@ class TextureBin extends Object implements ObjectUpdate {
 		cv.texUnitState[0].mirror = 
 		    texUnitState[lastActiveTexUnitIndex].mirror;
 
-		cv.setTexUnitStateMap(0, 0);
 		cv.setLastActiveTexUnit(0);
 	    }
 	}
@@ -1230,46 +1230,41 @@ class TextureBin extends Object implements ObjectUpdate {
 
     void render(Canvas3D cv, Object rlist) {
 
-	boolean d3dBlendMode = false;
 	cv.texLinearMode = false;
 
 	/*
 	System.out.println("TextureBin/render " + this +
 		" numActiveTexUnit= " + numActiveTexUnit + 
-		" numTexUnitSupported= " + cv.numTexUnitSupported);
+		" maxTextureUnits= " + cv.maxTextureUnits);
 	*/
 
 	// include this TextureBin to the to-be-updated state set in canvas
 	cv.setStateToUpdate(Canvas3D.TEXTUREBIN_BIT, this);
-	
-	if ((texUnitState != null) &&
-	    VirtualUniverse.mc.isD3D()) {
+
+        // For D3D - set the texLinearMode flag in the canvas if texcoord
+        // generation is enabled in object_linear mode for any texture unit.
+	if ((texUnitState != null) && VirtualUniverse.mc.isD3D()) {
 	    TextureUnitStateRetained tus;
-	    // use multi-pass if one of the stage use blend mode
 	    for (int i = 0; i < texUnitState.length; i++) {
 		tus = texUnitState[i];
-		if ((tus != null) &&
-		    tus.isTextureEnabled()) {
-		    if (tus.needBlend2Pass(cv)) {
-			d3dBlendMode = true;
-		    }
+		if ((tus != null) && tus.isTextureEnabled()) {
 		    if ((tus.texGen != null) &&
-			(tus.texGen.genMode ==
-			 TexCoordGeneration.OBJECT_LINEAR)) {
+			(tus.texGen.genMode == TexCoordGeneration.OBJECT_LINEAR)) {
 			cv.texLinearMode = true;
 		    }
 		}
 	    }
-	}
+        }
 
-	if ((numActiveTexUnit > cv.numTexUnitSupported) || 
-	    d3dBlendMode) {
+        // If shaders are not being used, and if allowSimulatedMultiTexture
+        // property is set, then we will use simulated (multi-pass)
+        // multi-texture when the requested number of texture units exceeds
+        // the available number of texture units
+        boolean useShaders = (shaderBin.shaderProgram != null);
+
+        if (!useShaders && (numActiveTexUnit > cv.maxTextureUnits) &&
+                VirtualUniverse.mc.allowSimulatedMultiTexture) {
 	    multiPassRender(cv, rlist);
-	} else if ((numActiveTexUnit > 0) &&
-		   !VirtualUniverse.mc.isD3D() &&
-		   (texUnitState.length > cv.numTexUnitSupported) && 
-		   ((tbFlag & TextureBin.CONTIGUOUS_ACTIVE_UNITS) == 0)) {
-	    renderList(cv, USE_VERTEXARRAY, rlist);
 	} else {
 	    renderList(cv, USE_DISPLAYLIST, rlist);
 	} 
@@ -1294,7 +1289,7 @@ class TextureBin extends Object implements ObjectUpdate {
      */
     void renderList(Canvas3D cv, int pass, RenderMolecule rlist) {
 
-	// bit mask of all attr fields that are equivalent across 
+        // bit mask of all attr fields that are equivalent across 
 	// renderMolecules thro. ORing of invisible RMs.
 	int combinedDirtyBits = 0;
 	boolean rmVisible = true;
@@ -1338,9 +1333,11 @@ class TextureBin extends Object implements ObjectUpdate {
     /**
      * multi rendering pass to simulate multiple texture units 
      */
-    void multiPassRender(Canvas3D cv, Object rlist) {
+    private void multiPassRender(Canvas3D cv, Object rlist) {
+        
+        assert VirtualUniverse.mc.allowSimulatedMultiTexture;
 
-	boolean startToSimulate = false;
+        boolean startToSimulate = false;
 	boolean isFogEnabled = false;
 
 	// No lazy download of texture for multi-pass,
@@ -1396,31 +1393,12 @@ class TextureBin extends Object implements ObjectUpdate {
 		    }
 		}
 		
-		if (!tus.needBlend2Pass(cv)) {
-		    // turn on fog again in the last pass
+                // turn on fog again in the last pass
 
-		    if (i == lastActiveTexUnitIndex && isFogEnabled) {
-		        cv.setFogEnableFlag(cv.ctx, true);
-		    }
-		    renderList(cv, i, rlist);
-
-		} else {
-		    // D3d needs two passes to simulate Texture.Blend mode
-		    tus.texAttrs.updateNative(cv, false, tus.texture.format);
-		    renderList(cv, i, rlist);
-
-		    tus.texAttrs.updateBlend2Pass(cv.ctx);
-
-		    // turn on fog again in the last pass
-
-		    if (i == lastActiveTexUnitIndex && isFogEnabled) {
-		        cv.setFogEnableFlag(cv.ctx, true);
-		    }
-		    renderList(cv, i, rlist);
-
-                    // restore original blend mode in case
-		    tus.texAttrs.restoreBlend1Pass(cv.ctx);
-		}
+                if (i == lastActiveTexUnitIndex && isFogEnabled) {
+                    cv.setFogEnableFlag(cv.ctx, true);
+                }
+                renderList(cv, i, rlist);
 	    }
 	}
 

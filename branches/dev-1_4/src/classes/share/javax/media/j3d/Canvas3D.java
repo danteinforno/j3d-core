@@ -410,16 +410,11 @@ public class Canvas3D extends Canvas {
     //
     int textureColorTableSize;
 
-    boolean multiTexAccelerated = false;
-
-    // number of simultaneous Texture unit support for this canvas.
-    int numTexUnitSupported = 1;
-
-    // number of texture coords unit support for multi-texture.
-    int numTexCoordSupported = 1;
-   
     // a mapping between underlying graphics library texture unit and
     // texture unit state in j3d
+    //
+    // TODO: This mapping is now required to be 1-to-1, and it should be
+    // removed entirely in Java 3D 1.5
     int[] texUnitStateMap = null;
 
     // number of active/enabled texture unit 
@@ -695,6 +690,8 @@ public class Canvas3D extends Canvas {
      * Texture Generation linear mode. This is used for D3D
      * temporary turn displayList off and do its own coordinate
      * generation since D3D don't support it.
+     *
+     * TODO aces : is this still true in DX9?
      */
     boolean texLinearMode = false; 
 
@@ -778,8 +775,9 @@ public class Canvas3D extends Canvas {
     static final int SUN_VIDEO_RESIZE            = 0x800;
     static final int STENCIL_BUFFER              = 0x1000;
 
-    // The following three variables are set by
-    // createNewContext()/createQueryContext() callback
+    // The following 10 variables are set by the native
+    // createNewContext()/createQueryContext() methods
+
     // Supported Extensions
     int extensionsSupported = 0;
 
@@ -788,6 +786,33 @@ public class Canvas3D extends Canvas {
 
     // Texture Boundary Width Max
     int   textureBoundaryWidthMax = 0;
+
+    boolean multiTexAccelerated = false;
+
+    // Max number of texture coordinate sets
+    int maxTexCoordSets = 1;
+
+    // Max number of fixed-function texture units
+    int maxTextureUnits = 1;
+
+    // Max number of fragment shader texture units
+    int maxTextureImageUnits = 0;
+
+    // Max number of vertex shader texture units
+    int maxVertexTextureImageUnits = 0;
+
+    // Max number of combined shader texture units
+    int maxCombinedTextureImageUnits = 0;
+    
+    // Max number of vertex attrs (not counting coord, etc.)
+    int maxVertexAttrs = 0;
+
+    // End of variables set by createNewContext()/createQueryContext()
+
+    // The total available number of texture units used by either the
+    // fixed-function or programmable shader pipeline.
+    // This is computed as: max(maxTextureUnits, maxTextureImageUnits)
+    int maxAvailableTextureUnits;
 
     // Texture Width, Height Max
     int   textureWidthMax = 0;
@@ -831,24 +856,21 @@ public class Canvas3D extends Canvas {
     Object curStateToUpdate[] = new Object[7];
 
 
-    // Native method for determining the number of texture unit supported
-    native int getTextureUnitCount(long ctx);
-
     // Native method for determining the texture color table size
     // in the underlying API for this Canvas3D.
     /* native int getTextureColorTableSize(long ctx); */
 
     // This is the native method for creating the underlying graphics context.
-    native long createNewContext(long display, int window, int vid, long fbConfig,
-				 long shareCtx, boolean isSharedCtx,
-				 boolean offScreen,
-                                 boolean glslLibraryAvailable,
-                                 boolean cgLibraryAvailable);
+    private native long createNewContext(long display, int window, int vid,
+            long fbConfig, long shareCtx, boolean isSharedCtx,
+            boolean offScreen,
+            boolean glslLibraryAvailable,
+            boolean cgLibraryAvailable);
 
-    native void createQueryContext(long display, int window, int vid, long fbConfig, 
-				   boolean offScreen, int width, int height,
-                                   boolean glslLibraryAvailable,
-                                   boolean cgLibraryAvailable);
+    private native void createQueryContext(long display, int window, int vid,
+            long fbConfig, boolean offScreen, int width, int height,
+            boolean glslLibraryAvailable,
+            boolean cgLibraryAvailable);
 
     native static void destroyContext(long display, int window, long context);
 
@@ -1022,7 +1044,7 @@ public class Canvas3D extends Canvas {
 
 
     // native method for updating the texture unit state map
-    native void updateTexUnitStateMap(long ctx, int numActiveTexUnit,
+    private native void updateTexUnitStateMap(long ctx, int numActiveTexUnit,
 					int[] texUnitStateMap);
 
     /**
@@ -2381,7 +2403,7 @@ public class Canvas3D extends Canvas {
      * Wrapper for native createNewContext method.
      */
     long createNewContext(long shareCtx, boolean isSharedCtx) {
-        return createNewContext(this.screen.display,
+        long retVal = createNewContext(this.screen.display,
                 this.window,
                 this.vid,
                 this.fbConfig,
@@ -2389,6 +2411,9 @@ public class Canvas3D extends Canvas {
                 this.offScreen,
                 VirtualUniverse.mc.glslLibraryAvailable,
                 VirtualUniverse.mc.cgLibraryAvailable);
+        // compute the max available texture units
+        maxAvailableTextureUnits = Math.max(maxTextureUnits, maxTextureImageUnits);
+        return retVal;
     }
     
     /**
@@ -3212,7 +3237,23 @@ public class Canvas3D extends Canvas {
      * <td>Boolean</td>
      * </tr>
      * <tr>
+     * <td><code>textureCoordSetsMax</code></td>
+     * <td>Integer</td>
+     * </tr>
+     * <tr>
      * <td><code>textureUnitStateMax</code></td>
+     * <td>Integer</td>
+     * </tr>
+     * <tr>
+     * <td><code>textureImageUnitsMax</code></td>
+     * <td>Integer</td>
+     * </tr>
+     * <tr>
+     * <td><code>textureImageUnitsVertexMax</code></td>
+     * <td>Integer</td>
+     * </tr>
+     * <tr>
+     * <td><code>textureImageUnitsCombinedMax</code></td>
      * <td>Integer</td>
      * </tr>
      * <tr>
@@ -3234,6 +3275,10 @@ public class Canvas3D extends Canvas {
      * <tr>
      * <td><code>textureAnisotropicFilterDegreeMax</code></td>
      * <td>Float</td>
+     * </tr>
+     * <tr>
+     * <td><code>vertexAttrsMax</code></td>
+     * <td>Integer</td>
      * </tr>
      * <tr>
      * <td><code>compressedGeometry.majorVersionNumber</code></td>
@@ -3448,14 +3493,48 @@ public class Canvas3D extends Canvas {
      * </li>
      *
      * <li>
+     * <code>textureCoordSetsMax</code>
+     * <ul>
+     * An Integer indicating the maximum number of texture coordinate sets
+     * supported by the underlying rendering layer.
+     * </ul>
+     * </li>
+     *
+     * <li>
      * <code>textureUnitStateMax</code>
      * <ul>
-     * An Integer indicating the maximum number of texture unit states
-     * supported by the underlying rendering layer. Java3D allows an
-     * application to specify number of texture unit states more than
-     * what the underlying rendering layer supports; in this case, Java3D
-     * will use multi-pass to support the specified number of texture
-     * unit states.
+     * An Integer indicating the maximum number of fixed-function texture units
+     * supported by the underlying rendering layer. If the number of
+     * application-sepcified texture unit states exceeds the maximum number
+     * for a Canvas3D, and the fixed-function rendering pipeline is used, then
+     * the texture will be effectively disabled for that Canvas3D.
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>textureImageUnitsMax</code>
+     * <ul>
+     * An Integer indicating the maximum number of texture image units
+     * that can be accessed by the fragment shader when programmable shaders
+     * are used.
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>textureImageUnitsVertexMax</code>
+     * <ul>
+     * An Integer indicating the maximum number of texture image units
+     * that can be accessed by the vertex shader when programmable shaders
+     * are used.
+     * </ul>
+     * </li>
+     *
+     * <li>
+     * <code>textureImageUnitsCombinedMax</code>
+     * <ul>
+     * An Integer indicating the combined maximum number of texture image units
+     * that can be accessed by the vertex shader and the fragment shader when
+     * programmable shaders are used.
      * </ul>
      * </li>
      *
@@ -3520,6 +3599,15 @@ public class Canvas3D extends Canvas {
      * </li>
      *
      * <li>
+     * <code>vertexAttrsMax</code>
+     * <ul>
+     * An Integer indicating the maximum number of vertex attributes
+     * supported by the underlying rendering layer. This is in addition to
+     * the vertex coordinate (position), color, normal, and so forth.
+     * </ul>
+     * </li>
+     *
+     * <li>
      * <code>compressedGeometry.majorVersionNumber</code><br>
      * <code>compressedGeometry.minorVersionNumber</code><br>
      * <code>compressedGeometry.minorMinorVersionNumber</code>
@@ -3573,6 +3661,8 @@ public class Canvas3D extends Canvas {
 			   fbConfig, offScreen, 1, 1,
                            VirtualUniverse.mc.glslLibraryAvailable,
                            VirtualUniverse.mc.cgLibraryAvailable);
+        // compute the max available texture units
+        maxAvailableTextureUnits = Math.max(maxTextureUnits, maxTextureImageUnits);
     }
 
     /**
@@ -3677,8 +3767,23 @@ public class Canvas3D extends Canvas {
         values.add(new Boolean(
 		(textureExtendedFeatures & TEXTURE_LOD_OFFSET) != 0));
 
+        keys.add("textureCoordSetsMax");
+        values.add(new Integer(maxTexCoordSets));
+
         keys.add("textureUnitStateMax");
-        values.add(new Integer(numTexUnitSupported));
+        values.add(new Integer(maxTextureUnits));
+
+        keys.add("textureImageUnitsMax");
+        values.add(new Integer(maxTextureImageUnits));
+
+        keys.add("textureImageUnitsVertexMax");
+        values.add(new Integer(maxVertexTextureImageUnits));
+
+        keys.add("textureImageUnitsCombinedMax");
+        values.add(new Integer(maxCombinedTextureImageUnits));
+
+        keys.add("vertexAttrsMax");
+        values.add(new Integer(maxVertexAttrs));
 
 	keys.add("shadingLanguageGLSL");
 	values.add(new Boolean(shadingLanguageGLSL));
@@ -4137,10 +4242,6 @@ public class Canvas3D extends Canvas {
     void setDepthBufferWriteEnable(boolean mode) {
         depthBufferWriteEnable = mode;
         setDepthBufferWriteEnable(ctx, mode);
-    }
-
-    void setTexUnitStateMap(int texUnitStateIndex, int texUnitIndex) {
-	texUnitStateMap[texUnitIndex] = texUnitStateIndex;
     }
 
     void setNumActiveTexUnit(int n) {

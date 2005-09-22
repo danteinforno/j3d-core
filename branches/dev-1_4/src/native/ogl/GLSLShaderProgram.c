@@ -257,10 +257,19 @@ checkGLSLShaderExtensions(
 	ctxInfo->vertexAttr3fv = glslVertexAttr3fv;
 	ctxInfo->vertexAttr4fv = glslVertexAttr4fv;
 
+        ctxInfo->maxTextureImageUnits = 0;
+        ctxInfo->maxVertexTextureImageUnits = 0;
+        ctxInfo->maxCombinedTextureImageUnits = 0;
+
+        /* Initialize GLSL texture sampler limits */
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &ctxInfo->maxTextureImageUnits);
+        glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB, &ctxInfo->maxVertexTextureImageUnits);
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS_ARB, &ctxInfo->maxCombinedTextureImageUnits);
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &ctxInfo->maxVertexAttrs);
-#ifdef VERBOSE
-	fprintf(stderr, "ctxInfo->maxVertexAttrs = %d\n", ctxInfo->maxVertexAttrs);
-#endif
+        if (ctxInfo->maxVertexAttrs > 0) {
+            /* decr count, since vertexAttr[0] is reserved for position */
+            ctxInfo->maxVertexAttrs -= 1;
+        }
 
 	if (glslCtxInfo->pfnglCreateShaderObjectARB != NULL) {
 	    /*fprintf(stderr, "Java 3D : GLSLShader extension is  available\n");*/

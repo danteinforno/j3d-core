@@ -141,11 +141,14 @@ checkTextureExtensions(
     int versionNumber,
     GraphicsContextPropertiesInfo* ctxInfo)
 {
-    if(isExtensionSupported(tmpExtensionStr, "GL_ARB_multitexture")) {
-	ctxInfo->arb_multitexture = JNI_TRUE ;
+    if (isExtensionSupported(tmpExtensionStr, "GL_ARB_multitexture")) {
+	ctxInfo->arb_multitexture = JNI_TRUE;
 	ctxInfo->textureExtMask |= javax_media_j3d_Canvas3D_TEXTURE_MULTI_TEXTURE;
-        glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &ctxInfo->textureUnitCount);
-
+        glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &ctxInfo->maxTextureUnits);
+        ctxInfo->maxTexCoordSets = ctxInfo->maxTextureUnits;
+        if (isExtensionSupported(tmpExtensionStr, "GL_ARB_vertex_shader")) {
+            glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &ctxInfo->maxTexCoordSets);
+        }
     }
     
     if(isExtensionSupported(tmpExtensionStr,"GL_SGI_texture_color_table" )){
@@ -963,12 +966,20 @@ void setupCanvasProperties(
     (*(table->SetBooleanField))(env, obj, rsc_field, ctxInfo->arb_multitexture);
 
     if (ctxInfo->arb_multitexture) {
-	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "numTexUnitSupported", "I");
-	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->textureUnitCount);
-	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "numTexCoordSupported", "I");
-	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->textureUnitCount);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxTextureUnits", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxTextureUnits);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxTexCoordSets", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxTexCoordSets);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxTextureImageUnits", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxTextureImageUnits);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxVertexTextureImageUnits", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxVertexTextureImageUnits);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxCombinedTextureImageUnits", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxCombinedTextureImageUnits);
+	rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "maxVertexAttrs", "I");
+	(*(table->SetIntField))(env, obj, rsc_field, ctxInfo->maxVertexAttrs);
     }
-    
+
     rsc_field = (jfieldID) (*(table->GetFieldID))(env, cv_class, "extensionsSupported", "I");
     (*(table->SetIntField))(env, obj, rsc_field, ctxInfo->extMask);
 
@@ -1265,11 +1276,11 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 
     /* allocate the structure */
     ctxInfo = (GraphicsContextPropertiesInfo *)malloc(sizeof(GraphicsContextPropertiesInfo));
-    
+
     /* initialize the structure */
     initializeCtxInfo(env, ctxInfo);
     ctxInfo->context = gctx;
-    
+
     if (!getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
 					 stencilSize, fbConfigListPtr, offScreen,
 					 glslLibraryAvailable, cgLibraryAvailable)) {
@@ -2428,17 +2439,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_freeTexture(
 }
 
 
-
-JNIEXPORT jint JNICALL Java_javax_media_j3d_Canvas3D_getTextureUnitCount(
-    JNIEnv *env,
-    jobject obj,
-    jlong  ctxInfo)
-{
-    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo; 
-    
-    return ctxProperties->textureUnitCount;
-}
-
 /*
  * Method:    getTextureColorTableSize
  */
@@ -3059,7 +3059,12 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->arb_multitexture = JNI_FALSE;
 
     ctxInfo->arb_multisample = JNI_FALSE;
-    ctxInfo->textureUnitCount = 1;
+    ctxInfo->maxTexCoordSets = 1;
+    ctxInfo->maxTextureUnits = 1;
+    ctxInfo->maxTextureImageUnits = 0;
+    ctxInfo->maxVertexTextureImageUnits = 0;
+    ctxInfo->maxCombinedTextureImageUnits = 0;
+
     ctxInfo->textureEnvCombineAvailable = JNI_FALSE;
     ctxInfo->textureCombineDot3Available = JNI_FALSE;
     ctxInfo->textureCombineSubtractAvailable = JNI_FALSE;

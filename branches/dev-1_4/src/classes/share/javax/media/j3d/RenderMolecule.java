@@ -1820,7 +1820,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 	// we'll have to punt to vertex array as well.
 
 	if ((pass != TextureBin.USE_DISPLAYLIST) ||	
-	    (texCoordSetMapLen > cv.numTexCoordSupported) ||
+	    (texCoordSetMapLen > cv.maxTexCoordSets) ||
 	    (VirtualUniverse.mc.isD3D() &&
 	      (((definingPolygonAttributes != null) &&
 		((isQuadGeometryArray &&
@@ -1835,7 +1835,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
 
 	/*
 	System.out.println("texCoord " + texCoordSetMapLen + " " +
-			   cv.numTexCoordSupported + " " + modeSupportDL);
+			   cv.maxTexCoordSets + " " + modeSupportDL);
 
 	System.out.println("primaryMoleculeType = "+primaryMoleculeType+" primaryRenderAtomList ="+primaryRenderAtomList+" separateDlistRenderAtomList ="+separateDlistRenderAtomList+" vertexArrayRenderAtomList ="+vertexArrayRenderAtomList);
 	*/
@@ -2144,7 +2144,7 @@ class RenderMolecule extends IndexedObject implements ObjectUpdate, NodeComponen
         // instead.
 
 	if ((pass != TextureBin.USE_DISPLAYLIST) ||
-	    (texCoordSetMapLen > cv.numTexCoordSupported) ||
+	    (texCoordSetMapLen > cv.maxTexCoordSets) ||
                        	     (VirtualUniverse.mc.isD3D() &&
 			     (((definingPolygonAttributes != null) &&
 			       ((isQuadGeometryArray &&

@@ -344,9 +344,6 @@ class MasterControl {
     // Flag that indicates whether separate specular color is disabled or not
     boolean disableSeparateSpecularColor = false;
 
-    // Maximum number of texture units
-    int textureUnitMax = 100;
-
     // Flag that indicates whether DisplayList is used or not
     boolean isDisplayList = true;
 
@@ -414,6 +411,9 @@ class MasterControl {
 
     // False to disable rescale normal if OGL support
     boolean isForceNormalized = false;
+
+    // True to allow simulated (multi-pass) multi-texture
+    boolean allowSimulatedMultiTexture = false;
 
     // Hashtable that maps a GraphicsDevice to its associated
     // Screen3D--this is only used for on-screen Canvas3Ds
@@ -558,23 +558,6 @@ class MasterControl {
 	    System.err.println("Java 3D: separate specular color disabled if possible");
 	}
 
-	// Get the maximum number of texture units
-	final int defaultTextureUnitMax = textureUnitMax;
-	Integer textureUnitLimit =
-	    (Integer) java.security.AccessController.doPrivileged(
-	    new java.security.PrivilegedAction() {
-		public Object run() {
-		    return Integer.getInteger("j3d.textureUnitMax",
-					      defaultTextureUnitMax);
-		}
-	    });
-
-	textureUnitMax = textureUnitLimit.intValue();
-	if (textureUnitMax != defaultTextureUnitMax) {
-	    System.err.println("Java 3D: maximum number of texture units = " +
-			       textureUnitMax);
-	}
-
 	isDisplayList = getBooleanProperty("j3d.displaylist", isDisplayList,
 					   "display list");
 
@@ -589,11 +572,23 @@ class MasterControl {
 			       "compiled vertex array");
 
 	isForceNormalized =
-	    getBooleanProperty("j3d.forceNormalized", isForceNormalized,
+	    getBooleanProperty("j3d.forceNormalized",
+			       isForceNormalized,
 			       "force normalized");
 
+        allowSimulatedMultiTexture =
+	    getBooleanProperty("j3d.simulatedMultiTexture",
+			       allowSimulatedMultiTexture,
+			       "simulated multi-texture");
 
-	boolean j3dOptimizeSpace =
+	if (allowSimulatedMultiTexture) {
+	    System.err.println("************************************************************************");
+	    System.err.println(J3dI18N.getString("MasterControl2"));
+	    System.err.println(J3dI18N.getString("MasterControl3"));
+	    System.err.println("************************************************************************");
+	}
+
+        boolean j3dOptimizeSpace =
 	    getBooleanProperty("j3d.optimizeForSpace", true,
 			       "optimize for space");
 
