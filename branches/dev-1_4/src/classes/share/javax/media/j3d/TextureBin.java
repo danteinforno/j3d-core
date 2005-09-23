@@ -1261,8 +1261,10 @@ class TextureBin extends Object implements ObjectUpdate {
         // multi-texture when the requested number of texture units exceeds
         // the available number of texture units
         boolean useShaders = (shaderBin.shaderProgram != null);
+        int availableTextureUnits =
+                useShaders ? cv.maxTextureImageUnits : cv.maxTextureUnits;
 
-        if (!useShaders && (numActiveTexUnit > cv.maxTextureUnits) &&
+        if (!useShaders && (numActiveTexUnit > availableTextureUnits) &&
                 VirtualUniverse.mc.allowSimulatedMultiTexture) {
 	    multiPassRender(cv, rlist);
 	} else {

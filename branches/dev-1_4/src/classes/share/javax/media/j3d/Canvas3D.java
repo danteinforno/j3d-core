@@ -662,7 +662,7 @@ public class Canvas3D extends Canvas {
     FogRetained fog = null;
     ModelClipRetained modelClip = null;
     Color3f sceneAmbient = new Color3f();
-    TextureUnitStateRetained texUnitState[] = null;
+    TextureUnitStateRetained[] texUnitState = null;
     
     /**
      * cached View states for lazy native states update
@@ -4258,6 +4258,29 @@ public class Canvas3D extends Canvas {
 
     int getLastActiveTexUnit() {
 	return lastActiveTexUnit;
+    }
+
+    // Create the texture state array
+    void createTexUnitState() {
+        texUnitState = new TextureUnitStateRetained[maxAvailableTextureUnits];
+        for (int t = 0; t < maxAvailableTextureUnits; t++) {
+            texUnitState[t] = new TextureUnitStateRetained();
+            texUnitState[t].texture = null;
+            texUnitState[t].mirror = null;
+        }
+    }
+
+    // Create the texture unit state map
+    void createTexUnitStateMap() {
+        // Create the texture unit state map array, which is a mapping from
+        // texture unit state to the actual underlying texture unit
+        // NOTE: since this is now required to be a 1-to-1 mapping, we will
+        // initialize it as such
+
+        texUnitStateMap = new int[maxAvailableTextureUnits];
+        for (int t = 0; t < maxAvailableTextureUnits; t++) {
+            texUnitStateMap[t] = t;
+        }
     }
 
     // update the underlying layer of the current texture unit state map
