@@ -57,7 +57,7 @@ static float EPS = 0.0001f;
 extern void enableTexCoordPointer(GraphicsContextPropertiesInfo *, int, int,
 					int, int, void *);
 extern void disableTexCoordPointer(GraphicsContextPropertiesInfo *, int);
-
+static void clientActiveTextureUnit(GraphicsContextPropertiesInfo *, int);
 
 /* 
  * texUnitIndex < 0  implies send all texture unit state info in one pass
@@ -1207,24 +1207,30 @@ enableTexCoordPointer(
     int stride,
     void *pointer)
 {
-    if (ctxProperties->arb_multitexture) {
-        ctxProperties->glClientActiveTextureARB(texUnit + GL_TEXTURE0_ARB);
-    }
+    clientActiveTextureUnit(ctxProperties, texUnit);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glTexCoordPointer(texSize, texDataType, stride, pointer);
 }
-
 
 static void
 disableTexCoordPointer(
     GraphicsContextPropertiesInfo *ctxProperties,
     int texUnit)
 {
-    if (ctxProperties->glClientActiveTextureARB != NULL) {
-        ctxProperties->glClientActiveTextureARB(texUnit + GL_TEXTURE0_ARB);
-    }
+    clientActiveTextureUnit(ctxProperties, texUnit);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
+static void
+clientActiveTextureUnit(
+    GraphicsContextPropertiesInfo *ctxProperties,
+    int texUnit)
+{
+    if (ctxProperties->arb_multitexture) {
+        ctxProperties->glClientActiveTextureARB(texUnit + GL_TEXTURE0_ARB);
+    }
+}
+
 
 static void
 executeGeometryArrayVA(
@@ -1363,6 +1369,8 @@ executeGeometryArrayVA(
 		disableTexCoordPointer(ctxProperties, 0);
 	    }
 	}
+        /* Reset client active texture unit to 0 */
+        clientActiveTextureUnit(ctxProperties, 0);
     }
 
     if (geo_type == GEO_TYPE_TRI_STRIP_SET || 
@@ -1789,6 +1797,8 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_setVertexFormat(
     for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
+    /* Reset client active texture unit to 0 */
+    clientActiveTextureUnit(ctxProperties, 0);
 
     /* Enable and disable the appropriate pointers */
     if (vformat & GA_NORMALS) {
@@ -2388,6 +2398,8 @@ executeIndexedGeometryArrayVA(
 		 */
 	    }
 	}
+        /* Reset client active texture unit to 0 */
+        clientActiveTextureUnit(ctxProperties, 0);
     }
     indices = (jint *) (*(table->GetPrimitiveArrayCritical))(env, indexCoord, NULL);
 
@@ -2832,6 +2844,8 @@ Java_javax_media_j3d_IndexedGeometryArrayRetained_buildIndexedGeometry(
     for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
+    /* Reset client active texture unit to 0 */
+    clientActiveTextureUnit(ctxProperties, 0);
 
     /* This matches the code in GeometryArrayRetained.java */
     stride = coordoff = normoff = coloroff = texCoordoff = 0;
@@ -3263,6 +3277,8 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForByRef(
     for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
+    /* Reset client active texture unit to 0 */
+    clientActiveTextureUnit(ctxProperties, 0);
 
     if (textureDefined) {
 	for (i = 0; i < texCoordMapLength; i++) {
@@ -3609,6 +3625,8 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForBuffer(
     for (i = 0; i < ctxProperties->maxTexCoordSets; i++) {
 	disableTexCoordPointer(ctxProperties, i);
     }
+    /* Reset client active texture unit to 0 */
+    clientActiveTextureUnit(ctxProperties, 0);
 
     if (textureDefined) {
 	for (i = 0; i < texCoordMapLength; i++) {

@@ -730,43 +730,23 @@ class Renderer extends J3dThread {
 			    canvas.enableSeparateSpecularColor();
 			}
 
+                        // create the cache texture state in canvas
+                        // for state download checking purpose
+                        if (canvas.texUnitState == null) {
+                            canvas.createTexUnitState();
+                        }
 
-			// create the cache texture state in canvas
-			// for state download checking purpose
+                        // Create the texture unit state map
+                        if (canvas.texUnitStateMap == null) {
+                            canvas.createTexUnitStateMap();
+                        }
 
-			if (canvas.texUnitState == null) {
-			    canvas.texUnitState = 
-				new TextureUnitStateRetained[
-                                    canvas.maxAvailableTextureUnits];
-			    for (int t = 0; t < canvas.maxAvailableTextureUnits; t++) {
-				canvas.texUnitState[t] = 
-					new TextureUnitStateRetained();
-				canvas.texUnitState[t].texture = null;
-				canvas.texUnitState[t].mirror = null;
-			    }
-			}
+                        canvas.resetImmediateRendering(Canvas3D.NOCHANGE);
+                        canvas.drawingSurfaceObject.contextValidated();
 
-
-			// also create the texture unit state map
-			// which is a mapping from texture unit state to
-			// the actual underlying texture unit
-                        // NOTE: since this is now required to be a 1-to-1
-                        // mapping, we will initialize it as such
-
-        		if (canvas.texUnitStateMap == null) {
-                            canvas.texUnitStateMap =
-                                    new int[canvas.maxAvailableTextureUnits];
-                            for (int t = 0; t < canvas.maxAvailableTextureUnits; t++) {
-                                canvas.texUnitStateMap[t] = t;
-                            }
-        		}
-			
-			canvas.resetImmediateRendering(Canvas3D.NOCHANGE);
-			canvas.drawingSurfaceObject.contextValidated();
-			
-			if (!canvas.useSharedCtx) {
-			    canvas.needToRebuildDisplayList = true;
-			}
+                        if (!canvas.useSharedCtx) {
+                            canvas.needToRebuildDisplayList = true;
+                        }
 			canvas.drawingSurfaceObject.unLock();			    
             	    } else {
 

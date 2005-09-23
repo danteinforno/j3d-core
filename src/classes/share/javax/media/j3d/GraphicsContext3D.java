@@ -285,27 +285,29 @@ public class GraphicsContext3D extends Object   {
 					      // when a new command is to be
 					      // added to the list
 
-    static Integer commands[]   = new Integer[NCOMMANDS];
-    static Integer stereoModes[] = {new Integer(STEREO_LEFT), 
-				   new Integer(STEREO_RIGHT),
-				   new Integer(STEREO_BOTH)};
+    private static Integer[] commands = new Integer[NCOMMANDS];
+    private static Integer[] stereoModes = {
+        new Integer(STEREO_LEFT),
+        new Integer(STEREO_RIGHT),
+        new Integer(STEREO_BOTH)
+    };
 
     // dirty bits
-    static final int BUFFER_MODE	= 0x1;
+    private static final int BUFFER_MODE	= 0x1;
     private int dirtyMask = 0;
 
 
     // multi-texture
-    int numActiveTexUnit = 0;
-    int lastActiveTexUnitIndex = 0;
-    boolean toSimulateMultiTex = true;
+    private int numActiveTexUnit = 0;
+    private int lastActiveTexUnitIndex = 0;
+    private boolean toSimulateMultiTex = false;
 
     // for read raster
-    volatile boolean readRasterReady = false;
+    private volatile boolean readRasterReady = false;
 
     // for runMonitor
-    boolean gcReady = false;
-    int waiting = 0;
+    private boolean gcReady = false;
+    private int waiting = 0;
 
 
     /**
@@ -1623,31 +1625,13 @@ public class GraphicsContext3D extends Object   {
 
                     // create the cache texture state in canvas
                     // for state download checking purpose
-
                     if (canvas3d.texUnitState == null) {
-                            canvas3d.texUnitState =
-                                new TextureUnitStateRetained[
-                                    canvas3d.maxAvailableTextureUnits];
-                        for (int t = 0; t < canvas3d.maxAvailableTextureUnits; t++) {
-                            canvas3d.texUnitState[t] =
-                                        new TextureUnitStateRetained();
-                            canvas3d.texUnitState[t].texture = null;
-                            canvas3d.texUnitState[t].mirror = null;
-                        }
+                        canvas3d.createTexUnitState();
                     }
 
-                    // also create the texture unit state map
-                    // which is a mapping from texture unit state to
-                    // the actual underlying texture unit
-                    // NOTE: since this is now required to be a 1-to-1
-                    // mapping, we will initialize it as such
-
+                    // Create the texture unit state map
                     if (canvas3d.texUnitStateMap == null) {
-                        canvas3d.texUnitStateMap =
-                                new int[canvas3d.maxAvailableTextureUnits];
-                        for (int t = 0; t < canvas3d.maxAvailableTextureUnits; t++) {
-                            canvas3d.texUnitStateMap[t] = t;
-                        }
+                        canvas3d.createTexUnitStateMap();
                     }
 
 		    canvas3d.drawingSurfaceObject.contextValidated();
@@ -2025,7 +2009,7 @@ public class GraphicsContext3D extends Object   {
 		drawGeo = (GeometryRetained)geometry.retained;
 	    }
 
-	    if (!toSimulateMultiTex) {
+            if (!toSimulateMultiTex) {
 		drawGeo.execute(canvas3d, null, isNonUniformScale,
 				false, alpha, 
 				((canvas3d.view.getScreens()).length > 1), 
@@ -2033,30 +2017,19 @@ public class GraphicsContext3D extends Object   {
 				ignoreVertexColors, 
 				-1);
 	    } else {
-		// XXXX: need to leverage the code in textureBin
+		// NOTE: we really should leverage the code in textureBin
 		boolean startToSimulate = false;
-		if (numActiveTexUnit < 1) {
-		    // no active texture unit
-		    drawGeo.execute(canvas3d, null, isNonUniformScale,
-				false, alpha, 
-				((canvas3d.view.getScreens()).length > 1), 
-				canvas3d.screen.screen,
-				ignoreVertexColors, 
-				0);
-		} else if (numActiveTexUnit == 1) {
-		    // one active texture unit
-		    drawGeo.execute(canvas3d, null, isNonUniformScale,
-				    false,   alpha, 
-				((canvas3d.view.getScreens()).length > 1), 
-				canvas3d.screen.screen,
-				ignoreVertexColors, 
-				lastActiveTexUnitIndex);
-		} else {
-		    // simulate multiple texture units
-		    AppearanceRetained app = 
-				(AppearanceRetained)appearance.retained;
 
-		    // first turn off fog
+		    // simulate multiple texture units
+                    AppearanceRetained app =
+                            (AppearanceRetained)appearance.retained;
+
+                    assert VirtualUniverse.mc.allowSimulatedMultiTexture;
+                    assert numActiveTexUnit > 1;
+                    assert app.texUnitState != null;
+                    assert app.texUnitState.length > 1;
+
+                    // first turn off fog
 		    if (fog != null)
 			canvas3d.setFogEnableFlag(canvas3d.ctx, false);
 
@@ -2083,16 +2056,20 @@ public class GraphicsContext3D extends Object   {
 
 		    // adjust the depth test back to what it was
 		    // and adjust the blend func to what it it was
-		    if (startToSimulate) {
-		        app.transparencyAttributes.updateNative(
-				canvas3d.ctx, alpha, geometryType,
-				polygonMode, lineAA, pointAA);
-		    }
+                    if (startToSimulate) {
+                        if (app.transparencyAttributes != null) {
+                            app.transparencyAttributes.updateNative(
+                                    canvas3d.ctx, alpha, geometryType,
+                                    polygonMode, lineAA, pointAA);
+                        } else {
+                            canvas3d.resetTransparency(canvas3d.ctx, geometryType,
+                                    polygonMode, lineAA, pointAA);
+                        }
+                    }
 
 		    if (fog != null) {
 			canvas3d.setFogEnableFlag(canvas3d.ctx, true);
 		    }
-		}
 	    }
 	    if (geoRetained != null)
 	        geoRetained.geomLock.unLock();
@@ -2476,16 +2453,16 @@ public class GraphicsContext3D extends Object   {
 
     boolean updateState(RenderBin rb, int geometryType) {
 
-	boolean useAlpha = false;;
-	toSimulateMultiTex = true;
-	numActiveTexUnit = 0;
+	boolean useAlpha = false;
+	toSimulateMultiTex = false;
+        numActiveTexUnit = 0;
 	lastActiveTexUnitIndex = 0;
 
 	// Update Appearance
 	if (appearance != null) {
 	    AppearanceRetained app = (AppearanceRetained) appearance.retained;
 
-	    // If the material is not null then check if the one in the canvas
+            // If the material is not null then check if the one in the canvas
 	    // is equivalent to the one being sent down. If Yes, do nothing
 	    // Otherwise, cache the sent down material and mark the canvas
 	    // dirty flag so that the compiled/compiled-retained rendering
@@ -2509,71 +2486,93 @@ public class GraphicsContext3D extends Object   {
 		}
 	    }
 
+            // Set flag indicating whether we are using shaders
+            boolean useShaders = false;
+            if (app instanceof ShaderAppearanceRetained) {
+                if (((ShaderAppearanceRetained)app).shaderProgram != null) {
+                    useShaders = true;
+                }
+            }
+
+            // Set the number of available texture units; this depends on
+            // whether or not shaders are being used.
+            int availableTextureUnits =
+                    useShaders ? canvas3d.maxTextureImageUnits : canvas3d.maxTextureUnits;
+
             int prevNumActiveTexUnit = canvas3d.getNumActiveTexUnit();
 
+            // Get the number of active texture units.
+            // Note that this total number now includes disabled units.
 	    if (app.texUnitState != null) {
 		TextureUnitStateRetained tus;
 
 		for (int i = 0; i < app.texUnitState.length; i++) {
 		    tus = app.texUnitState[i];
 		    if (tus != null && tus.isTextureEnabled()) {
-			numActiveTexUnit++;
 			lastActiveTexUnitIndex = i;
+                        numActiveTexUnit = i + 1;
 			useAlpha = useAlpha ||
 				 (tus.texAttrs.textureMode ==
 				  TextureAttributes.BLEND);
 		    }
 		}
 
-                // TODO KCR : fix this to disable simulated multi-pass texture
-                // as was done in TextureBin
-		if (canvas3d.maxTextureUnits >= numActiveTexUnit &&
-			canvas3d.multiTexAccelerated) {
-
-		    int j = 0;
+               if (numActiveTexUnit <= availableTextureUnits) {
+                    // Normal, single-pass rendering case
 
                     // update all active texture unit states
-
 		    for (int i = 0; i < app.texUnitState.length; i++) {
-			if ((app.texUnitState[i] != null) &&
+                        if (i >= availableTextureUnits) {
+                            // This can happen if there are disabled units at
+                            // the end of the array
+                            break;
+                        }
+
+                        if ((app.texUnitState[i] != null) &&
 				    app.texUnitState[i].isTextureEnabled()) {
-			    app.texUnitState[i].updateNative(j, canvas3d, 
+			    app.texUnitState[i].updateNative(i, canvas3d, 
 								false, false);
-                            j++;
-			} 
+			} else {
+                            canvas3d.resetTexture(canvas3d.ctx, i);
+                        }
 		    }
 
                     // reset the remaining texture units
-
-                    for (int i = j; i < prevNumActiveTexUnit; i++) {
-			if (canvas3d.texUnitState[i].texture != null) {
-                            canvas3d.resetTexture(canvas3d.ctx, i);
-			    canvas3d.texUnitState[i].texture = null;
-			}
+                    for (int i = app.texUnitState.length; i < prevNumActiveTexUnit; i++) {
+                        canvas3d.resetTexture(canvas3d.ctx, i);
                     }
 
                     // set the number active texture unit in Canvas3D
                     canvas3d.setNumActiveTexUnit(numActiveTexUnit);
 
-                    // set the active texture unit back to 0
-                    canvas3d.activeTextureUnit(canvas3d.ctx, 0);
-
-		    toSimulateMultiTex = false;
-
-		} else {
+		} else if (!useShaders && VirtualUniverse.mc.allowSimulatedMultiTexture) {
+                    // Simulated (multi-pass) multi-texture rendering
+                    
+                    toSimulateMultiTex = true;
 
                     // will fall back to the multi-pass case;
                     // reset all the texture units first
-
                     for (int i = 0; i < prevNumActiveTexUnit; i++) {
-			if (canvas3d.texUnitState[i].texture != null) {
-                            canvas3d.resetTexture(canvas3d.ctx, i);
-			    canvas3d.texUnitState[i].texture = null;
-			}
+                        canvas3d.resetTexture(canvas3d.ctx, i);
                     }
+
+                    // set the number active texture unit in Canvas3D
+                    canvas3d.setNumActiveTexUnit(1);
                 }
+                else {
+                // Exceeded limit, and not using simulated multi-texture
+
+                    // disable all the texture units
+                    for (int i = 0; i < prevNumActiveTexUnit; i++) {
+                        canvas3d.resetTexture(canvas3d.ctx, i);
+                    }
+                    canvas3d.setNumActiveTexUnit(0);
+                }
+ 
+                // set the active texture unit back to 0
+                canvas3d.activeTextureUnit(canvas3d.ctx, 0);
 	    } else {
-		// if texUnitState is null, let's disable
+                // if texUnitState is null, let's disable
 		// all texture units first
 		if (canvas3d.multiTexAccelerated) {
 		    if (canvas3d.texUnitState != null) {
@@ -2590,9 +2589,9 @@ public class GraphicsContext3D extends Object   {
                     canvas3d.activeTextureUnit(canvas3d.ctx, 0);
 		}
 
-	        if ((canvas3d.texUnitState != null) && 
-		    (canvas3d.texUnitState[0] != null) &&
-		    (canvas3d.texUnitState[0].texture != app.texture)) {
+                if ((canvas3d.texUnitState != null) &&
+                        (canvas3d.texUnitState[0] != null) &&
+                        (canvas3d.texUnitState[0].texture != app.texture)) {
 
 		    // If the image is by reference, check if the image
 		    // should be processed
