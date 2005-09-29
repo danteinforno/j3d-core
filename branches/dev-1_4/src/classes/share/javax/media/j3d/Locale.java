@@ -567,7 +567,7 @@ public class Locale extends Object {
           throw new IllegalArgumentException(J3dI18N.getString("Locale5"));
         }
         
-        if((pickShape instanceof PickPoint) && (mode != PickInfo.PICK_GEOMETRY)) {
+        if((pickShape instanceof PickPoint) && (mode == PickInfo.PICK_GEOMETRY)) {
           throw new IllegalArgumentException(J3dI18N.getString("Locale6"));
         }
         
