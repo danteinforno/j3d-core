@@ -657,6 +657,7 @@ class Shape3DRetained extends LeafRetained {
             double minDist = Double.POSITIVE_INFINITY;
             Point3d closestIPnt = new Point3d();
             Point3d iPnt = new Point3d();
+            Point3d iPntVW = new Point3d();            
             PickInfo.IntersectionInfo closestInfo = null;
             PickInfo.IntersectionInfo intersectionInfo
                     = pickInfo.createIntersectionInfo();
@@ -673,8 +674,9 @@ class Shape3DRetained extends LeafRetained {
                     }
                     if (geometry.intersect(newPS, intersectionInfo, flags, iPnt)) {
                         
-                        localToVworld.transform(iPnt);
-                        distance = pickShape.distance(iPnt);
+                        iPntVW.set(iPnt);
+                        localToVworld.transform(iPntVW);
+                        distance = pickShape.distance(iPntVW);
                         
                         if (minDist > distance) {
                             minDist = distance;
@@ -708,7 +710,7 @@ class Shape3DRetained extends LeafRetained {
                     pickInfo.setClosestDistance(minDist);
                 }
                 if((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) {
-                    pickInfo.setClosestInteresectionPoint(closestIPnt);
+                    pickInfo.setClosestIntersectionPoint(closestIPnt);
                 }
 		if ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) {
                     pickInfo.insertIntersectionInfo(closestInfo);

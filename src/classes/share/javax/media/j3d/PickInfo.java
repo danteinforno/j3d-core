@@ -126,7 +126,7 @@ public class PickInfo extends Object {
         this.l2vw = l2vw;
     }
     
-    void setClosestInteresectionPoint(Point3d cIPt) {
+    void setClosestIntersectionPoint(Point3d cIPt) {
         this.closestIntersectionPoint = cIPt;
     }
     

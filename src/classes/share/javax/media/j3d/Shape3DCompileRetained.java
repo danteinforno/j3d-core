@@ -441,9 +441,9 @@ class Shape3DCompileRetained extends Shape3DRetained {
 	// geomtryList contains several shapes
 	ArrayList glist =  (ArrayList) geometryInfo.get(shape.id);	        
         
-        System.out.println("Shape3DCompileRetained.intersect() : ");
+        // System.out.println("Shape3DCompileRetained.intersect() : ");
         if (dist == null) {
-            System.out.println("      no dist request ....");
+            // System.out.println("      no dist request ....");
             return intersect(pickInfo, pickShape, 0, glist);
         }
         
@@ -493,6 +493,7 @@ class Shape3DCompileRetained extends Shape3DRetained {
 	    double minDist = Double.POSITIVE_INFINITY;
             Point3d closestIPnt = new Point3d();
             Point3d iPnt = new Point3d();            
+            Point3d iPntVW = new Point3d();            
             PickInfo.IntersectionInfo closestInfo = null;            
             PickInfo.IntersectionInfo intersectionInfo
                     = pickInfo.createIntersectionInfo();
@@ -509,8 +510,9 @@ class Shape3DCompileRetained extends Shape3DRetained {
 		    }
                     if (geometry.intersect(newPS, intersectionInfo, flags, iPnt)) {  
 
-                        localToVworld.transform(iPnt);    
-			distance = pickShape.distance(iPnt);
+                        iPntVW.set(iPnt);
+                        localToVworld.transform(iPntVW);
+			distance = pickShape.distance(iPntVW);
                        
 			if (minDist > distance) {
 			    minDist = distance; 
@@ -544,7 +546,7 @@ class Shape3DCompileRetained extends Shape3DRetained {
                     pickInfo.setClosestDistance(minDist);
                 }
                 if((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) {
-                    pickInfo.setClosestInteresectionPoint(closestIPnt);
+                    pickInfo.setClosestIntersectionPoint(closestIPnt);
                 }
                 if ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) {
                     pickInfo.insertIntersectionInfo(closestInfo);  
