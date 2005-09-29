@@ -482,18 +482,20 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
         } else {
             Point3d closestIPnt = new Point3d();
             Point3d iPnt = new Point3d();
+            Point3d iPntVW = new Point3d();
             PickInfo.IntersectionInfo intersectionInfo
                     = pickInfo.createIntersectionInfo();
 
             if (geo.intersect(newPS, intersectionInfo, flags, iPnt)) {
                 
-                localToVworld.transform(iPnt);
-                double distance = pickShape.distance(iPnt);
+                iPntVW.set(iPnt);
+                localToVworld.transform(iPntVW);
+                double distance = pickShape.distance(iPntVW);
                 if ((flags & PickInfo.CLOSEST_DISTANCE) != 0) {
                     pickInfo.setClosestDistance(distance);
                 }
                 if((flags & PickInfo.CLOSEST_INTERSECTION_POINT) != 0) {
-                    pickInfo.setClosestInteresectionPoint(iPnt);
+                    pickInfo.setClosestIntersectionPoint(iPnt);
                 } else if ((flags & PickInfo.CLOSEST_GEOM_INFO) != 0) {
                     intersectionInfo.setGeometry((Geometry) geo.source);
                     intersectionInfo.setGeometryIndex(0);
