@@ -180,6 +180,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     static final int T2F = 0x2000;
     static final int T3F = 0x4000;
     static final int TEXCOORD_DEFINED = TF | T2F | T3F;
+    
+    // TODO KCR : vertex attributes flags
+    static final int AF = 0x8000;
+    static final int ATTR_DEFINED = AF;
 
     // flag for execute geometry array when by reference
     static final int COORD_FLOAT  = 0x01;
@@ -2317,8 +2321,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	boolean useAlpha = false;
 	Object[] retVal;
 
+        // Check for by-copy case
 	if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
-	    float[] vdata;
+            float[] vdata;
 
 	    synchronized (this) {
 		cdirty = dirtyFlag;
@@ -2414,6 +2419,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    // non interleaved data
 	    else {
 
+                // TODO KCR : vertex attributes
+
 		// Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -2422,6 +2429,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		     (vertexType & COLOR_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.NORMALS) != 0) &&
 		     (vertexType & NORMAL_DEFINED) == 0) || 
+		    (((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		     (vertexType & ATTR_DEFINED) == 0) || 
 		    (((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		     (vertexType & TEXCOORD_DEFINED) == 0)) {
 		    return;  
@@ -2486,6 +2495,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			vdefined |= COLOR_BYTE;
 		    if((vertexType & NORMAL_DEFINED) != 0)
 			vdefined |= NORMAL_FLOAT;
+                    // TODO KCR : vertex attrs
+//		    if((vertexType & ATTR_DEFINED) != 0)
+//			vdefined |= ATTR_FLOAT;
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 			vdefined |= TEXCOORD_FLOAT;
 
@@ -2563,6 +2575,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    
 	    // non interleaved data
 	    else {
+                
+                // TODO KCR : vertex attributes
+                
 		// Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -2717,30 +2732,34 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 
     // used to Build Dlist GeometryArray by Reference with NIO buffer
-    // TODO KCR : add vertex attrs
+    // NOTE: NIO buffers are no longer supported in display lists.
+    /*
     private native void buildGAForBuffer(long ctx,
-			  GeometryArrayRetained geo, int geo_type, 
-			  boolean isNonUniformScale,  boolean updateAlpha,
-			float alpha,
-			  boolean ignoreVertexColors,
-			  int vcount,
-			      int vformat,
-			      int vdefined,
-			      int coordIndex, Object vcoords,
-			  int colorIndex, Object cdata,
-			  int normalIndex, Object ndata,
-			  int texcoordmaplength, 
-			  int[] texcoordoffset, 
-			  int[] texIndex, int texstride, Object[] texCoords,
-			double[] xform, double[] nxform);
-
-    
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,  boolean updateAlpha,
+            float alpha,
+            boolean ignoreVertexColors,
+            int vcount,
+            int vformat,
+            int vdefined,
+            int coordIndex, Object vcoords,
+            int colorIndex, Object cdata,
+            int normalIndex, Object ndata,
+            int texcoordmaplength,
+            int[] texcoordoffset,
+            int[] texIndex, int texstride, Object[] texCoords,
+            double[] xform, double[] nxform);
+    */
 
 
     void buildGA(Canvas3D cv, RenderAtom ra, boolean isNonUniformScale, 
 		 boolean updateAlpha, float alpha, boolean ignoreVertexColors,
 		 Transform3D xform, Transform3D nxform) {
-	float[] vdata = null;
+
+        float[] vdata = null;
+
+        // NIO buffers are no longer supported in display lists
+        assert (vertexFormat & GeometryArray.USE_NIO_BUFFER) == 0;
 
 	if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
 	    vdata = vertexData;
@@ -2769,6 +2788,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	else {
 	    // Either non-interleaved, by-ref or nio buffer
 	    if ((vertexFormat & GeometryArray.USE_NIO_BUFFER) == 0) {
+                // Java array case
 		    // setup vdefined to passed to native code
 		    int vdefined = 0;
 		    if((vertexType & (PF | P3F)) != 0)
@@ -2801,51 +2821,60 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			    (xform == null) ? null : xform.mat,
 			    (nxform == null) ? null : nxform.mat);
 	    }
+            /*
+            // NOTE: NIO buffers are no longer supported in display lists.
+            // This was never enabled by default anyway (only when the
+            // optimizeForSpace property was set to false), so it wasn't
+            // well-tested. If future support is desired, we will need to
+            // add vertex attributes to buildGAForBuffer. There are no plans
+            // to ever do this.
 	    else {
-		    Object vcoord = null, cdataBuffer=null, normal=null;
-		    
-		    int vdefined = 0;
-		    if((vertexType & PF)  != 0) {
-			vdefined |= COORD_FLOAT;
-			vcoord = floatBufferRefCoords.getBufferAsObject();
-		    } else if((vertexType & PD ) != 0) {
-			vdefined |= COORD_DOUBLE;
-			vcoord = doubleBufferRefCoords.getBufferAsObject();
-		    }
-		    
-		    if((vertexType & CF ) != 0) {
-			vdefined |= COLOR_FLOAT;
-			cdataBuffer = floatBufferRefColors.getBufferAsObject();
-		    } else if((vertexType & CUB) != 0) {
-			vdefined |= COLOR_BYTE;
-			cdataBuffer = byteBufferRefColors.getBufferAsObject();
-		    }
-		    
-		    if((vertexType & NORMAL_DEFINED) != 0) {
-			vdefined |= NORMAL_FLOAT;
-			normal = floatBufferRefNormals.getBufferAsObject();
-		    }
+                // NIO Buffer case
+                Object vcoord = null, cdataBuffer=null, normal=null;
 
-		    if((vertexType & TEXCOORD_DEFINED) != 0)
-		       vdefined |= TEXCOORD_FLOAT;
-                    // TODO KCR : add vertex attrs
-		    buildGAForBuffer(cv.ctx, this, geoType, isNonUniformScale,
-			    updateAlpha, alpha,
-			    ignoreVertexColors,
-			    validVertexCount,
-			    vertexFormat,
-			    vdefined,
-			    initialCoordIndex,
-			    vcoord,
-			    initialColorIndex,cdataBuffer,
-			    initialNormalIndex, normal,
-			    ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
-			    texCoordSetMap,
-			    initialTexCoordIndex,texCoordStride,
-			    refTexCoords,
-			    (xform == null) ? null : xform.mat,
-			    (nxform == null) ? null : nxform.mat);
+                int vdefined = 0;
+                if((vertexType & PF)  != 0) {
+                    vdefined |= COORD_FLOAT;
+                    vcoord = floatBufferRefCoords.getBufferAsObject();
+                } else if((vertexType & PD ) != 0) {
+                    vdefined |= COORD_DOUBLE;
+                    vcoord = doubleBufferRefCoords.getBufferAsObject();
+                }
+
+                if((vertexType & CF ) != 0) {
+                    vdefined |= COLOR_FLOAT;
+                    cdataBuffer = floatBufferRefColors.getBufferAsObject();
+                } else if((vertexType & CUB) != 0) {
+                    vdefined |= COLOR_BYTE;
+                    cdataBuffer = byteBufferRefColors.getBufferAsObject();
+                }
+
+                if((vertexType & NORMAL_DEFINED) != 0) {
+                    vdefined |= NORMAL_FLOAT;
+                    normal = floatBufferRefNormals.getBufferAsObject();
+                }
+
+                if((vertexType & TEXCOORD_DEFINED) != 0)
+                    vdefined |= TEXCOORD_FLOAT;
+                // NOTE : need to add vertex attrs
+                buildGAForBuffer(cv.ctx, this, geoType, isNonUniformScale,
+                        updateAlpha, alpha,
+                        ignoreVertexColors,
+                        validVertexCount,
+                        vertexFormat,
+                        vdefined,
+                        initialCoordIndex,
+                        vcoord,
+                        initialColorIndex,cdataBuffer,
+                        initialNormalIndex, normal,
+                        ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
+                        texCoordSetMap,
+                        initialTexCoordIndex,texCoordStride,
+                        refTexCoords,
+                        (xform == null) ? null : xform.mat,
+                        (nxform == null) ? null : nxform.mat);
 	    }
+            */
 
 	}
       
@@ -2861,6 +2890,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
 
     void unIndexifyJavaArray(IndexedGeometryArrayRetained src) {
+        // TODO KCR : handle vertex attributes
+        
 	int vOffset = 0, srcOffset, tOffset = 0;
         int index, colorStride = 0;
 	float[] vdata = null;
@@ -3140,6 +3171,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 
     void unIndexifyNIOBuffer(IndexedGeometryArrayRetained src) {
+        // TODO KCR : handle vertex attributes
+        
 	int vOffset = 0, srcOffset, tOffset = 0;
         int index, colorStride = 0;
 	float[] vdata = null;
@@ -5093,13 +5126,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			float[] vertexAttrs,
 			int start, int length) {
 
-        // TODO KCR : remove this print statement
-	System.err.println("GeometryArrayRetained.setVertexAttrs(" +
-			   vertexAttrNum + ", " +
-			   vertexAttrs + ", " +
-			   start + ", " +
-			   length + ")");
-
         if ((this.vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
             throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
         }
@@ -5848,6 +5874,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			setupMirrorColorPointer((vertexType & COLOR_DEFINED), false);
 			setupMirrorNormalPointer((vertexType & NORMAL_DEFINED));
 			setupMirrorTexCoordPointer((vertexType & TEXCOORD_DEFINED));
+                        // TODO KCR : handle vertex attrs
 			nullGeo = ((vertexType & GeometryArrayRetained.VERTEX_DEFINED) == 0);
 		    }
 		}
@@ -9510,6 +9537,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
     
     void setValidVertexCount(int validVertexCount) {
+        // TODO KCR : handle vertex attributes
+        
 	boolean nullGeo = false;
 	if (validVertexCount < 0) {
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray110"));
@@ -10207,6 +10236,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    source.getCapability(GeometryArray.ALLOW_COLOR_WRITE) || 
 	    source.getCapability(GeometryArray.ALLOW_NORMAL_WRITE) ||
 	    source.getCapability(GeometryArray.ALLOW_TEXCOORD_WRITE) ||
+            source.getCapability(GeometryArray.ALLOW_VERTEX_ATTR_WRITE) ||
 	    source.getCapability(GeometryArray.ALLOW_COUNT_WRITE) ||
 	    source.getCapability(GeometryArray.ALLOW_REF_DATA_WRITE))
 	    return false;
@@ -10309,7 +10339,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	     texCoordSetMap != null && texCoordSetMap.length > 1)) {
 	    return false;
 	}
-
+        
+        // We will avoid merging geometry if there are any vertex attributes.
+        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+            return false;
+        }
 
 	// If intersect is allowed turn off merging
 	if (source.getCapability(Geometry.ALLOW_INTERSECT))
@@ -10317,35 +10351,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	return true;
     }
-
-    // THE FOLLOWING METHOD IS NEVER USED
-    /*
-    boolean isTextureGeometryMergeable(GeometryArrayRetained srcGeo) {
-
-	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-	    if (texCoordSetCount != srcGeo.texCoordSetCount )
-		return false;
-
-	    // If they are both non-null, then check if they are equivalent
-	    if (texCoordSetMap != null && srcGeo.texCoordSetMap != null) {
-		if (texCoordSetMap.length != srcGeo.texCoordSetMap.length)
-		    return false;
-
-		// Check the texCoordSetMap is same
-		for (int j = 0; j < texCoordSetMap.length; j++) {
-		    if (texCoordSetMap[j] != srcGeo.texCoordSetMap[j])
-			return false;
-		}
-	    }
-	    // Check if they are both null;
-	    // if one is null and other is non-null return false
-	    else if (texCoordSetMap != srcGeo.texCoordSetMap)
-		return false;
-	}
-
-	return true;
-    }
-    */
 
     void compile(CompileState compState) {
         super.compile(compState);
@@ -10947,9 +10952,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		(((vertexFormat & GeometryArray.COLOR) != 0) &&
 		 bit == GeometryArray.ALLOW_COLOR_WRITE)||
 		(((vertexFormat & GeometryArray.NORMALS) != 0) &&
-		 bit ==GeometryArray.ALLOW_NORMAL_WRITE) ||
-		(((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)&&
+		 bit == GeometryArray.ALLOW_NORMAL_WRITE) ||
+		(((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		 bit == GeometryArray.ALLOW_TEXCOORD_WRITE) ||
+		(((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		 bit == GeometryArray.ALLOW_VERTEX_ATTR_WRITE) ||
 		(bit == GeometryArray.ALLOW_COUNT_WRITE)) {
 		mask = 1;
 	    }

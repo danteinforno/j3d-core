@@ -23,7 +23,7 @@ class CapabilityBits extends Object {
     // Node extends SceneGraphObject
     static final int NODE_ENABLE_COLLISION_REPORTING			= 0;
     static final int NODE_ENABLE_PICK_REPORTING				= 1;
-    static final int NODE_ALLOW_PICK					= 2;
+    private static final int NODE_UNUSED_BIT				= 2;
     static final int NODE_ALLOW_BOUNDS_READ				= 3;
     static final int NODE_ALLOW_BOUNDS_WRITE				= 4;
     static final int NODE_ALLOW_PICKABLE_READ				= 5;

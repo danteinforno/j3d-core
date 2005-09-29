@@ -124,7 +124,18 @@ public abstract class Node extends SceneGraphObject {
      * @since Java 3D 1.4
      */
     public static final int
-	ALLOW_LOCALE_READ = CapabilityBits.NODE_ALLOW_LOCALE_READ;
+        ALLOW_LOCALE_READ = CapabilityBits.NODE_ALLOW_LOCALE_READ;
+
+    // TODO Chien : set default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_BOUNDS_READ,
+        ALLOW_PICKABLE_READ,
+        ALLOW_COLLIDABLE_READ,
+        ALLOW_AUTO_COMPUTE_BOUNDS_READ,
+        ALLOW_LOCAL_TO_VWORLD_READ,
+        ALLOW_PARENT_READ,
+        ALLOW_LOCALE_READ,
+    };
 
     // for checking for cycles
     private boolean visited = false;
@@ -141,6 +152,8 @@ public abstract class Node extends SceneGraphObject {
      * </ul>
      */
     public Node() {
+        // TODO Chien : set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**

@@ -424,11 +424,6 @@ public abstract class GeometryArray extends Geometry {
             throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
         }
 
-        // TODO KCR: Temporary until vertex attributes are implemented for by-ref geometry
-        if ((vertexFormat & VERTEX_ATTRIBUTES) != 0 && (vertexFormat & BY_REFERENCE) != 0) {
-            throw new RuntimeException("Vertex attributes not implemented for by-ref");
-        }
-
         if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
 	    (vertexFormat & BY_REFERENCE) == 0)
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray117"));
@@ -761,11 +756,6 @@ public abstract class GeometryArray extends Geometry {
         if ((vertexFormat & INTERLEAVED) != 0 &&
                 (vertexFormat & VERTEX_ATTRIBUTES) != 0) {
             throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
-        }
-
-        // TODO KCR: Temporary until vertex attributes are implemented for by-ref geometry
-        if ((vertexFormat & VERTEX_ATTRIBUTES) != 0 && (vertexFormat & BY_REFERENCE) != 0) {
-            throw new RuntimeException("Vertex attributes not implemented for by-ref");
         }
 
         if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
