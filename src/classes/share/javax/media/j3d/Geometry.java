@@ -32,7 +32,8 @@ package javax.media.j3d;
 public abstract class Geometry extends NodeComponent {
 
     /**
-     * Specifies that this Geometry allows intersect operation. 
+     * Specifies that this Geometry allows intersect operation. This
+     * capability bit is set (true) by default for all Geometry objects.
      */
     public static final int
     ALLOW_INTERSECT = CapabilityBits.GEOMETRY_ALLOW_INTERSECT;

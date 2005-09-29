@@ -102,11 +102,6 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      return (Object)obj;
   }
 
-  void execute(long ctx, RenderAtom ra, boolean isNonUniformScale,
-		boolean updateAlpha, float alpha) {
-        throw new RuntimeException(J3dI18N.getString("IndexedGeometryArrayRetained0"));
-  }
-
 
   /**
    * Gets current number of indices

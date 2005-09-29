@@ -3555,6 +3555,8 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForByRef(
 }
 
 
+/* NOTE: NIO buffers are no longer supported in display lists. */
+#if 0
 /* execute geometry array with java array format */
 JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForBuffer(
@@ -3885,4 +3887,5 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForBuffer(
     }
 }
 
+#endif /* 0 */
 

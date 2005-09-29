@@ -2511,9 +2511,11 @@ public class GraphicsContext3D extends Object   {
 		    if (tus != null && tus.isTextureEnabled()) {
 			lastActiveTexUnitIndex = i;
                         numActiveTexUnit = i + 1;
-			useAlpha = useAlpha ||
-				 (tus.texAttrs.textureMode ==
-				  TextureAttributes.BLEND);
+                        if (tus.texAttrs != null) {
+                            useAlpha = useAlpha ||
+                                    (tus.texAttrs.textureMode ==
+                                    TextureAttributes.BLEND);
+                        }
 		    }
 		}
 
