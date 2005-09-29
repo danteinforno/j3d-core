@@ -653,25 +653,43 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if flags contains both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
-     * is set to PickInfo.PICK_GEOMETRY.
+     * is set to PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
-     * nor PickInfo.PICK_GEOMETRY.
+     * @exception IllegalArgumentException if pick mode is neither PICK_BOUNDS 
+     * nor PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if pick mode is PICK_BOUNDS 
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is PickBounds 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
+     *
+     * @exception CapabilityNotSetException if the mode is
+     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+     * is not set in any Geometry objects referred to by any shape
+     * node whose bounds intersects the PickShape.
+     *   
+     * @exception CapabilityNotSetException if flags contains any of
+     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+     * or ALL_GEOM_INFO, and the capability bits that control reading of
+     * coordinate data are not set in any GeometryArray object referred
+     * to by any shape node that intersects the PickShape.
+     * The capability bits that must be set to avoid this exception are as follows :
+     * <ul> 
+     * <li>By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ</li>
+     * <li>By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ</li>
+     * <li>Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+     * (in addition to one of the above)</li>
+     * </ul>
      *
      * @see BranchGroup#pickAll(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -752,25 +770,43 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if flags contains both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
-     * is set to PickInfo.PICK_GEOMETRY.
+     * is set to PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
-     * nor PickInfo.PICK_GEOMETRY.
+     * @exception IllegalArgumentException if pick mode is neither PICK_BOUNDS 
+     * nor PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if pick mode is PICK_BOUNDS 
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is PickBounds 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
+     *
+     * @exception CapabilityNotSetException if the mode is
+     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+     * is not set in any Geometry objects referred to by any shape
+     * node whose bounds intersects the PickShape.
+     *   
+     * @exception CapabilityNotSetException if flags contains any of
+     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+     * or ALL_GEOM_INFO, and the capability bits that control reading of
+     * coordinate data are not set in any GeometryArray object referred
+     * to by any shape node that intersects the PickShape.
+     * The capability bits that must be set to avoid this exception are as follows :
+     * <ul> 
+     * <li>By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ</li>
+     * <li>By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ</li>
+     * <li>Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+     * (in addition to one of the above)</li>
+     * </ul>
      *
      * @see BranchGroup#pickAllSorted(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -858,25 +894,43 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if flags contains both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
-     * is set to PickInfo.PICK_GEOMETRY.
+     * is set to PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
-     * nor PickInfo.PICK_GEOMETRY.
+     * @exception IllegalArgumentException if pick mode is neither PICK_BOUNDS 
+     * nor PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if pick mode is PICK_BOUNDS 
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is PickBounds 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.     
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
+     *
+     * @exception CapabilityNotSetException if the mode is
+     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+     * is not set in any Geometry objects referred to by any shape
+     * node whose bounds intersects the PickShape.
+     *   
+     * @exception CapabilityNotSetException if flags contains any of
+     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+     * or ALL_GEOM_INFO, and the capability bits that control reading of
+     * coordinate data are not set in any GeometryArray object referred
+     * to by any shape node that intersects the PickShape.
+     * The capability bits that must be set to avoid this exception are as follows :
+     * <ul> 
+     * <li>By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ</li>
+     * <li>By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ</li>
+     * <li>Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+     * (in addition to one of the above)</li>
+     * </ul>
      *
      * @see BranchGroup#pickClosest(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
@@ -949,25 +1003,43 @@ public class Locale extends Object {
      *
      * @param pickShape the description of this picking volume or area.
      *
-     * @exception IllegalArgumentException if flags has both CLOSEST_GEOM_INFO and 
-     * ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if flags contains both CLOSEST_GEOM_INFO and 
+     * ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is a PickPoint and pick mode
-     * is set to PickInfo.PICK_GEOMETRY.
+     * is set to PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is neither PickInfo.PICK_BOUNDS 
-     * nor PickInfo.PICK_GEOMETRY.
+     * @exception IllegalArgumentException if pick mode is neither PICK_BOUNDS 
+     * nor PICK_GEOMETRY.
      *
-     * @exception IllegalArgumentException if pick mode is PickInfo.PICK_BOUNDS 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * @exception IllegalArgumentException if pick mode is PICK_BOUNDS 
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalArgumentException if pickShape is PickBounds 
-     * and flags has either CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
-     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO set.
+     * and flags includes any of CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE,
+     * CLOSEST_GEOM_INFO or ALL_GEOM_INFO.
      *
      * @exception IllegalStateException if this Locale has been
      * removed from its VirtualUniverse.
+     *
+     * @exception CapabilityNotSetException if the mode is
+     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+     * is not set in any Geometry objects referred to by any shape
+     * node whose bounds intersects the PickShape.
+     *   
+     * @exception CapabilityNotSetException if flags contains any of
+     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+     * or ALL_GEOM_INFO, and the capability bits that control reading of
+     * coordinate data are not set in any GeometryArray object referred
+     * to by any shape node that intersects the PickShape.
+     * The capability bits that must be set to avoid this exception are as follows :
+     * <ul> 
+     * <li>By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ</li>
+     * <li>By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ</li>
+     * <li>Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+     * (in addition to one of the above)</li>
+     * </ul>
      *
      * @see BranchGroup#pickAny(int,int,javax.media.j3d.PickShape)
      * @see PickInfo
