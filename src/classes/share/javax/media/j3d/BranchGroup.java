@@ -114,7 +114,7 @@ public class BranchGroup extends Group {
           throw new IllegalArgumentException(J3dI18N.getString("BranchGroup4"));
         }
         
-        if((pickShape instanceof PickPoint) && (mode != PickInfo.PICK_GEOMETRY)) {
+        if((pickShape instanceof PickPoint) && (mode == PickInfo.PICK_GEOMETRY)) {
           throw new IllegalArgumentException(J3dI18N.getString("BranchGroup5"));
         }
         
