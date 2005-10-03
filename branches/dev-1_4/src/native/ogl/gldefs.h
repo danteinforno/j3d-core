@@ -298,7 +298,7 @@
 #define DOUBLEBUFFER	javax_media_j3d_NativeConfigTemplate3D_DOUBLEBUFFER
 #define STEREO		javax_media_j3d_NativeConfigTemplate3D_STEREO
 #define ANTIALIASING	javax_media_j3d_NativeConfigTemplate3D_ANTIALIASING
-
+#define STENCIL_SIZE	javax_media_j3d_NativeConfigTemplate3D_STENCIL_SIZE
 
 /* set this to the number of indices (from above) */
 #define NUM_ITEMS	(javax_media_j3d_NativeConfigTemplate3D_NUM_ITEMS + 2)
@@ -704,6 +704,8 @@ struct PixelFormatInfoRec {
     GLboolean  onScreenHasStereo;
     GLboolean  onScreenHasDoubleBuffer;
     GLboolean  onScreenHasAccum;
+    int        onScreenStencilSize;
+    
     /* Information about onScreen pixel format */
     int offScreenPFormat;       /* PixelFormat for offScreen */
     GLboolean  offScreenHasMultisample;  /* TRUE if WGL_SAMPLE_BUFFERS_ARB is TRUE and
@@ -711,6 +713,8 @@ struct PixelFormatInfoRec {
     GLboolean  offScreenHasStereo;
     GLboolean  offScreenHasDoubleBuffer;
     GLboolean  offScreenHasAccum;
+    int        offScreenStencilSize;
+    
     GLboolean  drawToPbuffer;   /* value of DRAW_TO_PBUFFER attr for offScreenPFormat */
     
     /* Information about extension support */

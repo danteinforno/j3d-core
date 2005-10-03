@@ -34,7 +34,8 @@ class NativeConfigTemplate3D {
     final static int DOUBLEBUFFER	= 6;
     final static int STEREO		= 7;
     final static int ANTIALIASING	= 8;
-    final static int NUM_ITEMS		= 9;
+    final static int STENCIL_SIZE       = 9;
+    final static int NUM_ITEMS		= 10;
     
     /**
      * selects the proper visual
@@ -52,6 +53,7 @@ class NativeConfigTemplate3D {
     native boolean isDoubleBufferAvailable(long pFormatInfo, boolean offScreen);
     native boolean isSceneAntialiasingAccumAvailable(long pFormatInfo, boolean offScreen);
     native boolean isSceneAntialiasingMultisampleAvailable(long pFormatInfo, boolean offScreen, int screen);
+    native int getStencilSize(long pFormatInfo, boolean offScreen);
 
     /**
      *  Chooses the best PixelFormat for Java 3D apps.
@@ -86,6 +88,9 @@ class NativeConfigTemplate3D {
 	attrList[DOUBLEBUFFER] = template.getDoubleBuffer();
 	attrList[STEREO] = template.getStereo();
 	attrList[ANTIALIASING] = template.getSceneAntialiasing();
+    	attrList[STENCIL_SIZE] = template.getStencilSize();
+	// System.out.println("NativeConfigTemplate3D : getStencilSize " + 
+	// attrList[STENCIL_SIZE]);
 	NativeScreenInfo nativeScreenInfo = new NativeScreenInfo(gd);
 	int screen = nativeScreenInfo.getScreen();	
 
@@ -161,6 +166,9 @@ class NativeConfigTemplate3D {
 	attrList[DOUBLEBUFFER] = template.getDoubleBuffer();
 	attrList[STEREO] = template.getStereo();
         attrList[ANTIALIASING] = template.getSceneAntialiasing();
+    	attrList[STENCIL_SIZE] = template.getStencilSize();
+	// System.out.println("NativeConfigTemplate3D : getStencilSize " + 
+	// attrList[STENCIL_SIZE]);
 
 	NativeScreenInfo nativeScreenInfo = new NativeScreenInfo(gd);
 	int screen = nativeScreenInfo.getScreen();	

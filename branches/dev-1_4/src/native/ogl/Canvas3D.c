@@ -607,7 +607,7 @@ getPropertiesFromCurrentContext(
 	jclass rte;
 
 	fprintf(stderr,
-		"Java 3D ERROR : OpenGL 1.3 or better is required (GL_VERSION=%d.%d)\n",
+		"Java 3D ERROR : OpenGL 1.2 or better is required (GL_VERSION=%d.%d)\n",
 		versionNumbers[0], versionNumbers[1]);
 	if ((rte = (*(table->FindClass))(env, "java/lang/IllegalStateException")) != NULL) {
 	    (*(table->ThrowNew))(env, rte, "GL_VERSION");
@@ -932,11 +932,13 @@ getPropertiesFromCurrentContext(
 
 #endif /* UNIX */
 
-    if (stencilSize > 1) {
-      ctxInfo->extMask |= javax_media_j3d_Canvas3D_STENCIL_BUFFER;
-    }
-
+    /*
+      printf("Canvas3D.c : getPropertiesFromCurrentContext() stencilSize = %d\n", stencilSize);
+    */
     
+    if (stencilSize > 1) {
+	ctxInfo->extMask |= javax_media_j3d_Canvas3D_STENCIL_BUFFER;
+    }    
     /* ... */
     
     /* clearing up the memory */
@@ -1176,7 +1178,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
         return 0;
     }
 
-
+    /* Shouldn't this be moved to NativeConfig. ? */
     glXGetFBConfigAttrib((Display *) display, fbConfigList[0], 
 			 GLX_STENCIL_SIZE, &stencilSize);
 

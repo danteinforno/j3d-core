@@ -35,7 +35,8 @@ class NativeConfigTemplate3D {
     final static int DOUBLEBUFFER	= 6;
     final static int STEREO		= 7;
     final static int ANTIALIASING	= 8;
-    final static int NUM_ITEMS		= 9;
+    final static int STENCIL_SIZE       = 9;
+    final static int NUM_ITEMS		= 10;
 
     // Native method to get an OpenGL visual id and a pointer to the
     // GLXFBConfig structure list itself.
@@ -52,7 +53,7 @@ class NativeConfigTemplate3D {
     native boolean isDoubleBufferAvailable(long display, int screen, int vid);
     native boolean isSceneAntialiasingAccumAvailable(long display, int screen, int vid);
     native boolean isSceneAntialiasingMultisampleAvailable(long display, int screen, int vid);
-
+    native int getStencilSize(long display, int screen, int vid);
 
     /*
      *  Chooses the best FBConfig for Java 3D apps.
@@ -110,6 +111,9 @@ class NativeConfigTemplate3D {
         attrList[DOUBLEBUFFER] = template.getDoubleBuffer();
         attrList[STEREO] = template.getStereo();
         attrList[ANTIALIASING] = template.getSceneAntialiasing();
+    	attrList[STENCIL_SIZE] = template.getStencilSize();
+	// System.out.println("NativeConfigTemplate3D : getStencilSize " + 
+	// attrList[STENCIL_SIZE]);
 
 	long[] fbConfig = new long[1];
         int visID = chooseOglVisual(display, screen, attrList, fbConfig);
@@ -179,6 +183,9 @@ class NativeConfigTemplate3D {
         attrList[DOUBLEBUFFER] = template.getDoubleBuffer();
         attrList[STEREO] = template.getStereo();
         attrList[ANTIALIASING] = template.getSceneAntialiasing();
+    	attrList[STENCIL_SIZE] = template.getStencilSize();
+	// System.out.println("NativeConfigTemplate3D : getStencilSize " + 
+	// attrList[STENCIL_SIZE]);
 	
 	long[] fbConfig = new long[1];
         int visID = chooseOglVisual(display, screen, attrList, fbConfig);

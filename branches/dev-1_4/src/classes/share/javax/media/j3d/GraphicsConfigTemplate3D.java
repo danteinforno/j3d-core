@@ -290,12 +290,6 @@ public class GraphicsConfigTemplate3D extends GraphicsConfigTemplate {
 	    return null;
 	}
 
-        // TODO: remove this when stencil buffer is implemented
-        if (stencilSize != 0) {
-            System.err.println("*** GraphicsConfigTemplate3D: stencil buffer is not implemented");
-            return null;
-        }
-
 	synchronized (globalLock) {
 	    testCfg = gc;
 
@@ -336,12 +330,6 @@ public class GraphicsConfigTemplate3D extends GraphicsConfigTemplate {
 	if (gc == null) {
 	    return false;
 	}
-
-        // TODO: remove this when stencil buffer is implemented
-        if (stencilSize != 0) {
-            System.err.println("*** GraphicsConfigTemplate3D: stencil buffer is not implemented");
-            return false;
-        }
 
         synchronized (globalLock) {
 	    testCfg = gc;
