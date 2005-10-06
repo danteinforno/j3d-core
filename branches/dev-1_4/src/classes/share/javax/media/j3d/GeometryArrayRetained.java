@@ -9324,8 +9324,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setTexCoordRefFloat(int texCoordSet, float[] texCoords) {
 
         if (texCoordType != 0 && texCoordType != TF) {
-            throw new IllegalArgumentException(
-                    J3dI18N.getString("GeometryArray98"));
+            if (texCoords != null) {
+                throw new IllegalArgumentException(
+                        J3dI18N.getString("GeometryArray98"));
+            }
+            return;
         }
 
         if (texCoords != null) {
@@ -9418,8 +9421,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setTexCoordRef2f(int texCoordSet, TexCoord2f[] texCoords) {
 
         if (texCoordType != 0 && texCoordType != T2F) {
-            throw new IllegalArgumentException(
-                    J3dI18N.getString("GeometryArray98"));
+            if (texCoords != null) {
+                throw new IllegalArgumentException(
+                        J3dI18N.getString("GeometryArray98"));
+            }
+            return;
         }
 
         if (texCoords != null) {
@@ -9471,8 +9477,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setTexCoordRef3f(int texCoordSet, TexCoord3f[] texCoords) {
 
         if (texCoordType != 0 && texCoordType != T3F) {
-            throw new IllegalArgumentException(
-                    J3dI18N.getString("GeometryArray98"));
+            if (texCoords != null) {
+                throw new IllegalArgumentException(
+                        J3dI18N.getString("GeometryArray98"));
+            }
+            return;
         }
 
 	if (texCoords != null) {
@@ -9532,9 +9541,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
         // XXXX: Add the following test if we ever add double-precision types
         /*
         if (vertexAttrType != 0 && vertexAttrType != AF) {
-            // XXXX: new exception string
-            throw new IllegalArgumentException(
-                    J3dI18N.getString("GeometryArray98-XXX"));
+            if (vertexAttrs != null) {
+                // XXXX: new exception string
+                throw new IllegalArgumentException(
+                        J3dI18N.getString("GeometryArray98-XXX"));
+            }
+            return;
         }
         */
 
@@ -11286,5 +11298,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	}
     }
 
+    int getTexCoordType() {
+        return texCoordType;
+    }
+
+    int getVertexAttrType() {
+        return vertexAttrType;
+    }
 
 }

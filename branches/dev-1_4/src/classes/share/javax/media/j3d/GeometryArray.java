@@ -336,6 +336,8 @@ public abstract class GeometryArray extends Geometry {
     private TexCoord4f [] texCoord4fArray = null;
     private TexCoord2f texCoord2fScratch = null;
     private TexCoord3f texCoord3fScratch = null;
+    
+    private static final int[] defTexCoordMap = { 0 };
 
  
 
@@ -408,40 +410,9 @@ public abstract class GeometryArray extends Geometry {
      * bit and the <code>VERTEX_ATTRIBUTES</code> bit are both set
      */
     public GeometryArray(int vertexCount, int vertexFormat) {
-
-        if (vertexCount < 0)
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray96"));
-
-        if ((vertexFormat & COORDINATES) == 0)
-	  throw new IllegalArgumentException(J3dI18N.getString("GeometryArray0"));
-
-        if ((vertexFormat & INTERLEAVED) != 0 &&
-	    (vertexFormat & BY_REFERENCE) == 0)
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray80"));
-
-        if ((vertexFormat & INTERLEAVED) != 0 &&
-                (vertexFormat & VERTEX_ATTRIBUTES) != 0) {
-            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
-        }
-
-        if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
-	    (vertexFormat & BY_REFERENCE) == 0)
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray117"));
-
-        if ((vertexFormat & TEXTURE_COORDINATE) != 0) {
-	    if ((vertexFormat & TEXTURE_COORDINATE_2) != 0) {
-	        texCoord2fArray = new TexCoord2f[1];
-	        texCoord2fScratch = new TexCoord2f();
-	    }
-	    else if ((vertexFormat & TEXTURE_COORDINATE_3) != 0) {
-	        texCoord3fArray = new TexCoord3f[1];
-	        texCoord3fScratch = new TexCoord3f();
-	    } else if ((vertexFormat & TEXTURE_COORDINATE_4) != 0) {
-	        texCoord4fArray = new TexCoord4f[1];
-	    }
-	}
-
-	((GeometryArrayRetained)this.retained).createGeometryArrayData(vertexCount, vertexFormat);
+        this(vertexCount, vertexFormat,
+            ((vertexFormat & TEXTURE_COORDINATE) != 0 ? 1 : 0),
+            ((vertexFormat & TEXTURE_COORDINATE) != 0 ? defTexCoordMap : null));
     }
 
 
@@ -786,8 +757,28 @@ public abstract class GeometryArray extends Geometry {
 	        texCoord4fArray = new TexCoord4f[1];
 	    }
 	}
-
-	// TODO KCR : Check validity of vertexAttr* parameters
+        
+        if ((vertexFormat & VERTEX_ATTRIBUTES) != 0) {
+            if (vertexAttrCount > 0) {
+                if (vertexAttrCount != vertexAttrSizes.length) {
+                    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray132"));
+                }
+                
+                for (int i = 0; i < vertexAttrSizes.length; i++) {
+                    if (vertexAttrSizes[i] < 1 || vertexAttrSizes[i] > 4) {
+                        throw new IllegalArgumentException(J3dI18N.getString("GeometryArray133"));
+                    }
+                }
+            } else {
+                if (vertexAttrSizes != null && vertexAttrSizes.length != 0) {
+                    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray132"));
+                }
+            }
+        } else {
+            if (vertexAttrCount > 0) {
+                throw new IllegalArgumentException(J3dI18N.getString("GeometryArray131"));
+            }
+        }
 
         ((GeometryArrayRetained)this.retained).createGeometryArrayData(
 	    vertexCount, vertexFormat,
@@ -1036,61 +1027,99 @@ public abstract class GeometryArray extends Geometry {
      * @see NodeComponent#setDuplicateOnCloneTree
      */
     void duplicateAttributes(NodeComponent originalNodeComponent,
-			     boolean forceDuplicate) {
+                             boolean forceDuplicate) {
 
-      super.duplicateAttributes(originalNodeComponent, forceDuplicate);
-      // vertexFormat and vertexCount are copied in subclass when constructor
-      //  public GeometryArray(int vertexCount, int vertexFormat) is used
-      // in cloneNodeComponent()
-      GeometryArrayRetained src = (GeometryArrayRetained) originalNodeComponent.retained;
-      GeometryArrayRetained dst = (GeometryArrayRetained) retained;
-      int format = src.getVertexFormat();
-      if ((format & BY_REFERENCE) == 0) {
-	  System.arraycopy(src.vertexData, 0, dst.vertexData, 0,
-			   src.vertexData.length);
-	  dst.setInitialVertexIndex(src.getInitialVertexIndex());
-	  
-      } else {
-	  dst.setInitialCoordIndex(src.getInitialCoordIndex());
-	  dst.setInitialColorIndex(src.getInitialColorIndex());
-	  dst.setInitialNormalIndex(src.getInitialNormalIndex());
-	  int setCount = src.getTexCoordSetCount();
-	  for (int i=0; i < setCount; i++) {
-	      dst.setInitialTexCoordIndex(i, src.getInitialTexCoordIndex(i));
-	  }
-	  if ((format & INTERLEAVED) == 0) {
-	      dst.setCoordRefFloat(src.getCoordRefFloat());
-	      dst.setCoordRefDouble(src.getCoordRefDouble());	      
-	      dst.setCoordRef3f(src.getCoordRef3f());
-	      dst.setCoordRef3d(src.getCoordRef3d());
-              dst.setColorRefFloat(src.getColorRefFloat());
-	      dst.setColorRefByte(src.getColorRefByte());
-	      if ((format & WITH_ALPHA) == 0) {
-		  dst.setColorRef3f(src.getColorRef3f());
-		  dst.setColorRef3b(src.getColorRef3b());
-	      } else {
-		  dst.setColorRef4f(src.getColorRef4f());
-		  dst.setColorRef4b(src.getColorRef4b());
-	      }
-	      dst.setNormalRefFloat(src.getNormalRefFloat());
-	      dst.setNormalRef3f(src.getNormalRef3f());	   
-	      for (int i=0; i < setCount; i++) {   
-		  dst.setTexCoordRefFloat(i, src.getTexCoordRefFloat(i));
-	      }
-	      if ((format & TEXTURE_COORDINATE_2) != 0) {
-		  for (int i=0; i < setCount; i++) {   
-		      dst.setTexCoordRef2f(i, src.getTexCoordRef2f(i));
-		  }
-	      } 
-	      if ((format & TEXTURE_COORDINATE_3) != 0) {
-		  for (int i=0; i < setCount; i++) {   
-		      dst.setTexCoordRef3f(i, src.getTexCoordRef3f(i));
-		  }
-	      }
-	  } else {
-	      dst.setInterleavedVertices(src.getInterleavedVertices());
-	  } 
-      }
+        super.duplicateAttributes(originalNodeComponent, forceDuplicate);
+        // vertexFormat and vertexCount are copied in subclass when constructor
+        //  public GeometryArray(int vertexCount, int vertexFormat) is used
+        // in cloneNodeComponent()
+        GeometryArrayRetained src = (GeometryArrayRetained) originalNodeComponent.retained;
+        GeometryArrayRetained dst = (GeometryArrayRetained) retained;
+        int format = src.getVertexFormat();
+        if ((format & BY_REFERENCE) == 0) {
+            System.arraycopy(src.vertexData, 0, dst.vertexData, 0,
+                    src.vertexData.length);
+            dst.setInitialVertexIndex(src.getInitialVertexIndex());
+
+        } else {
+            dst.setInitialCoordIndex(src.getInitialCoordIndex());
+            dst.setInitialColorIndex(src.getInitialColorIndex());
+            dst.setInitialNormalIndex(src.getInitialNormalIndex());
+            int setCount = src.getTexCoordSetCount();
+            int vAttrCount = src.getVertexAttrCount();
+            for (int i=0; i < setCount; i++) {
+                dst.setInitialTexCoordIndex(i, src.getInitialTexCoordIndex(i));
+            }
+            if ((format & INTERLEAVED) == 0) {
+                if ((format & USE_NIO_BUFFER) == 0) {
+                    // Java arrays
+                    dst.setCoordRefFloat(src.getCoordRefFloat());
+                    dst.setCoordRefDouble(src.getCoordRefDouble());
+                    dst.setCoordRef3f(src.getCoordRef3f());
+                    dst.setCoordRef3d(src.getCoordRef3d());
+                    dst.setColorRefFloat(src.getColorRefFloat());
+                    dst.setColorRefByte(src.getColorRefByte());
+                    if ((format & WITH_ALPHA) == 0) {
+                        dst.setColorRef3f(src.getColorRef3f());
+                        dst.setColorRef3b(src.getColorRef3b());
+                    } else {
+                        dst.setColorRef4f(src.getColorRef4f());
+                        dst.setColorRef4b(src.getColorRef4b());
+                    }
+                    dst.setNormalRefFloat(src.getNormalRefFloat());
+                    dst.setNormalRef3f(src.getNormalRef3f());
+
+                    switch (src.getVertexAttrType()) {
+                    case GeometryArrayRetained.AF:
+                        for (int i=0; i < vAttrCount; i++) {
+                            dst.setVertexAttrRefFloat(i, src.getVertexAttrRefFloat(i));
+                        }
+                        break;
+                    }
+
+                    switch (src.getTexCoordType()) {
+                    case GeometryArrayRetained.TF:
+                        for (int i=0; i < setCount; i++) {
+                            dst.setTexCoordRefFloat(i, src.getTexCoordRefFloat(i));
+                        }
+                        break;
+                    case GeometryArrayRetained.T2F:
+                        for (int i=0; i < setCount; i++) {
+                            dst.setTexCoordRef2f(i, src.getTexCoordRef2f(i));
+                        }
+                        break;
+                    case GeometryArrayRetained.T3F:
+                        for (int i=0; i < setCount; i++) {
+                            dst.setTexCoordRef3f(i, src.getTexCoordRef3f(i));
+                        }
+                        break;
+                    }
+                } else {
+                    // NIO buffer
+                    dst.setCoordRefBuffer(src.getCoordRefBuffer());
+                    dst.setColorRefBuffer(src.getColorRefBuffer());
+                    dst.setNormalRefBuffer(src.getNormalRefBuffer());
+
+                    switch (src.getVertexAttrType()) {
+                    case GeometryArrayRetained.AF:
+                        for (int i=0; i < vAttrCount; i++) {
+                            dst.setVertexAttrRefBuffer(i, src.getVertexAttrRefBuffer(i));
+                        }
+                        break;
+                    }
+
+                    switch (src.getTexCoordType()) {
+                    case GeometryArrayRetained.TF:
+                        for (int i=0; i < setCount; i++) {
+                            dst.setTexCoordRefBuffer(i, src.getTexCoordRefBuffer(i));
+                        }
+                        break;
+                    }
+                }
+            } else {
+                dst.setInterleavedVertices(src.getInterleavedVertices());
+            }
+        }
     }
 
 

@@ -202,28 +202,31 @@ public class IndexedTriangleStripArray extends IndexedGeometryStripArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedTriangleStripArrayRetained rt =
-	    (IndexedTriangleStripArrayRetained) retained;
+        IndexedTriangleStripArrayRetained rt =
+                (IndexedTriangleStripArrayRetained) retained;
         int stripIndexCounts[] = new int[rt.getNumStrips()];
-	rt.getStripIndexCounts(stripIndexCounts);
-	int texSetCount = rt.getTexCoordSetCount();
-	IndexedTriangleStripArray l;
-	if (texSetCount == 0) {
-	    l = new IndexedTriangleStripArray(rt.getVertexCount(),
-					      rt.getVertexFormat(),
-					      rt.getIndexCount(),
-					      stripIndexCounts);
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);
-	    l = new IndexedTriangleStripArray(rt.getVertexCount(),
-					      rt.getVertexFormat(),
-					      texSetCount,
-					      texMap,
-					      rt.getIndexCount(),
-					      stripIndexCounts);
-	}
-        l.duplicateNodeComponent(this);
-        return l;
+        rt.getStripIndexCounts(stripIndexCounts);
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedTriangleStripArray t = new IndexedTriangleStripArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                rt.getIndexCount(),
+                stripIndexCounts);
+        t.duplicateNodeComponent(this);
+        return t;
     }
 }

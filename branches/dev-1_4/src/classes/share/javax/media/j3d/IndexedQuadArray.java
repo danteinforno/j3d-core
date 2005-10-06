@@ -180,23 +180,26 @@ public class IndexedQuadArray extends IndexedGeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedQuadArrayRetained rt = (IndexedQuadArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();	
-        IndexedQuadArray q;
-
-	if (texSetCount == 0) {
-	    q = new IndexedQuadArray(rt.getVertexCount(),
-				     rt.getVertexFormat(),
-				     rt.getIndexCount());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	    
-	    q = new IndexedQuadArray(rt.getVertexCount(),
-				     rt.getVertexFormat(),
-				     texSetCount,
-				     texMap,
-				     rt.getIndexCount());
-	}
+        IndexedQuadArrayRetained rt = (IndexedQuadArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedQuadArray q = new IndexedQuadArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                rt.getIndexCount());
         q.duplicateNodeComponent(this);
         return q;
     }

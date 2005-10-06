@@ -150,21 +150,26 @@ public class QuadArray extends GeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	QuadArrayRetained rt = (QuadArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();
-        QuadArray q;
-	if (texSetCount == 0) {
-	    q = new QuadArray(rt.getVertexCount(), 
-			      rt.getVertexFormat());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	
-	    q = new QuadArray(rt.getVertexCount(), 
-			      rt.getVertexFormat(),
-			      texSetCount,
-			      texMap);
-	}
-	q.duplicateNodeComponent(this);
+        QuadArrayRetained rt = (QuadArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        QuadArray q = new QuadArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes);
+        q.duplicateNodeComponent(this);
         return q;
      }
 
