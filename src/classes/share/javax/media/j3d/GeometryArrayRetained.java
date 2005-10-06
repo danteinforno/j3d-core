@@ -138,7 +138,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     int initialCoordIndex = 0;
     int initialColorIndex = 0;
     int initialNormalIndex = 0;
-    int initialTexCoordIndex[] = null;
+    int[] initialTexCoordIndex = null;
+    int[] initialVertexAttrIndex = null;
     int initialVertexIndex = 0;
 
 
@@ -181,9 +182,18 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     static final int T3F = 0x4000;
     static final int TEXCOORD_DEFINED = TF | T2F | T3F;
     
-    // TODO KCR : vertex attributes flags
     static final int AF = 0x8000;
-    static final int ATTR_DEFINED = AF;
+    static final int VATTR_DEFINED = AF;
+    
+    // Flag word indicating the type of by-ref texCoord. We will copy this to
+    // the vertexType field only when the references for all texture coordinate
+    // sets are set to non-null values.
+    private int texCoordType = 0;
+    
+    // Flag word indicating the type of by-ref vertex attr. We will copy this to
+    // the vertexType field only when the references for all vertex attrs
+    // are set to non-null values.
+    private int vertexAttrType = 0;
 
     // flag for execute geometry array when by reference
     static final int COORD_FLOAT  = 0x01;
@@ -191,9 +201,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     static final int COLOR_FLOAT  = 0x04;
     static final int COLOR_BYTE   = 0x08;
     static final int NORMAL_FLOAT = 0x10;
-    static final int TEXCOORD_FLOAT    = 0x20; 
-    
-    
+    static final int TEXCOORD_FLOAT = 0x20; 
+    static final int VATTR_FLOAT = 0x40;
+
+
     // used by "by reference" normals
     float[] floatRefNormals = null;
     Vector3f[] v3fRefNormals = null;
@@ -202,6 +213,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     J3DBuffer normalRefBuffer = null;
     FloatBufferWrapper floatBufferRefNormals = null;
 
+    // used for "by reference" vertex attrs
+    float[][] floatRefVertexAttrs = null;
+
+    // Used for NIO buffer vertex attrs
+    J3DBuffer[] vertexAttrsRefBuffer = null;
+    FloatBufferWrapper[] floatBufferRefVertexAttrs = null;
+    Object[] nioFloatBufferRefVertexAttrs = null;
 
     // used by "by reference" tex coords
     Object[] refTexCoords = null;
@@ -222,10 +240,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     // pointers used, when transparency is turned on
     // or when its an object such as C3F, P3F etc ..
-    // XXXX: Update this for J3DBuffer
     float[] mirrorFloatRefCoords = null;
     double[] mirrorDoubleRefCoords = null;
     float[] mirrorFloatRefNormals = null;
+    float[][] mirrorFloatRefVertexAttrs = null;
     float[] mirrorFloatRefTexCoords = null;
     Object[] mirrorRefTexCoords = null;
 
@@ -236,7 +254,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     // boolean to determine if a mirror was allocated
     int mirrorVertexAllocated = 0;
     int mirrorColorAllocated = 0;
-    boolean mirrorTexCoordAllocated = false;
     boolean mirrorNormalAllocated = false;
 
     // Some dirty bits for GeometryArrays
@@ -246,12 +263,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     static final int TEXTURE_CHANGED 		= 0x08;
     static final int BOUNDS_CHANGED 		= 0x10;
     static final int INDEX_CHANGED 		= 0x20;    
-    static final int STRIPCOUNT_CHANGED 	= 0x40;    
+    static final int STRIPCOUNT_CHANGED 	= 0x40;
+    static final int VATTR_CHANGED 		= 0x80;
     static final int VERTEX_CHANGED             = COORDINATE_CHANGED |
                                                   NORMAL_CHANGED |
                                                   COLOR_CHANGED |
-                                                  TEXTURE_CHANGED;
-                      
+                                                  TEXTURE_CHANGED |
+                                                  VATTR_CHANGED;
 
     static final int defaultTexCoordSetMap[] = {0};
     int texCoordSetCount = 0;
@@ -947,26 +965,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     }
 
-    // XXXX: may not need this function in NIO buffer version
-    // setup mirror vertex pointers for J3DBuffer version
-    void setupMirrorVertexPointerNIOBuffer(int vType) {
-	int i, index = 0;
-	switch(vType) {
-	case PF:
-
-	    break;
-	case PD:
-
-	    break;
-	    
-	    // do not need to handle P3F and P3D case in NIO buffer version
-	default:
-	    break;
-	    
-	}
-	
-    }
-
     // If turned transparent the first time, then force it to allocate
     void setupMirrorInterleavedColorPointer(boolean force) {
 	int index, length, offset;
@@ -1277,7 +1275,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		vertexType |= CF;
 		vertexType &= ~CUB;
 		if (c4fAllocated == 0 && !force) {
-		    // XXXX: make suren mirrorFloatRefColors[0] is set right
+		    // NOTE: make suren mirrorFloatRefColors[0] is set right
 		    mirrorFloatRefColors[0] = null; 
 		    mirrorColorAllocated &= ~CF;
 		}
@@ -1313,7 +1311,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		vertexType |= CUB;
 		vertexType &= ~CF;
 		if (c4fAllocated == 0 && !force) {
-		    // XXXX: make suren mirrorUnsignedByteRefColors[0] is set right
+		    // NOTE: make sure mirrorUnsignedByteRefColors[0] is set right
 		    mirrorUnsignedByteRefColors[0] = null;
 		    mirrorColorAllocated &= ~CUB;;
 		}
@@ -1398,42 +1396,58 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     void setupMirrorTexCoordPointer(int type) {
 	for (int i = 0; i < texCoordSetCount; i++) {
-	     setupMirrorTexCoordPointer(i, type);
+	     doSetupMirrorTexCoordPointer(i, type);
 	}
+
+        validateTexCoordPointerType();
+    }
+    
+    void setupMirrorTexCoordPointer(int texCoordSet, int type) {
+        doSetupMirrorTexCoordPointer(texCoordSet, type);
+        validateTexCoordPointerType();
     }
 
-    void setupMirrorTexCoordPointer(int texCoordSet, int type) {
+    // If all texCoord pointers are set to a non-null value, then set the
+    // texcoord type in the vertexType flag word, else clear the texcoord type
+    private void validateTexCoordPointerType() {
+        boolean allNonNull = true;
+        boolean allNull = true;
+        for (int i = 0; i < texCoordSetCount; i++) {
+            if (refTexCoords[i] == null) {
+                allNonNull = false;
+            } else {
+                allNull = false;
+            }
+        }
+
+        // Reset texCoordType if all references are null
+        if (allNull) {
+            texCoordType = 0;
+        }
+
+        // Copy texCoordType to vertexType if all references are non-null
+        vertexType &= ~TEXCOORD_DEFINED;
+        if (allNonNull) {
+            vertexType |= texCoordType;
+        }
+    }
+    
+    private void doSetupMirrorTexCoordPointer(int texCoordSet, int type) {
 	int i, index;
 
-        if (mirrorRefTexCoords == null)
-	    mirrorRefTexCoords = new Object[texCoordSetCount];
-
-	switch (type) { 
-	case TF: 
-	    if (refTexCoords[texCoordSet] == null) {
-		if ((vertexType & TEXCOORD_DEFINED) == TF) {
-		    vertexType &= ~TF;
-		    mirrorRefTexCoords[texCoordSet] =  null;
-		    mirrorTexCoordAllocated = false;
-		}
-	    }
-	    else {
-		vertexType |= TF;
-		mirrorRefTexCoords[texCoordSet] =  refTexCoords[texCoordSet];
-		mirrorTexCoordAllocated = false;
-	    }
+        switch (type) { 
+	case TF:
+            texCoordType = TF;
+            mirrorRefTexCoords[texCoordSet] = refTexCoords[texCoordSet];
 	    break;
-	case T2F:
+
+        case T2F:
+            texCoordType = T2F;
 	    t2fRefTexCoords = (TexCoord2f[])refTexCoords[texCoordSet];
 
 	    if (t2fRefTexCoords == null) {
-		if ((vertexType & TEXCOORD_DEFINED) == T2F) {
-		    vertexType &= ~T2F;
-		}
-		return;
-	    }
-	    else {
-		vertexType |= T2F;
+                mirrorRefTexCoords[texCoordSet] = null;
+		break;
 	    }
 
             mirrorFloatRefTexCoords = (float[])mirrorRefTexCoords[texCoordSet];
@@ -1452,19 +1466,15 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		mirrorFloatRefTexCoords[index++] = t2fRefTexCoords[i].x;
 		mirrorFloatRefTexCoords[index++] = t2fRefTexCoords[i].y;
 	    }
-	    mirrorTexCoordAllocated = true;
 	    break;
-	case T3F: 
 
+	case T3F:
+            texCoordType = T3F;
 	    t3fRefTexCoords = (TexCoord3f[])refTexCoords[texCoordSet];
-	    if (t3fRefTexCoords == null) {
-		if ((vertexType & TEXCOORD_DEFINED) == T3F) {
-		    vertexType &= ~T3F;
-		}
-		return;
-	    }
-	    else {
-		vertexType |= T3F;
+
+            if (t3fRefTexCoords == null) {
+                mirrorRefTexCoords[texCoordSet] = null;
+		break;
 	    }
 
             mirrorFloatRefTexCoords = (float[])mirrorRefTexCoords[texCoordSet];
@@ -1484,7 +1494,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		mirrorFloatRefTexCoords[index++] = t3fRefTexCoords[i].y;
 		mirrorFloatRefTexCoords[index++] = t3fRefTexCoords[i].z;
 	    }
-	    mirrorTexCoordAllocated = true;
 	    break;
 
 	default:
@@ -1492,9 +1501,68 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	}
     }
 
-    // TODO KCR : implement the following method.
-    //void setupMirrorVertexAttrPointer(...)
-		
+    void setupMirrorVertexAttrPointer(int type) {
+        for (int i = 0; i < vertexAttrCount; i++) {
+            doSetupMirrorVertexAttrPointer(i, type);
+        }
+
+        validateVertexAttrPointerType();
+    }
+    
+    void setupMirrorVertexAttrPointer(int vertexAttrNum, int type) {
+        doSetupMirrorVertexAttrPointer(vertexAttrNum, type);
+        validateVertexAttrPointerType();
+    }
+    
+    // If all vertex attr pointers are set to a non-null value, then set the
+    // vertex attr type in the vertexType flag word, else clear the
+    // vertex attr type
+    private void validateVertexAttrPointerType() {
+        boolean allNonNull = true;
+        boolean allNull = true;
+
+        if ((vertexFormat & GeometryArray.USE_NIO_BUFFER) == 0) {
+            for (int i = 0; i < vertexAttrCount; i++) {
+                if (floatRefVertexAttrs[i] == null) {
+                    allNonNull = false;
+                } else {
+                    allNull = false;
+                }
+            }
+        } else {
+            for (int i = 0; i < vertexAttrCount; i++) {
+                if (nioFloatBufferRefVertexAttrs[i] == null) {
+                    allNonNull = false;
+                } else {
+                    allNull = false;
+                }
+            }
+        }
+
+        // Reset vertexAttrType if all references are null
+        if (allNull) {
+            vertexAttrType = 0;
+        }
+
+        // Copy vertexAttrType to vertexType if all references are non-null
+        vertexType &= ~VATTR_DEFINED;
+        if (allNonNull) {
+            vertexType |= vertexAttrType;
+        }
+    }
+
+    private void doSetupMirrorVertexAttrPointer(int vertexAttrNum, int type) {
+        switch (type) {
+        case AF:
+            vertexAttrType = AF;
+            mirrorFloatRefVertexAttrs[vertexAttrNum] =
+                floatRefVertexAttrs[vertexAttrNum];
+            break;
+        default:
+            break;
+        }
+    }
+
 
     void createGeometryArrayData(int vertexCount, int vertexFormat) {
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
@@ -1528,11 +1596,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    this.texCoordSetMap = (int[])texCoordSetMap.clone();
 	}
 
-	// TODO KCR : remove this once vertex attrs are implemented
-	if (vertexAttrCount != 0 || vertexAttrSizes != null) {
-	    System.err.println("GeometryArray: vertex attributes not implemented yet");
-	}
-
         this.vertexAttrCount = vertexAttrCount;
 	if (vertexAttrSizes == null) {
 	    this.vertexAttrSizes = null;
@@ -1557,13 +1620,26 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	else { // By reference geometry
 	    this.vertexData = null;
             if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
+                this.mirrorRefTexCoords = new Object[texCoordSetCount];
                 this.refTexCoords = new Object[texCoordSetCount]; // keep J3DBufferImp object in nio buffer case
 		if((vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0 )
 		    this.refTexCoordsBuffer = new Object[texCoordSetCount]; // keep J3DBuffer object
 	    }
+            if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+                this.floatRefVertexAttrs = new float[vertexAttrCount][];
+                this.mirrorFloatRefVertexAttrs = new float[vertexAttrCount][];
+		if ((vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
+		    this.vertexAttrsRefBuffer = new J3DBuffer[vertexAttrCount];
+                    this.floatBufferRefVertexAttrs = new FloatBufferWrapper[vertexAttrCount];
+                    this.nioFloatBufferRefVertexAttrs = new Object[vertexAttrCount];
+                }
+	    }
 	}
         if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
             this.initialTexCoordIndex = new int[texCoordSetCount];
+        }
+        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+            this.initialVertexAttrIndex = new int[vertexAttrCount];
         }
 	noAlpha = ((vertexFormat & GeometryArray.WITH_ALPHA) == 0);
 	lastAlpha[0] = 1.0f;
@@ -1587,7 +1663,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             float[] varray, float[] cdata, int texUnitIndex, int cdirty);
 
     // used by GeometryArray by Reference with java arrays
-    // TODO KCR : add vertex attrs
     private native void executeVA(long ctx,
             GeometryArrayRetained geo, int geo_type,
             boolean isNonUniformScale,
@@ -1599,6 +1674,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             int coordIndex, float[] vfcoords, double[] vdcoords,
             int colorIndex, float[] cfdata, byte[] cbdata,
             int normalIndex, float[] ndata,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            int[] vertexAttrIndex, float[][] vertexAttrData,
             int pass, int texcoordmaplength,
             int[] texcoordoffset,
             int numActiveTexUnitState, int[] texunitstatemap,
@@ -1606,7 +1683,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             int cdirty);
 
     // used by GeometryArray by Reference with NIO buffer
-    // TODO KCR : add vertex attrs
     private native void executeVABuffer(long ctx,
             GeometryArrayRetained geo, int geo_type,
             boolean isNonUniformScale,
@@ -1621,6 +1697,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             Object cdataBuffer,
             float[] cfdata, byte[] cbdata,
             int normalIndex, Object ndata,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            int[] vertexAttrIndex, Object[] vertexAttrData,
             int pass, int texcoordmaplength,
             int[] texcoordoffset,
             int numActiveTexUnitState, int[] texunitstatemap,
@@ -1643,15 +1721,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             Object varray, float[] cdata, int texUnitIndex, int cdirty);
 
     private native void setVertexFormat(long ctx,
-            int vformat, boolean useAlpha, boolean ignoreVertexColors,
-            int vertexAttrCount, int[] vertexAttrSizes);
+            int vformat, boolean useAlpha, boolean ignoreVertexColors);
 
     private native void disableGlobalAlpha(long ctx, int vformat,
             boolean useAlpha, boolean ignoreVertexColors);
 
     void setVertexFormat(boolean useAlpha, boolean ignoreVC, long ctx) {
-	setVertexFormat(ctx, vertexFormat, useAlpha, ignoreVC,
-                vertexAttrCount, vertexAttrSizes);
+	setVertexFormat(ctx, vertexFormat, useAlpha, ignoreVC);
     }
     
     void disableGlobalAlpha(long ctx, boolean useAlpha, boolean ignoreVC) {
@@ -2042,7 +2118,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	// allocate a copy of the vertex data for the screen if needed.
 	// this piece of code is mainly for multi-screens case
-	// XXXX: this might not too much data for just to update alpha
+	// NOTE: this might not too much data for just to update alpha
 	if (mvertexData == null || mvertexData.length <= screen) {
 
 	    float[][] cfData = new float[screen + 1][];
@@ -2200,7 +2276,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 	// allocate a copy of the vertex data for the screen if needed.
 	// this piece of code is mainly for multi-screens case
-	// XXXX: this might not too much data for just to update alpha
+	// NOTE: this might not too much data for just to update alpha
 	if (mirrorInterleavedColorPointer.length <= screen) {
 
 	    float[][] cfData = new float[screen + 1][];
@@ -2419,8 +2495,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    // non interleaved data
 	    else {
 
-                // TODO KCR : vertex attributes
-
 		// Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -2428,9 +2502,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    (((vertexFormat & GeometryArray.COLOR) != 0) &&
 		     (vertexType & COLOR_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.NORMALS) != 0) &&
-		     (vertexType & NORMAL_DEFINED) == 0) || 
+		     (vertexType & NORMAL_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
-		     (vertexType & ATTR_DEFINED) == 0) || 
+		     (vertexType & VATTR_DEFINED) == 0) ||
 		    (((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		     (vertexType & TEXCOORD_DEFINED) == 0)) {
 		    return;  
@@ -2495,13 +2569,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			vdefined |= COLOR_BYTE;
 		    if((vertexType & NORMAL_DEFINED) != 0)
 			vdefined |= NORMAL_FLOAT;
-                    // TODO KCR : vertex attrs
-//		    if((vertexType & ATTR_DEFINED) != 0)
-//			vdefined |= ATTR_FLOAT;
+		    if((vertexType & VATTR_DEFINED) != 0)
+			vdefined |= VATTR_FLOAT;
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 			vdefined |= TEXCOORD_FLOAT;
 
-                    // TODO KCR : add vertex attrs
 		    executeVA(cv.ctx, this, geoType, isNonUniformScale, 
 			      multiScreen, 
 			      ignoreVertexColors,
@@ -2512,6 +2584,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			      mirrorFloatRefCoords, mirrorDoubleRefCoords,
 			      initialColorIndex, cfdata, cbdata,
 			      initialNormalIndex, mirrorFloatRefNormals,
+			      vertexAttrCount, vertexAttrSizes,
+                              initialVertexAttrIndex, mirrorFloatRefVertexAttrs,
 			      pass,
 			      ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
 			      texCoordSetMap,
@@ -2572,12 +2646,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 					 pass, cdirty);
 
 	    } // end of interleaved case
-	    
+
 	    // non interleaved data
 	    else {
-                
-                // TODO KCR : vertex attributes
-                
+
 		// Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -2585,15 +2657,16 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    (((vertexFormat & GeometryArray.COLOR) != 0) &&
 		     (vertexType & COLOR_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.NORMALS) != 0) &&
-		     (vertexType & NORMAL_DEFINED) == 0) || 
+		     (vertexType & NORMAL_DEFINED) == 0) ||
+		    (((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		     (vertexType & VATTR_DEFINED) == 0) ||
 		    (((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		     (vertexType & TEXCOORD_DEFINED) == 0)) {
 		    return;  
 		} else {
 		    byte[] cbdata = null;
 		    float[] cfdata = null;
-		    
-		    
+
 		    if ((vertexType & CF ) != 0) {
 			synchronized (this) {
 			    cdirty = dirtyFlag;
@@ -2667,12 +2740,15 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    if((vertexType & NORMAL_DEFINED) != 0) {
 			vdefined |= NORMAL_FLOAT;
 			normal = floatBufferRefNormals.getBufferAsObject();
-		    }
+                    }
 
-		    if((vertexType & TEXCOORD_DEFINED) != 0)
+                    if ((vertexType & VATTR_DEFINED) != 0) {
+                        vdefined |= VATTR_FLOAT;
+                    }
+
+                    if((vertexType & TEXCOORD_DEFINED) != 0)
 		       vdefined |= TEXCOORD_FLOAT;
 
-                    // TODO KCR : add vertex attrs
 		    executeVABuffer(cv.ctx, this, geoType, isNonUniformScale, 
 				    multiScreen, 
 				    ignoreVertexColors,
@@ -2686,6 +2762,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 				    cfdata, cbdata,
 				    initialNormalIndex,
 				    normal,
+				    vertexAttrCount, vertexAttrSizes,
+				    initialVertexAttrIndex,
+				    nioFloatBufferRefVertexAttrs,
 				    pass,
 				    ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
 				    texCoordSetMap,
@@ -2713,22 +2792,23 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             float[] varray);
 
     // used to Build Dlist GeometryArray by Reference with java arrays
-    // TODO KCR : add vertex attrs
     private native void buildGAForByRef(long ctx,
-			  GeometryArrayRetained geo, int geo_type, 
-			  boolean isNonUniformScale,  boolean updateAlpha,
-			float alpha,
-			  boolean ignoreVertexColors,
-			  int vcount,
-			  int vformat,
-			int vdefined,
-			int coordIndex, float[] vfcoords, double[] vdcoords,
-			  int colorIndex, float[] cfdata, byte[] cbdata,
-			  int normalIndex, float[] ndata,
-			  int texcoordmaplength, 
-			  int[] texcoordoffset, 
-			  int[] texIndex, int texstride, Object[] texCoords,
-			double[] xform, double[] nxform);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,  boolean updateAlpha,
+            float alpha,
+            boolean ignoreVertexColors,
+            int vcount,
+            int vformat,
+            int vdefined,
+            int coordIndex, float[] vfcoords, double[] vdcoords,
+            int colorIndex, float[] cfdata, byte[] cbdata,
+            int normalIndex, float[] ndata,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            int[] vertexAttrIndex, float[][] vertexAttrData,
+            int texcoordmaplength,
+            int[] texcoordoffset,
+            int[] texIndex, int texstride, Object[] texCoords,
+            double[] xform, double[] nxform);
 
 
     // used to Build Dlist GeometryArray by Reference with NIO buffer
@@ -2786,7 +2866,23 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    vdata);
 	}
 	else {
-	    // Either non-interleaved, by-ref or nio buffer
+            // Check if a vertexformat is set, but the array is null
+            // if yes, don't draw anything
+            if ((vertexType == 0) ||
+		((vertexType & VERTEX_DEFINED) == 0) ||
+		(((vertexFormat & GeometryArray.COLOR) != 0) &&
+		 (vertexType & COLOR_DEFINED) == 0) ||
+		(((vertexFormat & GeometryArray.NORMALS) != 0) &&
+		 (vertexType & NORMAL_DEFINED) == 0) ||
+		(((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		 (vertexType & VATTR_DEFINED) == 0) ||
+		(((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
+		 (vertexType & TEXCOORD_DEFINED) == 0)) {
+
+                return;
+            }
+
+            // Either non-interleaved, by-ref or nio buffer
 	    if ((vertexFormat & GeometryArray.USE_NIO_BUFFER) == 0) {
                 // Java array case
 		    // setup vdefined to passed to native code
@@ -2801,9 +2897,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			vdefined |= COLOR_BYTE;
 		    if((vertexType & NORMAL_DEFINED) != 0)
 			vdefined |= NORMAL_FLOAT;
+		    if((vertexType & VATTR_DEFINED) != 0)
+			vdefined |= VATTR_FLOAT;
 		    if((vertexType & TEXCOORD_DEFINED) != 0)
 			vdefined |= TEXCOORD_FLOAT;
-                    // TODO KCR : add vertex attrs
+
 		    buildGAForByRef(cv.ctx, this, geoType, isNonUniformScale,
 			    updateAlpha, alpha,
 			    ignoreVertexColors,
@@ -2814,6 +2912,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			    mirrorFloatRefCoords, mirrorDoubleRefCoords,
 			    initialColorIndex, mirrorFloatRefColors[0], mirrorUnsignedByteRefColors[0],
 			    initialNormalIndex, mirrorFloatRefNormals,
+			    vertexAttrCount, vertexAttrSizes,
+                            initialVertexAttrIndex, mirrorFloatRefVertexAttrs,
 			    ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
 			    texCoordSetMap,
 			    initialTexCoordIndex,texCoordStride,
@@ -3509,6 +3609,32 @@ abstract class GeometryArrayRetained extends GeometryRetained{
      */
     int getVertexFormat(){
 	return vertexFormat;
+    }
+
+    /**
+     * Retrieves the number of vertex attributes in this GeometryArray
+     * object.
+     *
+     * @return the number of vertex attributes in this GeometryArray
+     * object
+     */
+    int getVertexAttrCount() {
+        return vertexAttrCount;
+    }
+
+
+    /**
+     * Retrieves the vertex attribute sizes array from this
+     * GeometryArray object.
+     *
+     * @param vertexAttrSizes an array that will receive a copy of
+     * the vertex attribute sizes array.  The array must hold at least
+     * <code>vertexAttrCount</code> elements.
+     */
+    void getVertexAttrSizes(int[] vertexAttrSizes) {
+        for (int i = 0; i < vertexAttrCount; i++) {
+            vertexAttrSizes[i] = this.vertexAttrSizes[i];
+        }
     }
 
 
@@ -5135,7 +5261,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
         int i, j, k;
 
 	geomLock.getLock();
-	// TODO: dirtyFlag |= VERTEX_ATTR_CHANGED;
+	dirtyFlag |= VATTR_CHANGED;
 
         for (i = start * size, j = offset, k = 0; k < length; i += size, j += this.stride, k++) {
             for (int ii = 0; ii < size; ii++) {
@@ -5870,11 +5996,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			nullGeo = (interLeavedVertexData == null);
 		    }
 		    else {
-			setupMirrorVertexPointer((vertexType & VERTEX_DEFINED));
+			setupMirrorVertexPointer(vertexType & VERTEX_DEFINED);
 			setupMirrorColorPointer((vertexType & COLOR_DEFINED), false);
-			setupMirrorNormalPointer((vertexType & NORMAL_DEFINED));
-			setupMirrorTexCoordPointer((vertexType & TEXCOORD_DEFINED));
-                        // TODO KCR : handle vertex attrs
+			setupMirrorNormalPointer(vertexType & NORMAL_DEFINED);
+			setupMirrorTexCoordPointer(texCoordType);
+                        setupMirrorVertexAttrPointer(vertexAttrType);
 			nullGeo = ((vertexType & GeometryArrayRetained.VERTEX_DEFINED) == 0);
 		    }
 		}
@@ -9197,15 +9323,14 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     void setTexCoordRefFloat(int texCoordSet, float[] texCoords) {
 
-	if (texCoords != null) {
+        if (texCoordType != 0 && texCoordType != TF) {
+            throw new IllegalArgumentException(
+                    J3dI18N.getString("GeometryArray98"));
+        }
 
-	    if ((vertexType & TEXCOORD_DEFINED) != 0 &&
-		(vertexType & TEXCOORD_DEFINED) != TF) {
-		throw new IllegalArgumentException(
-				J3dI18N.getString("GeometryArray98"));
-	    }
+        if (texCoords != null) {
 
-	    int ts = getTexStride();
+            int ts = getTexStride();
 
 	    if (this instanceof IndexedGeometryArrayRetained) {
 		IndexedGeometryArrayRetained idx = (IndexedGeometryArrayRetained)this;
@@ -9223,10 +9348,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	refTexCoords[texCoordSet] = texCoords;
 	if (inUpdater || (this instanceof IndexedGeometryArrayRetained &&
 			  ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0))) {
-	    if (texCoords == null)
-		vertexType &= ~TF;
-	    else
-		vertexType |= TF;
+	    texCoordType = TF;
+            validateTexCoordPointerType();
 	}
 	else {
 	    setupMirrorTexCoordPointer(texCoordSet, TF);
@@ -9237,8 +9360,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	}
     }
 
-    
-    
+
     float[] getTexCoordRefFloat(int texCoordSet) {
 	return ((float[])refTexCoords[texCoordSet]);
     }
@@ -9275,14 +9397,14 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	// refTexCoordsBuffer contains J3DBuffer object for tex coord
 	refTexCoordsBuffer[texCoordSet] = texCoords;
 	if (texCoords == null) {
-	    vertexType &= ~TF;
 	    refTexCoords[texCoordSet] = null;
 	}
 	else {
-	    vertexType |= TF;
 	    // refTexCoords contains NIOBuffer object for tex coord
 	    refTexCoords[texCoordSet] = bufferImpl.getBufferAsObject();
 	}
+        texCoordType = TF;
+        validateTexCoordPointerType();
 	geomLock.unLock();
 	if (!inUpdater && source != null && source.isLive()) {
 	    sendDataChangedMessage(false);
@@ -9295,13 +9417,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     void setTexCoordRef2f(int texCoordSet, TexCoord2f[] texCoords) {
 
-	if (texCoords != null) {
-	    if ((vertexType & TEXCOORD_DEFINED) != 0 &&
-		(vertexType & TEXCOORD_DEFINED) != T2F) {
-		throw new IllegalArgumentException(
-				J3dI18N.getString("GeometryArray98"));
-	    }
-	    
+        if (texCoordType != 0 && texCoordType != T2F) {
+            throw new IllegalArgumentException(
+                    J3dI18N.getString("GeometryArray98"));
+        }
+
+        if (texCoords != null) {
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE_2) == 0) {
 		throw new IllegalStateException(
 				J3dI18N.getString("GeometryArray94"));
@@ -9324,13 +9445,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	refTexCoords[texCoordSet] = texCoords;	
 	if (inUpdater || (this instanceof IndexedGeometryArrayRetained &&
 			  ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0))) {
-	    if (texCoords == null) 
-		vertexType &= ~T2F;
-	    else
-		vertexType |= T2F;
+	    texCoordType = T2F;
+            validateTexCoordPointerType();
 	}
 	else {
-	    setupMirrorTexCoordPointer(T2F);
+	    setupMirrorTexCoordPointer(texCoordSet, T2F);
 	}
 	geomLock.unLock();
 	if (!inUpdater && source != null && source.isLive()) {
@@ -9351,14 +9470,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     void setTexCoordRef3f(int texCoordSet, TexCoord3f[] texCoords) {
 
+        if (texCoordType != 0 && texCoordType != T3F) {
+            throw new IllegalArgumentException(
+                    J3dI18N.getString("GeometryArray98"));
+        }
+
 	if (texCoords != null) {
 
-	    if ((vertexType & TEXCOORD_DEFINED) != 0 &&
-		(vertexType & TEXCOORD_DEFINED) != T3F) {
-		throw new IllegalArgumentException(
-				J3dI18N.getString("GeometryArray98"));
-	    }
-	    
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE_3) == 0) {
 		throw new IllegalStateException(
 				J3dI18N.getString("GeometryArray95"));
@@ -9382,13 +9500,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	refTexCoords[texCoordSet] = texCoords;
 	if (inUpdater || (this instanceof IndexedGeometryArrayRetained &&
 			  ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0))) {
-	    if (texCoords == null)
-		vertexType &= ~T3F;
-	    else
-		vertexType |= T3F;
+	    texCoordType = T3F;
+            validateTexCoordPointerType();
 	}
 	else {
-	    setupMirrorTexCoordPointer(T3F);
+	    setupMirrorTexCoordPointer(texCoordSet, T3F);
 	}
 	geomLock.unLock();
 	if (!inUpdater && source != null && source.isLive()) {
@@ -9405,6 +9521,128 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    return null;
 	}
     }    
+
+
+    /**
+     * Sets the float vertex attribute array reference for the
+     * specified vertex attribute number to the specified array.
+     */
+    void setVertexAttrRefFloat(int vertexAttrNum, float[] vertexAttrs) {
+
+        // XXXX: Add the following test if we ever add double-precision types
+        /*
+        if (vertexAttrType != 0 && vertexAttrType != AF) {
+            // XXXX: new exception string
+            throw new IllegalArgumentException(
+                    J3dI18N.getString("GeometryArray98-XXX"));
+        }
+        */
+
+        if (vertexAttrs != null) {
+            int sz = vertexAttrSizes[vertexAttrNum];
+
+            if (this instanceof IndexedGeometryArrayRetained) {
+                IndexedGeometryArrayRetained idx = (IndexedGeometryArrayRetained)this;
+
+                // TODO KCR : handle vertex attrs for indexed geometry
+//		if (sz*idx.maxVertexAttrIndices[vertexAttrNum] >= vertexAttrs.length) {
+//		    // TODO: new exception string
+//		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray25 XXX"));
+//		}
+
+	    } else if (vertexAttrs.length < sz*(initialVertexAttrIndex[vertexAttrNum] + validVertexCount) ) {
+		throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray129"));
+	    }
+	}
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+	floatRefVertexAttrs[vertexAttrNum] = vertexAttrs;
+	if (inUpdater || (this instanceof IndexedGeometryArrayRetained &&
+			  ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0))) {
+	    vertexAttrType = AF;
+            validateVertexAttrPointerType();
+	}
+	else {
+	    setupMirrorVertexAttrPointer(vertexAttrNum, AF);
+	}
+	geomLock.unLock();
+	if (!inUpdater && source != null && source.isLive()) {
+	    sendDataChangedMessage(false);
+	}
+    }
+
+    /**
+     * Gets the float vertex attribute array reference for the specified
+     * vertex attribute number.
+     */
+    float[] getVertexAttrRefFloat(int vertexAttrNum) {
+        return floatRefVertexAttrs[vertexAttrNum];
+    }
+
+
+    /**
+     * Sets the vertex attribute buffer reference for the specified
+     * vertex attribute number to the specified buffer object.
+     */
+    void setVertexAttrRefBuffer(int vertexAttrNum, J3DBuffer vertexAttrs) {
+
+	FloatBufferWrapper bufferImpl = null;
+
+	if (vertexAttrs != null) {
+	    if(vertexAttrs.getBufferType() != J3DBuffer.TYPE_FLOAT)
+		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray116"));
+
+	    bufferImpl = (FloatBufferWrapper)vertexAttrs.getBufferImpl();
+	    int bufferSize = bufferImpl.limit();
+
+	    if (!bufferImpl.isDirect()) {
+		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
+            }
+
+	    int sz = vertexAttrSizes[vertexAttrNum];
+
+            if (this instanceof IndexedGeometryArrayRetained) {
+		IndexedGeometryArrayRetained idx = (IndexedGeometryArrayRetained)this;
+
+                // TODO KCR : handle vertex attrs for indexed geometry
+//		if (idx.maxVertexAttrIndices[vertexAttrNum] * sz >= bufferSize) {
+//                    // TODO: new exception string
+//		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray25 XXX"));
+//		}
+	    } else if (bufferSize < sz*(initialVertexAttrIndex[vertexAttrNum] + validVertexCount)) {
+		throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray129"));
+            }
+        }
+
+        geomLock.getLock();
+        dirtyFlag |= VATTR_CHANGED;
+        vertexAttrsRefBuffer[vertexAttrNum] = vertexAttrs;
+        if (vertexAttrs == null) {
+            floatBufferRefVertexAttrs[vertexAttrNum] = null;
+            nioFloatBufferRefVertexAttrs[vertexAttrNum] = null;
+        }
+        else {
+            floatBufferRefVertexAttrs[vertexAttrNum] = bufferImpl;
+            nioFloatBufferRefVertexAttrs[vertexAttrNum] =
+                bufferImpl.getBufferAsObject();
+        }
+        vertexAttrType = AF;
+        validateVertexAttrPointerType();
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
+
+    }
+
+    /**
+     * Gets the vertex attribute array buffer reference for the specified
+     * vertex attribute number.
+     */
+    J3DBuffer getVertexAttrRefBuffer(int vertexAttrNum) {
+	return vertexAttrsRefBuffer[vertexAttrNum];
+    }
 
 
     void setInterleavedVertices(float[] vertexData) {
@@ -9537,39 +9775,20 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     }
     
     void setValidVertexCount(int validVertexCount) {
-        // TODO KCR : handle vertex attributes
-        
+
 	boolean nullGeo = false;
 	if (validVertexCount < 0) {
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray110"));
 	}
-	if ((initialVertexIndex + validVertexCount) > vertexCount) {
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray100"));
-	}
-	else if ((initialCoordIndex + validVertexCount) > vertexCount) {
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray104"));
-	}
-	else if ((initialColorIndex + validVertexCount) > vertexCount) {
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray101"));
-	}
-	else if ((initialNormalIndex + validVertexCount) > vertexCount) {
-	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray102"));
-	}
-	else {
-	    if ((vertexFormat & (GeometryArray.BY_REFERENCE|vertexFormat &GeometryArray.INTERLEAVED)) == GeometryArray.BY_REFERENCE) {
-		if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-		    for (int i = 0; i < texCoordSetCount; i++) {
-			if ((initialTexCoordIndex[i] + validVertexCount) 
-			    > vertexCount) {
-			    throw new IllegalArgumentException(J3dI18N.getString(
-										 "GeometryArray103"));
-			}
-		    }
-		 }
-	    }
-	}
-	if ((vertexFormat & GeometryArray.INTERLEAVED) != 0) {
-	    // use nio buffer for interleaved data
+
+        if ((initialVertexIndex + validVertexCount) > vertexCount) {
+            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray100"));
+        }
+
+        if ((vertexFormat & GeometryArray.INTERLEAVED) != 0) {
+            // Interleaved, by-ref
+
+            // use nio buffer for interleaved data
 	    if(( vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0 && interleavedFloatBufferImpl != null){
 		if(interleavedFloatBufferImpl.limit() <  stride * (initialVertexIndex + validVertexCount)) {
 		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray114"));
@@ -9585,10 +9804,41 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		nullGeo = true;
 	    }
 	} else if ((vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
-	    if ((vertexType & GeometryArrayRetained.VERTEX_DEFINED) == 0)
+            // Non-interleaved, by-ref
+
+            if ((initialCoordIndex + validVertexCount) > vertexCount) {
+                throw new IllegalArgumentException(J3dI18N.getString("GeometryArray104"));
+            }
+            if ((initialColorIndex + validVertexCount) > vertexCount) {
+                throw new IllegalArgumentException(J3dI18N.getString("GeometryArray101"));
+            }
+            if ((initialNormalIndex + validVertexCount) > vertexCount) {
+                throw new IllegalArgumentException(J3dI18N.getString("GeometryArray102"));
+            }
+
+            if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
+                for (int i = 0; i < texCoordSetCount; i++) {
+                    if ((initialTexCoordIndex[i] + validVertexCount) > vertexCount) {
+                        throw new IllegalArgumentException(J3dI18N.getString(
+                                "GeometryArray103"));
+                    }
+                }
+            }
+
+            if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+                for (int i = 0; i < vertexAttrCount; i++) {
+                    if ((initialVertexAttrIndex[i] + validVertexCount) > vertexCount) {
+                        throw new IllegalArgumentException(J3dI18N.getString(
+                                "GeometryArray130"));
+                    }
+                }
+            }
+
+            if ((vertexType & GeometryArrayRetained.VERTEX_DEFINED) == 0) {
 		nullGeo = true;
-	    
-	    if(( vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
+            }
+
+	    if (( vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
 		// by reference with nio buffer
 		switch ((vertexType & GeometryArrayRetained.VERTEX_DEFINED)) {
 		case PF:
@@ -9658,6 +9908,18 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    if (floatBufferRefNormals.limit() < 3 * (initialNormalIndex + validVertexCount )) {
 			throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray111"));
 		    }
+		    break;
+		}
+		switch ((vertexType & GeometryArrayRetained.VATTR_DEFINED)) {
+		case AF:
+                    for (int i = 0; i < vertexAttrCount; i++) {
+                        int sz = vertexAttrSizes[i];
+                        if (floatBufferRefVertexAttrs[i].limit() <
+                                (sz * (initialVertexAttrIndex[i] + validVertexCount)) ) {
+                            throw new ArrayIndexOutOfBoundsException(
+                                    J3dI18N.getString("GeometryArray129"));
+                        }
+                    }
 		    break;
 		}
 	    }
@@ -9780,6 +10042,18 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray111"));
 		    }
 		}
+		switch ((vertexType & GeometryArrayRetained.VATTR_DEFINED)) {
+		case AF:
+                    for (int i = 0; i < vertexAttrCount; i++) {
+                        int sz = vertexAttrSizes[i];
+                        if (floatRefVertexAttrs[i].length <
+                                (sz * (initialVertexAttrIndex[i] + validVertexCount)) ) {
+                            throw new ArrayIndexOutOfBoundsException(
+                                    J3dI18N.getString("GeometryArray129"));
+                        }
+                    }
+		    break;
+		}
 	    }
 	}
 
@@ -9791,7 +10065,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    processCoordsChanged(nullGeo);    
 	    sendDataChangedMessage(true);
 	}
-	
     }
 
 
@@ -10023,6 +10296,49 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
     int getInitialNormalIndex() {
 	return initialNormalIndex;
+    }
+
+    /**
+     * Sets the initial vertex attribute index for the specified
+     * vertex attribute number for this GeometryArray object.
+     */
+    void setInitialVertexAttrIndex(int vertexAttrNum,
+            int initialVertexAttrIndex) {
+
+        if ((initialVertexAttrIndex + validVertexCount) > vertexCount) {
+            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray130"));
+        }
+
+        int sz = vertexAttrSizes[vertexAttrNum];
+        int minLength = sz * (initialVertexAttrIndex + validVertexCount);
+        if ((vertexType & VATTR_DEFINED) == AF) {
+            if ((vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
+                if (floatBufferRefVertexAttrs[vertexAttrNum].limit() < minLength) {
+                    throw new ArrayIndexOutOfBoundsException(
+                            J3dI18N.getString("GeometryArray129"));
+                }
+            } else {
+                if (floatRefVertexAttrs[vertexAttrNum].length < minLength ) {
+                    throw new ArrayIndexOutOfBoundsException(
+                            J3dI18N.getString("GeometryArray129"));
+                }
+            }
+        }
+        geomLock.getLock();
+        dirtyFlag |= VATTR_CHANGED;
+        this.initialVertexAttrIndex[vertexAttrNum] = initialVertexAttrIndex;
+        geomLock.unLock();
+        // There is no need to send message for by reference, since we
+        // use VA
+    }
+
+
+    /**
+     * Gets the initial vertex attribute index for the specified
+     * vertex attribute number for this GeometryArray object.
+     */
+    int getInitialVertexAttrIndex(int vertexAttrNum) {
+        return initialVertexAttrIndex[vertexAttrNum];
     }
 
     void setInitialTexCoordIndex(int texCoordSet, int initialTexCoordIndex) {	
