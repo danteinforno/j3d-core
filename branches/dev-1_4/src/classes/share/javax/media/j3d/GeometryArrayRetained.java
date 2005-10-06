@@ -5961,6 +5961,104 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 
 
     /**
+     * Gets the vertex attribute associated with the vertex at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      float[] vertexAttr) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attribute associated with the vertex at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point2f vertexAttr) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attribute associated with the vertex at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point3f vertexAttr) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attribute associated with the vertex at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttr(int vertexAttrNum, int index,
+			      Point4f vertexAttr) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attributes associated with the vertices starting at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       float[] vertexAttrs) {
+
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attributes associated with the vertices starting at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point2f[] vertexAttrs) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attributes associated with the vertices starting at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point3f[] vertexAttrs) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Gets the vertex attributes associated with the vertices starting at
+     * the specified index in the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttrs(int vertexAttrNum, int index,
+			       Point4f[] vertexAttrs) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+
+    /**
      * Updates geometry array data.
      */
     void updateData(GeometryUpdater updater) {

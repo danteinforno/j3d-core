@@ -30,11 +30,14 @@ import com.sun.j3d.internal.DoubleBufferWrapper;
 
 abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
-    // arrays to save indices for coord, color, normal, texcoord
-    int[]	indexCoord, indexColor, indexNormal;
-    int[][]	indexTexCoord;
+    // arrays to save indices for coord, color, normal, texcoord, vertexAttr
+    int[] indexCoord;
+    int[] indexColor;
+    int[] indexNormal;
+    int[][] indexTexCoord;
+    int[][] indexVertexAttr;
 
-    int		indexCount;
+    int indexCount = 0;
 
     int initialIndexIndex = 0;
     int validIndexCount = 0;
@@ -47,33 +50,45 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     int maxColorIndex = 0;
     int maxNormalIndex = 0;
     int[] maxTexCoordIndices = null;
+    int[] maxVertexAttrIndices = null;
     
-  void createIndexedGeometryArrayData(int indexCount) {
-    this.indexCount    = indexCount;
-    this.validIndexCount    = indexCount;
+    void createIndexedGeometryArrayData(int indexCount) {
+        this.indexCount = indexCount;
+        this.validIndexCount = indexCount;
 
+        // Only allocate color, normal, texCoord, and vertexAttr
+        // index arrays if USE_COORD_INDEX_ONLY is not set
+        boolean notUCIO = (this.vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0;
 
-    boolean notUCIO = (this.vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0;
-    
-    if((this.vertexFormat & GeometryArray.COORDINATES) != 0)
-    	this.indexCoord    = new int[indexCount];
-    
-    if(((this.vertexFormat & GeometryArray.NORMALS) != 0) && notUCIO)
-    	this.indexNormal    = new int[indexCount];
-    
-    if(((this.vertexFormat & GeometryArray.COLOR) != 0) && notUCIO)
-    	this.indexColor   = new int[indexCount];
-    
-    if((this.vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-	this.indexTexCoord = new int[this.texCoordSetCount][];
-        if(notUCIO) {
-            for (int i = 0; i < this.texCoordSetCount; i++) {
-                this.indexTexCoord[i] = new int[indexCount];
+        if((this.vertexFormat & GeometryArray.COORDINATES) != 0)
+            this.indexCoord    = new int[indexCount];
+
+        if(((this.vertexFormat & GeometryArray.NORMALS) != 0) && notUCIO)
+            this.indexNormal    = new int[indexCount];
+
+        if(((this.vertexFormat & GeometryArray.COLOR) != 0) && notUCIO)
+            this.indexColor   = new int[indexCount];
+
+        if((this.vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
+            this.indexTexCoord = new int[this.texCoordSetCount][];
+            if(notUCIO) {
+                for (int i = 0; i < this.texCoordSetCount; i++) {
+                    this.indexTexCoord[i] = new int[indexCount];
+                }
             }
+            maxTexCoordIndices = new int[texCoordSetCount];
         }
-	maxTexCoordIndices = new int[texCoordSetCount];
+
+        if ((this.vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+            this.indexVertexAttr = new int[this.vertexAttrCount][];
+            if (notUCIO) {
+                for (int i = 0; i < this.vertexAttrCount; i++) {
+                    this.indexVertexAttr[i] = new int[indexCount];
+                }
+            }
+            this.maxVertexAttrIndices = new int[this.vertexAttrCount];
+        }
     }
-  }
 
   
   Object cloneNonIndexedGeometry() {
@@ -566,33 +581,21 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     final void setColorIndex(int index, int colorIndex) {
 	int newMax = maxColorIndex;
 
-	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	    newMax = doIndexCheck(index, maxColorIndex, indexColor, colorIndex);
-	    if (newMax > maxColorIndex) {
-		doColorCheck(newMax);
-	    }
-	    geomLock.getLock();
-	    // No need to set INDEX_CHANGED since IndexBuffer
-	    // is used only when USE_COORD_INDEX_ONLY specified.
-	    // In this case only coordinate index array is 
-	    // considered.
-	    this.indexColor[index] = colorIndex;
-	    maxColorIndex = newMax;
-	    geomLock.unLock();
-	    if (!inUpdater && source != null && source.isLive()) {
-		sendDataChangedMessage(false);
-	    }
-	}
-	else {
-	    if ((vertexFormat & GeometryArray.COLOR) != 0) {
-                if (this.indexColor == null) {
-                    this.indexColor = new int[indexCount];
-        	    System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained1"));
-                }
-            }
-            this.indexColor[index] = colorIndex;
-	}
-
+        newMax = doIndexCheck(index, maxColorIndex, indexColor, colorIndex);
+        if (newMax > maxColorIndex) {
+            doColorCheck(newMax);
+        }
+        geomLock.getLock();
+        // No need to set INDEX_CHANGED since IndexBuffer
+        // is used only when USE_COORD_INDEX_ONLY specified.
+        // In this case only coordinate index array is 
+        // considered.
+        this.indexColor[index] = colorIndex;
+        maxColorIndex = newMax;
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -604,34 +607,20 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     final void setColorIndices(int index, int colorIndices[]) {
 	int i, j, num = colorIndices.length;
 	int newMax;
-	
-	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	    newMax = doIndicesCheck(index, maxColorIndex, indexColor, colorIndices);
-	    if (newMax > maxColorIndex) {
-		doColorCheck(newMax);
-	    }
-	    geomLock.getLock();
-	    maxColorIndex = newMax;
-	    for (i=0, j = index; i < num;i++, j++) {
-		this.indexColor[j] = colorIndices[i];
-	    }
-	    geomLock.unLock();
-	    if (!inUpdater && source != null && source.isLive()) {
-		sendDataChangedMessage(false);
-	    }
-	}
-	else {
-	    if ((vertexFormat & GeometryArray.COLOR) != 0) {
-                if (this.indexColor == null) {
-                    this.indexColor = new int[indexCount];
-        	    System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained1"));
-                }
-            }
-	    for (i=0, j = index; i < num;i++, j++) {
-		this.indexColor[j] = colorIndices[i];
-	    }
-	}
 
+        newMax = doIndicesCheck(index, maxColorIndex, indexColor, colorIndices);
+        if (newMax > maxColorIndex) {
+            doColorCheck(newMax);
+        }
+        geomLock.getLock();
+        maxColorIndex = newMax;
+        for (i=0, j = index; i < num;i++, j++) {
+            this.indexColor[j] = colorIndices[i];
+        }
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -642,30 +631,18 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      */
     final void setNormalIndex(int index, int normalIndex) {
 	int newMax;
-	
-	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	    newMax = doIndexCheck(index, maxNormalIndex, indexNormal, normalIndex);
-	    if (newMax > maxNormalIndex) {
-		doNormalCheck(newMax);
-	    }
-	    geomLock.getLock();
-	    maxNormalIndex = newMax;
-	    this.indexNormal[index] = normalIndex;
-	    geomLock.unLock();
-	    if (!inUpdater && source != null && source.isLive()) {
-		sendDataChangedMessage(false);
-	    }
-	}
-	else {
-	    if ((vertexFormat & GeometryArray.NORMALS) != 0) { 
-                if (this.indexNormal == null) {
-                    this.indexNormal = new int[indexCount];
-        	    System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained2"));
-                }
-            }
-	    this.indexNormal[index] = normalIndex;
-	}
 
+        newMax = doIndexCheck(index, maxNormalIndex, indexNormal, normalIndex);
+        if (newMax > maxNormalIndex) {
+            doNormalCheck(newMax);
+        }
+        geomLock.getLock();
+        maxNormalIndex = newMax;
+        this.indexNormal[index] = normalIndex;
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -677,34 +654,20 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     final void setNormalIndices(int index, int normalIndices[]) {
 	int i, j, num = normalIndices.length;
 	int newMax;
-	
-	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	    newMax = doIndicesCheck(index, maxNormalIndex, indexNormal, normalIndices);
-	    if (newMax > maxNormalIndex) {
-		doNormalCheck(newMax);
-	    }
-	    geomLock.getLock();
-	    for (i=0, j = index; i < num;i++, j++) {
-		this.indexNormal[j] = normalIndices[i];
-	    }
-	    maxNormalIndex = newMax;
-	    geomLock.unLock();
-	    if (!inUpdater && source != null && source.isLive()) {
-		sendDataChangedMessage(false);
-	    }
-	}
-	else {
-	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
-                if (this.indexNormal == null) {
-                    this.indexNormal = new int[indexCount];
-        	    System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained2"));
-                }
-            }
-	    for (i=0, j = index; i < num;i++, j++) {
-		this.indexNormal[j] = normalIndices[i];
-	    }
-	}
 
+        newMax = doIndicesCheck(index, maxNormalIndex, indexNormal, normalIndices);
+        if (newMax > maxNormalIndex) {
+            doNormalCheck(newMax);
+        }
+        geomLock.getLock();
+        for (i=0, j = index; i < num;i++, j++) {
+            this.indexNormal[j] = normalIndices[i];
+        }
+        maxNormalIndex = newMax;
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -717,32 +680,18 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     final void setTextureCoordinateIndex(int texCoordSet, int index, int texCoordIndex) {
 	int newMax;
 	int [] indices = this.indexTexCoord[texCoordSet];
-	
-	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	    newMax = doIndexCheck(index, maxTexCoordIndices[texCoordSet],indices, texCoordIndex);
-	    if (newMax > maxTexCoordIndices[texCoordSet]) {
-		doTexCoordCheck(newMax, texCoordSet);
-	    }
-	    geomLock.getLock();
-	    maxTexCoordIndices[texCoordSet] = newMax;
-	    indices[index] = texCoordIndex;
-	    geomLock.unLock();
-	    if (!inUpdater && source != null && source.isLive()) {
-		sendDataChangedMessage(false);
-	    }
-	}
-	else {
-	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-                if (indices == null) {
-                    indices = new int[indexCount];
-                    this.indexTexCoord[texCoordSet] = indices;
-        	    System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained3"));
-                }
-            }
-	    indices[index] = texCoordIndex;
-	}
 
-
+        newMax = doIndexCheck(index, maxTexCoordIndices[texCoordSet],indices, texCoordIndex);
+        if (newMax > maxTexCoordIndices[texCoordSet]) {
+            doTexCoordCheck(newMax, texCoordSet);
+        }
+        geomLock.getLock();
+        maxTexCoordIndices[texCoordSet] = newMax;
+        indices[index] = texCoordIndex;
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -752,42 +701,52 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @param index the vertex index
      * @param texCoordIndices an array of texture coordinate indices
      */
-  final void setTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
-      int i, j, num = texCoordIndices.length;
-      int [] indices = this.indexTexCoord[texCoordSet];
+    final void setTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
+        int i, j, num = texCoordIndices.length;
+        int [] indices = this.indexTexCoord[texCoordSet];
 
-      int newMax;
-	
-      if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-	  newMax = doIndicesCheck(index, maxTexCoordIndices[texCoordSet], indices, texCoordIndices);
-	  if (newMax > maxTexCoordIndices[texCoordSet]) {
-	      doTexCoordCheck(newMax, texCoordSet);
-	  }
-	  geomLock.getLock();
-	  maxTexCoordIndices[texCoordSet] = newMax;
-	  for (i=0, j = index; i < num;i++, j++) {
-	      indices[j] = texCoordIndices[i];
-	  }
-	  geomLock.unLock();
-	  if (!inUpdater && source != null && source.isLive()) {
-	      sendDataChangedMessage(false);
-	  }
+        int newMax;
 
-      }
-      else {
-	  if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-              if (indices == null) {
-                  indices = new int[indexCount];
-                  this.indexTexCoord[texCoordSet] = indices;
-        	  System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained3"));
-              }
-          }
-	  for (i=0, j = index; i < num;i++, j++) {
-	      indices[j] = texCoordIndices[i];
-	  }
-      }
+        newMax = doIndicesCheck(index, maxTexCoordIndices[texCoordSet], indices, texCoordIndices);
+        if (newMax > maxTexCoordIndices[texCoordSet]) {
+            doTexCoordCheck(newMax, texCoordSet);
+        }
+        geomLock.getLock();
+        maxTexCoordIndices[texCoordSet] = newMax;
+        for (i=0, j = index; i < num;i++, j++) {
+            indices[j] = texCoordIndices[i];
+        }
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
+    }
 
-  }
+    /**
+     * Sets the vertex attribute index associated with the vertex at
+     * the specified index for the specified vertex attribute number
+     * for this object.
+     */
+    public void setVertexAttrIndex(int vertexAttrNum,
+                                   int index,
+                                   int vertexAttrIndex) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Sets the vertex attribute indices associated with the vertices
+     * starting at the specified index for the specified vertex attribute number
+     * for this object.
+     */
+    public void setVertexAttrIndices(int vertexAttrNum,
+                                     int index,
+                                     int[] vertexAttrIndices) {
+  
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
 
     /**
      * Retrieves the coordinate index associated with the vertex at
@@ -805,14 +764,13 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @param index the vertex index
      * @param coordinateIndices array that will receive the coordinate indices
      */
-  final void getCoordinateIndices(int index, int coordinateIndices[]) {
-    int i, j, num = coordinateIndices.length;
+    final void getCoordinateIndices(int index, int coordinateIndices[]) {
+        int i, j, num = coordinateIndices.length;
 
-    for (i=0, j = index;i < num;i++, j++)
-      {
-	coordinateIndices[i] = this.indexCoord[j];
-      }
-  }
+        for (i=0, j = index;i < num;i++, j++) {
+            coordinateIndices[i] = this.indexCoord[j];
+        }
+    }
 
     /**
      * Retrieves the color index associated with the vertex at
@@ -821,13 +779,6 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @return the color index
      */
     final int getColorIndex(int index) {
-	if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-	   ((vertexFormat & GeometryArray.COLOR) != 0)) {
-            if (this.indexColor == null) {
-                this.indexColor = new int[indexCount];
-                System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained1"));
-            }
-        }
 	return this.indexColor[index];
     }
 
@@ -837,21 +788,13 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @param index the vertex index
      * @param colorIndices array that will receive the color indices
      */
-  final void getColorIndices(int index, int colorIndices[]) {
-    int i, j, num = colorIndices.length;
-    if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-       ((vertexFormat & GeometryArray.COLOR) != 0)) {
-        if (this.indexColor == null) {
-            this.indexColor = new int[indexCount];
-            System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained1"));
+    final void getColorIndices(int index, int colorIndices[]) {
+        int i, j, num = colorIndices.length;
+
+        for (i=0, j = index;i < num;i++, j++) {
+            colorIndices[i] = this.indexColor[j];
         }
     }
-
-    for (i=0, j = index;i < num;i++, j++)
-      {
-	colorIndices[i] = this.indexColor[j];
-      }
-  }
 
     /**
      * Retrieves the normal index associated with the vertex at
@@ -860,13 +803,6 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @return the normal index
      */
     final int getNormalIndex(int index) {
-	if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-           ((vertexFormat & GeometryArray.NORMALS) != 0)) {
-            if (this.indexNormal == null) {
-                this.indexNormal = new int[indexCount];
-                System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained2"));
-            }
-        }
 	return this.indexNormal[index];
     }
 
@@ -876,21 +812,13 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @param index the vertex index
      * @param normalIndices array that will receive the normal indices
      */
-  final void getNormalIndices(int index, int normalIndices[]) {
-    int i, j, num = normalIndices.length;
-    if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-       ((vertexFormat & GeometryArray.NORMALS) != 0)) {
-        if (this.indexNormal == null) {
-            this.indexNormal = new int[indexCount];
-            System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained2"));
+    final void getNormalIndices(int index, int normalIndices[]) {
+        int i, j, num = normalIndices.length;
+
+        for (i=0, j = index;i < num;i++, j++) {
+            normalIndices[i] = this.indexNormal[j];
         }
     }
-
-    for (i=0, j = index;i < num;i++, j++)
-      {
-	normalIndices[i] = this.indexNormal[j];
-      }
-  }
 
     /**
      * Retrieves the texture coordinate index associated with the vertex at
@@ -901,15 +829,8 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      */
     final int getTextureCoordinateIndex(int texCoordSet, int index) {
 	int [] indices = this.indexTexCoord[texCoordSet];
-        if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-	   ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)) {
-            if (indices == null) {
-                indices = new int[indexCount];
-                this.indexTexCoord[texCoordSet] = indices;
-                System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained3"));
-            }
-        }
-	return indices[index];
+
+        return indices[index];
     }
 
     /**
@@ -919,23 +840,40 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
      * @param index the vertex index
      * @param texCoordIndices array that will receive the texture coordinate indices
      */
-  final void getTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
-    int i, j, num = texCoordIndices.length;
-    int [] indices = this.indexTexCoord[texCoordSet];
-    if (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) != 0) &&
-       ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)) {
-        if (indices == null) {
-            indices = new int[indexCount];
-            this.indexTexCoord[texCoordSet] = indices;
-            System.err.println(J3dI18N.getString("IndexedGeometryArrayRetained3"));
+    final void getTextureCoordinateIndices(int texCoordSet, int index, int texCoordIndices[]) {
+        int i, j, num = texCoordIndices.length;
+        int [] indices = this.indexTexCoord[texCoordSet];
+
+        for (i=0, j = index;i < num;i++, j++) {
+            texCoordIndices[i] = indices[j];
         }
     }
 
-    for (i=0, j = index;i < num;i++, j++)
-      {
-	texCoordIndices[i] = indices[j];
-      }
-  }
+    /**
+     * Retrieves the vertex attribute index associated with the vertex at
+     * the specified index for the specified vertex attribute number
+     * for this object.
+     */
+    public int getVertexAttrIndex(int vertexAttrNum,
+                                  int index) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
+    /**
+     * Retrieves the vertex attribute indices associated with the vertices
+     * starting at the specified index for the specified vertex attribute number
+     * for this object.
+     */
+    public void getVertexAttrIndices(int vertexAttrNum,
+                                     int index,
+                                     int[] vertexAttrIndices) {
+
+        // TODO KCR : implement this
+	throw new RuntimeException("not implemented");
+    }
+
 
     // used for GeometryArrays
     private native void executeIndexedGeometry(long ctx,

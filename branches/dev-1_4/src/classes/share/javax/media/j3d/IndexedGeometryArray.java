@@ -534,6 +534,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * colorIndex is out of range if it is less than 0 or is
      * greater than or equal to the number of vertices actually
      * defined for the color array.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      */
   public void setColorIndex(int index, int colorIndex) {
     if (isLiveOrCompiled())
@@ -561,6 +564,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * is out of range.  An element is out of range if it is less than 0
      * or is greater than or equal to the number of vertices actually
      * defined for the color array.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      */
   public void setColorIndices(int index, int colorIndices[]) {
     if (isLiveOrCompiled())
@@ -588,6 +594,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * normalIndex is out of range if it is less than 0 or is
      * greater than or equal to the number of vertices actually
      * defined for the normal array.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      */
   public void setNormalIndex(int index, int normalIndex) {
     if (isLiveOrCompiled())
@@ -615,6 +624,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * is out of range.  An element is out of range if it is less than 0
      * or is greater than or equal to the number of vertices actually
      * defined for the normal array.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      */
   public void setNormalIndices(int index, int normalIndices[]) {
     if (isLiveOrCompiled())
@@ -655,6 +667,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * texCoordIndex is out of range if it is less than 0 or is
      * greater than or equal to the number of vertices actually
      * defined for the texture coordinate array.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      *
      * @since Java 3D 1.2
      */
@@ -700,6 +715,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * or is greater than or equal to the number of vertices actually
      * defined for the texture coordinate array.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.2
      */
     public void setTextureCoordinateIndices(int texCoordSet,
@@ -734,6 +752,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * greater than or equal to the number of vertices actually
      * defined for the vertex attribute array.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.4
      */
     public void setVertexAttrIndex(int vertexAttrNum,
@@ -745,11 +766,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
             }
         }
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
-	//((IndexedGeometryArrayRetained)this.retained).setVertexIndex(vertexAttrNum, index, vertexAttrIndex);
-        */
+        ((IndexedGeometryArrayRetained)this.retained).setVertexAttrIndex(vertexAttrNum, index, vertexAttrIndex);
     }
 
     /**
@@ -774,6 +791,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * or is greater than or equal to the number of vertices actually
      * defined for the vertex attribute array.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.4
      */
     public void setVertexAttrIndices(int vertexAttrNum,
@@ -785,11 +805,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
             }
         }
   
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
-	//((IndexedGeometryArrayRetained)this.retained).setVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
-        */
+	((IndexedGeometryArrayRetained)this.retained).setVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
     }
 
   /**
@@ -831,6 +847,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
    * @return the color index
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
    */
   public int getColorIndex(int index) {
     if (isLiveOrCompiled())
@@ -849,6 +868,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
    * @param colorIndices array that will receive the color indices
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
    */
   public void getColorIndices(int index, int colorIndices[]) {
     if (isLiveOrCompiled())
@@ -865,6 +887,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
    * @return the normal index
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
    */
   public int getNormalIndex(int index) {
     if (isLiveOrCompiled())
@@ -884,6 +909,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
    * @param normalIndices array that will receive the normal indices
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
    */
   public void getNormalIndices(int index, int normalIndices[]) {
     if (isLiveOrCompiled())
@@ -918,6 +946,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * <code>TEXTURE_COORDINATE</code> bits are set in the
      * <code>vertexFormat</code> or if the index or
      * texCoordSet is out of range.
+     *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
      *
      * @since Java 3D 1.2
      */
@@ -958,6 +989,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * <code>vertexFormat</code> or if the index or
      * texCoordSet is out of range.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.2
      */
     public void getTextureCoordinateIndices(int texCoordSet,
@@ -986,6 +1020,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * @exception ArrayIndexOutOfBoundsException if the index or
      * vertexAttrNum is out of range.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.4
      */
     public int getVertexAttrIndex(int vertexAttrNum,
@@ -996,11 +1033,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
             }
         }
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
-	//return ((IndexedGeometryArrayRetained)this.retained).getVertexIndex(vertexAttrNum, index);
-        */
+	return ((IndexedGeometryArrayRetained)this.retained).getVertexAttrIndex(vertexAttrNum, index);
     }
 
     /**
@@ -1020,6 +1053,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
      * @exception ArrayIndexOutOfBoundsException if the index or
      * vertexAttrNum is out of range.
      *
+     * @exception NullPointerException if the <code>USE_COORD_INDEX_ONLY</code>
+     * bit is set in <code>vertexFormat</code>.
+     *
      * @since Java 3D 1.4
      */
     public void getVertexAttrIndices(int vertexAttrNum,
@@ -1031,11 +1067,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
             }
         }
   
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
-	//((IndexedGeometryArrayRetained)this.retained).getVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
-        */
+	((IndexedGeometryArrayRetained)this.retained).getVertexAttrIndices(vertexAttrNum, index, vertexAttrIndices);
     }
 
    /**
@@ -1068,30 +1100,39 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 	IndexedGeometryArrayRetained rt = 
 	    (IndexedGeometryArrayRetained) retained;
 
-	int vformat = ga.getVertexFormat();
-	int buffer[] = new int[ga.getIndexCount()];
+        int vformat = ga.getVertexFormat();
+        int buffer[] = new int[ga.getIndexCount()];
 
-	if ((vformat & GeometryArray.COORDINATES) != 0) {
-	    ga.getCoordinateIndices(0, buffer);
-	    rt.setCoordinateIndices(0, buffer);
-	}
-	
-	if ((vformat & GeometryArray.NORMALS) != 0) {
-	    ga.getNormalIndices(0, buffer);
-	    rt.setNormalIndices(0, buffer);
-	}
-	
-	if ((vformat & GeometryArray.COLOR) != 0) {
-	    ga.getColorIndices(0, buffer);
-	    rt.setColorIndices(0, buffer);
-	}
-	
-	if ((vformat & GeometryArray.TEXTURE_COORDINATE) != 0) {
-	    for (int i = 0; i < ga.texCoordSetCount; i++) {
-	         ga.getTextureCoordinateIndices(i, 0, buffer);
-	         rt.setTextureCoordinateIndices(i, 0, buffer);
-	    }
-	}
+        if ((vformat & COORDINATES) != 0) {
+            ga.getCoordinateIndices(0, buffer);
+            rt.setCoordinateIndices(0, buffer);
+        }
+
+        if ((vformat & USE_COORD_INDEX_ONLY) == 0) {
+            if ((vformat & NORMALS) != 0) {
+                ga.getNormalIndices(0, buffer);
+                rt.setNormalIndices(0, buffer);
+            }
+
+            if ((vformat & COLOR) != 0) {
+                ga.getColorIndices(0, buffer);
+                rt.setColorIndices(0, buffer);
+            }
+
+            if ((vformat & VERTEX_ATTRIBUTES) != 0) {
+                for (int i = 0; i < ga.vertexAttrCount; i++) {
+                    ga.getVertexAttrIndices(i, 0, buffer);
+                    rt.setVertexAttrIndices(i, 0, buffer);
+                }
+            }
+
+            if ((vformat & TEXTURE_COORDINATE) != 0) {
+                for (int i = 0; i < ga.texCoordSetCount; i++) {
+                    ga.getTextureCoordinateIndices(i, 0, buffer);
+                    rt.setTextureCoordinateIndices(i, 0, buffer);
+                }
+            }
+        }
     }
 
 }
