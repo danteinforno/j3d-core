@@ -200,29 +200,30 @@ public class IndexedTriangleFanArray extends IndexedGeometryStripArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedTriangleFanArrayRetained rt = 
-	    (IndexedTriangleFanArrayRetained) retained;
-	int stripIndexCounts[] = new int[rt.getNumStrips()];
-	rt.getStripIndexCounts(stripIndexCounts);
-	int texSetCount = rt.getTexCoordSetCount();
-        IndexedTriangleFanArray t;
-
-	if (texSetCount == 0) {
-	    t = new IndexedTriangleFanArray(rt.getVertexCount(),
-					    rt.getVertexFormat(),
-					    rt.getIndexCount(),
-					    stripIndexCounts);
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	    
-	    t = new IndexedTriangleFanArray(rt.getVertexCount(),
-					    rt.getVertexFormat(),
-					    texSetCount,
-					    texMap,
-					    rt.getIndexCount(),
-					    stripIndexCounts);
-	}
-
+        IndexedTriangleFanArrayRetained rt =
+                (IndexedTriangleFanArrayRetained) retained;
+        int stripIndexCounts[] = new int[rt.getNumStrips()];
+        rt.getStripIndexCounts(stripIndexCounts);
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedTriangleFanArray t = new IndexedTriangleFanArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                rt.getIndexCount(),
+                stripIndexCounts);
         t.duplicateNodeComponent(this);
         return t;
     }

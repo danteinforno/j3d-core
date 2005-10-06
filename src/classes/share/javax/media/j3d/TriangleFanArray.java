@@ -174,25 +174,29 @@ public class TriangleFanArray extends GeometryStripArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	TriangleFanArrayRetained rt = (TriangleFanArrayRetained) retained;
-	int stripcounts[] = new int[rt.getNumStrips()];
-	rt.getStripVertexCounts(stripcounts);
-	int texSetCount = rt.getTexCoordSetCount();
-        TriangleFanArray t;
-	if (texSetCount == 0) {
-	    t = new TriangleFanArray(rt.getVertexCount(), 
-				     rt.getVertexFormat(),
-				     stripcounts);
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	    
-	    t = new TriangleFanArray(rt.getVertexCount(), 
-				     rt.getVertexFormat(),
-				     texSetCount,
-				     texMap,
-				     stripcounts);
-	}
-	t.duplicateNodeComponent(this);
+        TriangleFanArrayRetained rt = (TriangleFanArrayRetained) retained;
+        int stripcounts[] = new int[rt.getNumStrips()];
+        rt.getStripVertexCounts(stripcounts);
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        TriangleFanArray t = new TriangleFanArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                stripcounts);
+        t.duplicateNodeComponent(this);
         return t;
      }
 

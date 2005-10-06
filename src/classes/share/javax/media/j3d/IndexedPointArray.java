@@ -176,22 +176,26 @@ public class IndexedPointArray extends IndexedGeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedPointArrayRetained rt = (IndexedPointArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();	
-        IndexedPointArray p;
-	if (texSetCount == 0) {
-	    p = new IndexedPointArray(rt.getVertexCount(),
-				      rt.getVertexFormat(),
-				      rt.getIndexCount());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	    
-	    p = new IndexedPointArray(rt.getVertexCount(),
-				      rt.getVertexFormat(),
-				      texSetCount,
-				      texMap,
-				      rt.getIndexCount());
-	}
+        IndexedPointArrayRetained rt = (IndexedPointArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedPointArray p = new IndexedPointArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                rt.getIndexCount());
         p.duplicateNodeComponent(this);
         return p;
     }

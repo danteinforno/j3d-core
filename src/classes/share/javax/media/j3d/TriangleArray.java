@@ -150,24 +150,26 @@ public class TriangleArray extends GeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	TriangleArrayRetained rt = (TriangleArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();
-	TriangleArray t;
-
-	// TODO KCR: need to clone the VertexAttr* state
-
-	if (texSetCount == 0) {
-	    t = new TriangleArray(rt.getVertexCount(), 
-				  rt.getVertexFormat());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);
-	    t = new TriangleArray(rt.getVertexCount(), 
-				  rt.getVertexFormat(),
-				  texSetCount,
-				  texMap);
-	}
-	t.duplicateNodeComponent(this);
+        TriangleArrayRetained rt = (TriangleArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        TriangleArray t = new TriangleArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes);
+        t.duplicateNodeComponent(this);
         return t;
      }
 }

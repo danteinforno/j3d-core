@@ -153,23 +153,24 @@ public class LineArray extends GeometryArray {
      */
     public NodeComponent cloneNodeComponent() {
 	LineArrayRetained rt = (LineArrayRetained) retained;
-
-
-	int texSetCount = rt.getTexCoordSetCount();
-	LineArray l;
-	if (texSetCount == 0) {
-	    l = new LineArray(rt.getVertexCount(), 
-			      rt.getVertexFormat());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);
-	    l = new LineArray(rt.getVertexCount(), 
-			      rt.getVertexFormat(),
-			      texSetCount,
-			      texMap);
-
-	}
-
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        LineArray l = new LineArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap, 
+                vertexAttrCount,
+                vertexAttrSizes);
 	l.duplicateNodeComponent(this);
         return l;
      }

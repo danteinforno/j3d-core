@@ -180,23 +180,26 @@ public class IndexedTriangleArray extends IndexedGeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedTriangleArrayRetained rt = (IndexedTriangleArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();	
-        IndexedTriangleArray t;
-
-	if (texSetCount == 0) {
-	    t = new IndexedTriangleArray(rt.getVertexCount(),
-					 rt.getVertexFormat(),
-					 rt.getIndexCount());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);	    	    
-	    t = new IndexedTriangleArray(rt.getVertexCount(),
-					 rt.getVertexFormat(),
-					 texSetCount,
-					 texMap,
-					 rt.getIndexCount());
-	}
+        IndexedTriangleArrayRetained rt = (IndexedTriangleArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedTriangleArray t = new IndexedTriangleArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount, 
+                vertexAttrSizes,
+                rt.getIndexCount());
         t.duplicateNodeComponent(this);
         return t;
     }

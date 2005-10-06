@@ -201,29 +201,30 @@ public class IndexedLineStripArray extends IndexedGeometryStripArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	IndexedLineStripArrayRetained rt =
-	    (IndexedLineStripArrayRetained) retained;
+        IndexedLineStripArrayRetained rt =
+                (IndexedLineStripArrayRetained) retained;
         int stripIndexCounts[] = new int[rt.getNumStrips()];
-	rt.getStripIndexCounts(stripIndexCounts);
-	int texSetCount = rt.getTexCoordSetCount();
-        IndexedLineStripArray l; 
-
-	if (texSetCount == 0) {
-	    l = new IndexedLineStripArray(rt.getVertexCount(),
-					  rt.getVertexFormat(),
-					  rt.getIndexCount(),
-					  stripIndexCounts);
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);
-	    l = new IndexedLineStripArray(rt.getVertexCount(),
-					  rt.getVertexFormat(),
-					  texSetCount,
-					  texMap,
-					  rt.getIndexCount(),
-					  stripIndexCounts);
-	    
-	}
+        rt.getStripIndexCounts(stripIndexCounts);
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        IndexedLineStripArray l = new IndexedLineStripArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes,
+                rt.getIndexCount(),
+                stripIndexCounts);
         l.duplicateNodeComponent(this);
         return l;
     }

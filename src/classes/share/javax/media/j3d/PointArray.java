@@ -145,21 +145,26 @@ public class PointArray extends GeometryArray {
      * @deprecated replaced with cloneNodeComponent(boolean forceDuplicate)
      */
     public NodeComponent cloneNodeComponent() {
-	PointArrayRetained rt = (PointArrayRetained) retained;
-	int texSetCount = rt.getTexCoordSetCount();
-        PointArray p;
-	if (texSetCount == 0) {
-	    p = new PointArray(rt.getVertexCount(), 
-			       rt.getVertexFormat());
-	} else {
-	    int texMap[] = new int[rt.getTexCoordSetMapLength()];
-	    rt.getTexCoordSetMap(texMap);
-	    p = new PointArray(rt.getVertexCount(), 
-			       rt.getVertexFormat(),
-			       texSetCount,
-			       texMap);
-	}
-	p.duplicateNodeComponent(this);
+        PointArrayRetained rt = (PointArrayRetained) retained;
+        int texSetCount = rt.getTexCoordSetCount();
+        int[] texMap = null;
+        int vertexAttrCount = rt.getVertexAttrCount();
+        int[] vertexAttrSizes = null;
+        if (texSetCount > 0) {
+            texMap = new int[rt.getTexCoordSetMapLength()];
+            rt.getTexCoordSetMap(texMap);
+        }
+        if (vertexAttrCount > 0) {
+            vertexAttrSizes = new int[vertexAttrCount];
+            rt.getVertexAttrSizes(vertexAttrSizes);
+        }
+        PointArray p = new PointArray(rt.getVertexCount(),
+                rt.getVertexFormat(),
+                texSetCount,
+                texMap,
+                vertexAttrCount,
+                vertexAttrSizes);
+        p.duplicateNodeComponent(this);
         return p;
      }
 }
