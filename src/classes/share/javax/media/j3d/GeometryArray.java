@@ -308,8 +308,10 @@ public abstract class GeometryArray extends Geometry {
      * index array are used as a single set of index values to access
      * the vertex data for all five vertex components (coord, color,
      * normal, texCoord, and vertexAttr).  The color, normal, texCoord,
-     * and vertexAttr index arrays
-     * are ignored.  This flag is only valid for indexed geometry arrays
+     * and vertexAttr index arrays are neither allocated nor used. Any
+     * attempt to access the color, normal, texCoord,
+     * or vertexAttr index arrays will result in a NullPointerException.
+     * This flag is only valid for indexed geometry arrays
      * (subclasses of IndexedGeometryArray).
      *
      * @since Java 3D 1.3
@@ -717,8 +719,7 @@ public abstract class GeometryArray extends Geometry {
             throw new IllegalArgumentException(J3dI18N.getString("GeometryArray125"));
 
         if ((vertexFormat & COORDINATES) == 0)
-          throw new IllegalArgumentException(J3dI18N.getString("GeometryArray0"
-));
+          throw new IllegalArgumentException(J3dI18N.getString("GeometryArray0"));
 
         if ((vertexFormat & INTERLEAVED) != 0 &&
             (vertexFormat & BY_REFERENCE) == 0)
@@ -2904,6 +2905,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 2) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttr(
 		vertexAttrNum, index, vertexAttr);
     }
@@ -2945,6 +2951,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 3) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttr(
 		vertexAttrNum, index, vertexAttr);
     }
@@ -2984,6 +2995,11 @@ public abstract class GeometryArray extends Geometry {
 	int format = ((GeometryArrayRetained)this.retained).vertexFormat;
 	if ((format & BY_REFERENCE) != 0) {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
+	}
+
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 4) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
 	((GeometryArrayRetained)this.retained).setVertexAttr(
@@ -3071,6 +3087,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 2) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
 		vertexAttrNum, index, vertexAttrs, 0, vertexAttrs.length);
     }
@@ -3115,6 +3136,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 3) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
 		vertexAttrNum, index, vertexAttrs, 0, vertexAttrs.length);
     }
@@ -3157,6 +3183,11 @@ public abstract class GeometryArray extends Geometry {
 	int format = ((GeometryArrayRetained)this.retained).vertexFormat;
 	if ((format & BY_REFERENCE) != 0) {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
+	}
+
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 4) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
@@ -3253,6 +3284,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 2) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
 		vertexAttrNum, index, vertexAttrs, start, length);
     }
@@ -3302,6 +3338,11 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 3) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
+	}
+
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
 		vertexAttrNum, index, vertexAttrs, start, length);
     }
@@ -3349,6 +3390,11 @@ public abstract class GeometryArray extends Geometry {
 	int format = ((GeometryArrayRetained)this.retained).vertexFormat;
 	if ((format & BY_REFERENCE) != 0) {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
+	}
+
+	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
+	if (size != 4) {
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
 	((GeometryArrayRetained)this.retained).setVertexAttrs(
@@ -4573,12 +4619,8 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
-	*/
     }
 
     /**
@@ -4619,16 +4661,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 2) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
-	*/
     }
 
     /**
@@ -4669,16 +4706,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 3) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
-	*/
     }
 
     /**
@@ -4719,16 +4751,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 4) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttr(
 				vertexAttrNum, index, vertexAttr);
-	*/
     }
 
     /**
@@ -4773,12 +4800,8 @@ public abstract class GeometryArray extends Geometry {
 	    throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
-	*/
     }
 
     /**
@@ -4808,7 +4831,7 @@ public abstract class GeometryArray extends Geometry {
      * array object is <code>BY_REFERENCE</code>.
      *
      * @exception IllegalStateException if the size of the specified
-     * vertex attribute number is not 4.
+     * vertex attribute number is not 2.
      *
      * @since Java 3D 1.4
      */
@@ -4827,16 +4850,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 2) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
-	*/
     }
 
     /**
@@ -4866,7 +4884,7 @@ public abstract class GeometryArray extends Geometry {
      * array object is <code>BY_REFERENCE</code>.
      *
      * @exception IllegalStateException if the size of the specified
-     * vertex attribute number is not 4.
+     * vertex attribute number is not 3.
      *
      * @since Java 3D 1.4
      */
@@ -4885,16 +4903,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 3) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
-	*/
     }
 
     /**
@@ -4943,16 +4956,11 @@ public abstract class GeometryArray extends Geometry {
 
 	int size = ((GeometryArrayRetained)this.retained).vertexAttrSizes[vertexAttrNum];
 	if (size != 4) {
-            // TODO: new exception string
-	    throw new IllegalStateException(J3dI18N.getString("GeometryArrayXXX"));
+	    throw new IllegalStateException(J3dI18N.getString("GeometryArray134"));
 	}
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
-	/*
 	((GeometryArrayRetained)this.retained).getVertexAttrs(
 				vertexAttrNum, index, vertexAttrs);
-	*/
     }
 
 
