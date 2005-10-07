@@ -84,12 +84,14 @@ GLXFBConfig *find_S_FBConfigs(jlong display,
     if(fbConfigList != NULL) {
 	return fbConfigList;
     }
-    
-    fprintf(stderr, "Stencil : find_S_FBConfigs (TRY 1): FAIL -- stencilVal = %d\n",
-	    stencilVal);
+
+    /*
+      fprintf(stderr, "Stencil : find_S_FBConfigs (TRY 1): FAIL -- stencilVal = %d\n",
+      stencilVal);
+    */
     
     if (userReq == GL_TRUE) {
-	fprintf(stderr, "    userReq :  *** FAILED ***\n");
+	/* fprintf(stderr, "    userReq :  *** FAILED ***\n"); */
 	return NULL;
     }
     
@@ -102,11 +104,13 @@ GLXFBConfig *find_S_FBConfigs(jlong display,
     
     if(fbConfigList != NULL) {
 	return fbConfigList;
-    }    
+    }
     
-    fprintf(stderr, "Stencil : find_S_FBConfigs (TRY 2): FAIL -- stencilVal = %d\n",
-	    stencilVal);
-
+    /* 
+       fprintf(stderr, "Stencil : find_S_FBConfigs (TRY 2): FAIL -- stencilVal = %d\n",
+       stencilVal);
+    */
+    
     return NULL;
 
 }
@@ -824,16 +828,20 @@ int find_S_PixelFormat(HDC hdc, PixelFormatInfo * pFormatInfo,
     if ((pFormatInfo->wglChoosePixelFormatARB(hdc, wglAttrs, NULL, 1,
 					      &pFormat, &availableFormats)) && (availableFormats > 0)) {
 	
-	fprintf(stderr, "Stencil : wglChoosePixelFormatARB : pFormat %d availableFormats %d\n",
-		pFormat, availableFormats); 
+	/*
+	  fprintf(stderr, "Stencil : wglChoosePixelFormatARB : pFormat %d availableFormats %d\n",
+	  pFormat, availableFormats);
+	*/
 	return pFormat;
     }
 
-    fprintf(stderr, "Stencil : wglChoosePixelFormatARB (TRY 1): FAIL -- stencilVal = %d\n",
-	    stencilVal);
+    /*
+      fprintf(stderr, "Stencil : wglChoosePixelFormatARB (TRY 1): FAIL -- stencilVal = %d\n",
+      stencilVal);
+    */
     
     if (userReq == GL_TRUE) {
-	fprintf(stderr, "    userReq :  *** FAILED ***\n");
+	/* fprintf(stderr, "    userReq :  *** FAILED ***\n"); */
 	return -1;
     }
 
@@ -851,13 +859,13 @@ int find_S_PixelFormat(HDC hdc, PixelFormatInfo * pFormatInfo,
     if ((pFormatInfo->wglChoosePixelFormatARB(hdc, wglAttrs, NULL, 1,
 					      &pFormat, &availableFormats)) && (availableFormats > 0)) {
 	
-	fprintf(stderr, "wglChoosePixelFormatARB : pFormat %d availableFormats %d\n",
-		pFormat, availableFormats);
+	/* fprintf(stderr, "wglChoosePixelFormatARB : pFormat %d availableFormats %d\n",
+	   pFormat, availableFormats); */
 	    
 	    return pFormat;
     }
     
-    fprintf(stderr, "wglChoosePixelFormatARB (TRY 2): FAIL\n");
+    /* fprintf(stderr, "wglChoosePixelFormatARB (TRY 2): FAIL\n"); */
     return -1;
 }
 
