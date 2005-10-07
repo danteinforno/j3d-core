@@ -2719,7 +2719,7 @@ public class GraphicsContext3D extends Object   {
 
 	    if (app.renderingAttributes != null) {
 		ignoreVertexColors =app.renderingAttributes.ignoreVertexColors;
-		app.renderingAttributes.updateNative(canvas3d.ctx,
+		app.renderingAttributes.updateNative(canvas3d,
 				canvas3d.depthBufferWriteEnableOverride,
 				canvas3d.depthBufferEnableOverride);
 		canvas3d.canvasDirty |= Canvas3D.ATTRIBUTEBIN_DIRTY|Canvas3D.TEXTUREATTRIBUTES_DIRTY;

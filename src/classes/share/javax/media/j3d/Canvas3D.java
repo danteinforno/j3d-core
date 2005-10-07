@@ -374,6 +374,18 @@ public class Canvas3D extends Canvas {
     //
     int monoscopicViewPolicy = View.CYCLOPEAN_EYE_VIEW;
 
+    // User requested stencil size 
+    int requestedStencilSize;
+
+    // Actual stencil size return for this canvas
+    int actualStencilSize;
+
+    // True if stencil buffer is available for user
+    boolean userStencilAvailable;
+
+    // True if stencil buffer is available for system ( decal )
+    boolean systemStencilAvailable;    
+    
     //
     // Read-only flag that indicates whether double buffering is supported
     // for this canvas.  This is always false for off-screen canvases.
@@ -583,7 +595,8 @@ public class Canvas3D extends Canvas {
     // PixelFormat structure ( see also gldef.h ) to allow value such
     // as offScreen's pixelformat, and ARB function pointers to be stored.
     long fbConfig = 0;  
-
+    GraphicsConfigInfo gcInfo = null;
+    
     // offScreenBufferInfo is a pointer to additional information about the
     // offScreenBuffer in this Canvas.
     //
@@ -596,6 +609,7 @@ public class Canvas3D extends Canvas {
     // doesn't exist at the time getBestConfiguration() is called, and
     // X11GraphicsConfig neither maintains this pointer nor provides a public
     // constructor to allow Java 3D to extend it.
+    // static Hashtable fbConfigInfoTable = new Hashtable();   -- Chien
     static Hashtable fbConfigTable = new Hashtable();
 
     // The native graphics version, vendor, and renderer information 
@@ -773,7 +787,6 @@ public class Canvas3D extends Canvas {
     static final int ARB_MULTISAMPLE             = 0x200;
     static final int EXT_COMPILED_VERTEX_ARRAYS  = 0x400;
     static final int SUN_VIDEO_RESIZE            = 0x800;
-    static final int STENCIL_BUFFER              = 0x1000;
 
     // The following 10 variables are set by the native
     // createNewContext()/createQueryContext() methods
@@ -1184,12 +1197,16 @@ public class Canvas3D extends Canvas {
 
 	// Fix for issue 20.
 	// Needed for Linux and Solaris.
-	Object fbConfigObject;  
-	fbConfigObject = fbConfigTable.get(graphicsConfiguration);
-	if ((fbConfigObject != null) && 
-	    (fbConfigObject instanceof Long)) {
-	    fbConfig = ((Long)fbConfigObject).longValue();
-	    /* System.out.println("Canvas3D creation FBConfig = " + fbConfig + 
+    	GraphicsConfigInfo gcInfo;
+	gcInfo = (GraphicsConfigInfo) fbConfigTable.get(graphicsConfiguration);
+	if (gcInfo != null) {
+            fbConfig = gcInfo.getFBConfig();
+            requestedStencilSize = gcInfo.getRequestedStencilSize();
+            
+	    /*
+	      System.out.println("Canvas3D : requestedStencilSize is " +
+	      requestedStencilSize);
+	      System.out.println("Canvas3D creation FBConfig = " + fbConfig + 
 	       " offScreen is " + offScreen );
 	    */
 	    // This check is needed for Unix and Win-ogl only. fbConfig should 
@@ -1198,8 +1215,8 @@ public class Canvas3D extends Canvas {
 		throw new IllegalArgumentException
 		    (J3dI18N.getString("Canvas3D23"));
 	    }
-	}
-
+	}        
+        
 	if (offScreen) {
 	    screen = new Screen3D(graphicsConfiguration, offScreen);
 
@@ -3692,9 +3709,9 @@ public class Canvas3D extends Canvas {
 	}
 	values.add(new Integer(pass));
 
-        // TODO: finish this when stencil support is added
 	keys.add("stencilSize");
-        values.add(new Integer(0));
+	// Return the actual stencil size.
+        values.add(new Integer(actualStencilSize));
 
         keys.add("compressedGeometry.majorVersionNumber");
 	values.add(new Integer(GeometryDecompressor.majorVersionNumber));

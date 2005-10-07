@@ -124,10 +124,14 @@ class NativeConfigTemplate3D {
 	// returns, since this is not cached with J3dGraphicsConfig and there
 	// are no public constructors to allow us to extend it.
 	synchronized (Canvas3D.fbConfigTable) {
-	    if (Canvas3D.fbConfigTable.get(gc1) == null)
-		Canvas3D.fbConfigTable.put(gc1, new Long(pFormatInfo[0]));
-	    else 
+	    if (Canvas3D.fbConfigTable.get(gc1) == null) {
+                GraphicsConfigInfo gcInfo = new GraphicsConfigInfo();
+                gcInfo.setFBConfig(pFormatInfo[0]);
+                gcInfo.setRequestedStencilSize(attrList[STENCIL_SIZE]);
+		Canvas3D.fbConfigTable.put(gc1, gcInfo);
+            } else {
 		freePixelFormatInfo(pFormatInfo[0]);
+            }
 	}
 
 	return gc1;
@@ -185,7 +189,8 @@ class NativeConfigTemplate3D {
 	if (pixelFormat < 0) {
 	    // current mode don't support the minimum config
 	    return false;
-	} else return true;
+	} else 
+            return true;
     }
 
 
@@ -194,6 +199,11 @@ class NativeConfigTemplate3D {
 	return isStereoAvailable(c3d.fbConfig, c3d.offScreen);
     }
 
+    // Return the stencil of this canvas.
+    int getStencilSize(Canvas3D c3d) {
+        return getStencilSize(c3d.fbConfig, c3d.offScreen);
+    }
+    
     // Return whether a double buffer is available.
     boolean hasDoubleBuffer(Canvas3D c3d) {
 	return isDoubleBufferAvailable(c3d.fbConfig, c3d.offScreen);

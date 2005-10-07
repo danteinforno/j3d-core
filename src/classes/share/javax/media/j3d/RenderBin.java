@@ -5314,9 +5314,7 @@ System.out.println("......tb.soleUser= " +
         OrderedCollection oc;
         boolean depthBufferEnable = true;
 	OrderedGroupRetained og = orderedBin.source;
-	boolean isDecal = (og instanceof DecalGroupRetained) &&
-	    ((cv.extensionsSupported & Canvas3D.STENCIL_BUFFER) != 0);
-
+	boolean isDecal = (og instanceof DecalGroupRetained) && cv.systemStencilAvailable;
 	int size = orderedBin.orderedCollections.size();
 	
 	// System.out.println("RB : orderedBin.orderedCollections.size() " + size);
