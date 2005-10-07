@@ -1126,7 +1126,8 @@ void checkPixelFormat(HDC hdc,
     GLboolean hasMultisample = GL_FALSE;
     GLboolean hasStereo  = GL_FALSE;
     GLboolean hasDoubleBuffer = GL_FALSE;
-    GLboolean hasAccum = GL_FALSE;
+    GLboolean hasAccum
+	= GL_FALSE;
     int       stencilSize = 0;
     PIXELFORMATDESCRIPTOR pfd;
 
@@ -1172,14 +1173,13 @@ void checkPixelFormat(HDC hdc,
     if (pfd.cAccumRedBits > 0) {
 	hasAccum = GL_TRUE;
     }
-    if (pfd.cStencilBits > 0) {
-	stencilSize = pfd.cStencilBits;
-    }
-
     
-    fprintf(stderr, "hasStereo = %d,  hasDoubleBuffer %d, hasAccum %d stencilSize %d\n",
+    stencilSize = pfd.cStencilBits;
+    
+    /*
+      fprintf(stderr, "hasStereo = %d,  hasDoubleBuffer %d, hasAccum %d stencilSize %d\n",
 	    hasStereo, hasDoubleBuffer, hasAccum, pfd.cStencilBits);
-    
+    */
 
     if(pFormatInfo->onScreenPFormat == pFormatInfo->offScreenPFormat) {
 	pFormatInfo->onScreenHasMultisample = hasMultisample;

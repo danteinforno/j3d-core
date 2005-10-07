@@ -476,7 +476,6 @@ getPropertiesFromCurrentContext(
     GraphicsContextPropertiesInfo *ctxInfo,
     jlong hdc,
     int pixelFormat,
-    int stencilSize,
     jlong fbConfigListPtr,
     jboolean offScreen,
     jboolean glslLibraryAvailable,
@@ -495,7 +494,6 @@ getPropertiesFromCurrentContext(
     char *cgHwStr = 0;
 
 #ifdef WIN32
-    PIXELFORMATDESCRIPTOR pfd;
     PixelFormatInfo *PixelFormatInfoPtr = (PixelFormatInfo *)fbConfigListPtr;
 #endif
     
@@ -846,10 +844,6 @@ getPropertiesFromCurrentContext(
 	}
     }
 
-
-    DescribePixelFormat((HDC) hdc, pixelFormat, sizeof(pfd), &pfd);
-
-    stencilSize = pfd.cStencilBits;
 #endif
     
 #if defined(UNIX)
@@ -931,15 +925,6 @@ getPropertiesFromCurrentContext(
     }
 
 #endif /* UNIX */
-
-    /*
-      printf("Canvas3D.c : getPropertiesFromCurrentContext() stencilSize = %d\n", stencilSize);
-    */
-    
-    if (stencilSize > 1) {
-	ctxInfo->extMask |= javax_media_j3d_Canvas3D_STENCIL_BUFFER;
-    }    
-    /* ... */
     
     /* clearing up the memory */
     free(tmpExtensionStr);
@@ -1284,7 +1269,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     ctxInfo->context = gctx;
 
     if (!getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
-					 stencilSize, fbConfigListPtr, offScreen,
+					 fbConfigListPtr, offScreen,
 					 glslLibraryAvailable, cgLibraryAvailable)) {
 	return 0;
     }
@@ -3424,7 +3409,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     
     /* get current context properties */
     if (getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
-					stencilSize, fbConfigListPtr, offScreen,
+					fbConfigListPtr, offScreen,
 					glslLibraryAvailable, cgLibraryAvailable)) {
 	/* put the properties to the Java side */
 	setupCanvasProperties(env, obj, ctxInfo);

@@ -560,6 +560,63 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
 
 }
 
+GLenum getFunctionValue(jint func) {
+    switch (func) {
+    case javax_media_j3d_RenderingAttributes_ALWAYS:
+	func = GL_ALWAYS;
+	break;
+    case javax_media_j3d_RenderingAttributes_NEVER:
+	func = GL_NEVER;
+	break;
+    case javax_media_j3d_RenderingAttributes_EQUAL:
+	func = GL_EQUAL;
+	break;
+    case javax_media_j3d_RenderingAttributes_NOT_EQUAL:
+	func = GL_NOTEQUAL;
+	break;
+    case javax_media_j3d_RenderingAttributes_LESS:
+	func = GL_LESS;
+	break;
+    case javax_media_j3d_RenderingAttributes_LESS_OR_EQUAL:
+	func = GL_LEQUAL;
+	break;
+    case javax_media_j3d_RenderingAttributes_GREATER:
+	func = GL_GREATER;
+	break;
+    case javax_media_j3d_RenderingAttributes_GREATER_OR_EQUAL:
+	func = GL_GEQUAL;
+	break;
+    }
+
+    return func;
+}
+
+GLenum getStencilOpValue(jint op) {
+    switch (op) {
+    case javax_media_j3d_RenderingAttributes_STENCIL_KEEP:
+	op = GL_KEEP;
+	break;
+    case javax_media_j3d_RenderingAttributes_STENCIL_ZERO:
+	op = GL_ZERO;
+	break;
+    case javax_media_j3d_RenderingAttributes_STENCIL_REPLACE:
+	op = GL_REPLACE;
+	break;
+    case javax_media_j3d_RenderingAttributes_STENCIL_INCR:
+	op = GL_INCR;
+	break;
+    case javax_media_j3d_RenderingAttributes_STENCIL_DECR:
+	op = GL_DECR;
+	break;
+    case javax_media_j3d_RenderingAttributes_STENCIL_INVERT:
+	op = GL_INVERT;
+	break;
+    }
+
+    return op;
+
+}
+
 JNIEXPORT
 void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     JNIEnv *env, 
@@ -574,41 +631,23 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     jint at_func,
     jboolean ignoreVertexColors,
     jboolean rasterOpEnable,
-    jint rasterOp)
+    jint rasterOp,
+    jboolean userStencilAvailable,
+    jboolean stencilEnable, 
+    jint stencilFailOp,
+    jint stencilZFailOp,
+    jint stencilZPassOp,
+    jint stencilFunction,
+    jint stencilReferenceValue,
+    jint stencilCompareMask,
+    jint stencilWriteMask)
 {
     if (db_enable_override == JNI_FALSE) {
         if (db_enable == JNI_TRUE) {
-            int func = GL_LEQUAL;
             glEnable(GL_DEPTH_TEST);
-            switch (db_func) {
-            case javax_media_j3d_RenderingAttributes_ALWAYS:
-                func = GL_ALWAYS;
-                break;
-            case javax_media_j3d_RenderingAttributes_NEVER:
-                func = GL_NEVER;
-                break;
-            case javax_media_j3d_RenderingAttributes_EQUAL:
-                func = GL_EQUAL;
-                break;
-            case javax_media_j3d_RenderingAttributes_NOT_EQUAL:
-                func = GL_NOTEQUAL;
-                break;
-            case javax_media_j3d_RenderingAttributes_LESS:
-                func = GL_LESS;
-                break;
-            case javax_media_j3d_RenderingAttributes_LESS_OR_EQUAL:
-                func = GL_LEQUAL;
-                break;
-            case javax_media_j3d_RenderingAttributes_GREATER:
-                func = GL_GREATER;
-                break;
-            case javax_media_j3d_RenderingAttributes_GREATER_OR_EQUAL:
-                func = GL_GEQUAL;
-                break;
-        }
-        glDepthFunc( func );
-
-      } else {
+	    glDepthFunc( getFunctionValue(db_func));
+	    
+	} else {
             glDisable(GL_DEPTH_TEST);
         }
     } 
@@ -625,6 +664,7 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
         glDisable(GL_ALPHA_TEST);
     } else {
         glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(getFunctionValue(at_func), at_value);
     }
 
     if (ignoreVertexColors == JNI_TRUE) {
@@ -632,39 +672,8 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     }
     else {
 	glEnable(GL_COLOR_MATERIAL);
-    }	
-
-    /*
-     * [PEPE] NOTE: shouldn't this switch be moved in 'enable' part of
-     * the at_func test above, just like i did for db_func?
-     */
-    switch (at_func) {
-	case javax_media_j3d_RenderingAttributes_ALWAYS:
-	    glAlphaFunc(GL_ALWAYS, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_NEVER:
-	    glAlphaFunc(GL_NEVER, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_EQUAL:
-	    glAlphaFunc(GL_EQUAL, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_NOT_EQUAL:
-	    glAlphaFunc(GL_NOTEQUAL, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_LESS:
-	    glAlphaFunc(GL_LESS, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_LESS_OR_EQUAL:
-	    glAlphaFunc(GL_LEQUAL, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_GREATER:
-	    glAlphaFunc(GL_GREATER, at_value);
-	    break;
-	case javax_media_j3d_RenderingAttributes_GREATER_OR_EQUAL:
-	    glAlphaFunc(GL_GEQUAL, at_value);
-	    break;
     }
-
+    
     if (rasterOpEnable == JNI_TRUE) {
 	glEnable(GL_COLOR_LOGIC_OP);
 	switch (rasterOp) {
@@ -717,8 +726,27 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 	    glLogicOp(GL_SET);
 	    break;
 	}
-    } else
+    } else {
 	glDisable(GL_COLOR_LOGIC_OP);
+    }
+
+    if (userStencilAvailable == JNI_TRUE) {
+        if (stencilEnable == JNI_TRUE) {
+            glEnable(GL_STENCIL_TEST);
+
+	    glStencilOp(getStencilOpValue(stencilFailOp),
+			getStencilOpValue(stencilZFailOp),
+			getStencilOpValue(stencilZPassOp));
+
+	    glStencilFunc(getFunctionValue(stencilFunction),
+			  stencilReferenceValue, stencilCompareMask);
+
+	    glStencilMask(stencilWriteMask);
+	    
+	} else {
+            glDisable(GL_STENCIL_TEST);
+        }
+    }
 }
 
 JNIEXPORT

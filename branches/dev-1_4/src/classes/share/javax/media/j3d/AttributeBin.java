@@ -320,7 +320,7 @@ class AttributeBin extends Object implements ObjectUpdate {
 					    cv.depthBufferEnableOverride);
 	    } else {
 	        definingRenderingAttributes.updateNative(
-				    cv.ctx,
+				    cv,
 				    cv.depthBufferWriteEnableOverride,
 				    cv.depthBufferEnableOverride);
 	    }
@@ -337,7 +337,7 @@ class AttributeBin extends Object implements ObjectUpdate {
 					cv.depthBufferEnableOverride);
 	    } else {
 		definingRenderingAttributes.updateNative(
-				        cv.ctx,
+				        cv,
 					cv.depthBufferWriteEnableOverride,
 				    	cv.depthBufferEnableOverride);
 	    }

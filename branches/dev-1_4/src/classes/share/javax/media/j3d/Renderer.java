@@ -390,7 +390,25 @@ class Renderer extends J3dThread {
 				c.doubleBufferAvailable = nct.hasDoubleBuffer(c);
 				c.stereoAvailable = nct.hasStereo(c);
 			    }
-			    c.sceneAntialiasingMultiSamplesAvailable =
+
+			    // Setup stencil related variables.
+                            c.actualStencilSize = nct.getStencilSize(c);
+                            boolean userOwnsStencil = c.requestedStencilSize > 0;
+                            
+                            c.userStencilAvailable = 
+                                    (userOwnsStencil && (c.actualStencilSize > 0));
+                            c.systemStencilAvailable =
+                                    (!userOwnsStencil && (c.actualStencilSize > 0));
+
+                            /*
+			      System.out.println("Renderer :check for nct configuration");
+			      System.out.println("-- userStencilAvailable " + 
+			      c.userStencilAvailable);
+			      System.out.println("-- systemStencilAvailable " + 
+			      c.systemStencilAvailable);
+			    */
+
+                            c.sceneAntialiasingMultiSamplesAvailable =
 				nct.hasSceneAntialiasingMultisample(c);
 
 			    if (c.sceneAntialiasingMultiSamplesAvailable) {

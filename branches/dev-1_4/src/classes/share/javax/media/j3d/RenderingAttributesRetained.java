@@ -39,6 +39,13 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 
     static final int DEPTH_TEST_FUNC      	= 0x100;
 
+    static final int STENCIL_ENABLE      	= 0x200;
+
+    static final int STENCIL_OP_VALUES      	= 0x400;
+
+    static final int STENCIL_FUNC      	        = 0x800;
+
+    static final int STENCIL_WRITE_MASK         = 0x1000;
 
     // depth buffer Enable for hidden surface removal
     boolean depthBufferEnable = true;
@@ -58,7 +65,17 @@ class RenderingAttributesRetained extends NodeComponentRetained {
     // raster operation
     boolean rasterOpEnable = false;
     int rasterOp = RenderingAttributes.ROP_COPY;
-    
+
+    // stencil operation
+    boolean stencilEnable = false;
+    int stencilFailOp = RenderingAttributes.STENCIL_KEEP;
+    int stencilZFailOp = RenderingAttributes.STENCIL_KEEP;
+    int stencilZPassOp = RenderingAttributes.STENCIL_KEEP;
+    int stencilFunction = RenderingAttributes.ALWAYS;
+    int stencilReferenceValue = 0;
+    int stencilCompareMask = ~0;
+    int stencilWriteMask = ~0;
+
     // depth buffer comparison function. Used by multi-texturing only
     //[PEPE] NOTE: they are both unused. Candidates for removal.
     static final int LESS = 0;
@@ -369,10 +386,121 @@ class RenderingAttributesRetained extends NodeComponentRetained {
     }
 
 
+    // Stencil operations 
+    /**
+     * Initialize the stencil enable state
+     */
+    final void initStencilEnable(boolean state) {
+	stencilEnable = state;
+    }
+
+    /**
+     * Set the stencil enable state
+     */
+    final void setStencilEnable(boolean state) {
+	initStencilEnable(state);
+	sendMessage(STENCIL_ENABLE, new Boolean(state));
+    }
+
+    /**
+     * Retrieves the current stencil enable state.
+     */
+    final boolean getStencilEnable() {
+	return stencilEnable;
+    }
+
+    /**
+     * Initialize the stencil op. value
+     */
+    final void initStencilOp(int failOp, int zFailOp, int zPassOp) {
+	stencilFailOp = failOp;
+	stencilZFailOp = zFailOp;
+	stencilZPassOp = zPassOp;
+    }
+
+    /**
+     * Set the stencil op. value
+     */
+    final void setStencilOp(int failOp, int zFailOp, int zPassOp) {
+	initStencilOp(failOp, zFailOp, zPassOp);
+	
+	ArrayList arrList = new ArrayList(3);
+	arrList.add(new Integer(failOp));
+	arrList.add(new Integer(zFailOp));
+	arrList.add(new Integer(zPassOp));
+	sendMessage(STENCIL_OP_VALUES, arrList);
+    }
+
+    /**
+     * Retrieves the current stencil op. value
+     */
+    final void getStencilOp(int[] stencilOps) {
+	stencilOps[0] = stencilFailOp;
+	stencilOps[1] = stencilZFailOp;
+	stencilOps[2] = stencilZPassOp;
+    }
+
+
+    /**
+     * Initialize the stencil function value
+     */
+    final void initStencilFunction(int function, int refValue, int compareMask) {
+	stencilFunction = function;
+	stencilReferenceValue = refValue;
+	stencilCompareMask = compareMask;
+    }
+
+    /**
+     * Set the stencil function value
+     */
+    final void setStencilFunction(int function, int refValue, int compareMask) {
+	initStencilOp(function, refValue, compareMask);
+	
+	ArrayList arrList = new ArrayList(3);
+	arrList.add(new Integer(function));
+	arrList.add(new Integer(refValue));
+	arrList.add(new Integer(compareMask));
+	sendMessage(STENCIL_FUNC, arrList);
+    }
+
+    /**
+     * Retrieves the current stencil op. value
+     */
+    final void getStencilFunction(int[] params) {
+	params[0] = stencilFunction;
+	params[1] = stencilReferenceValue;
+	params[2] = stencilCompareMask;
+    }
+
+
+    /**
+     * Initialize the stencil write mask
+     */
+    final void initStencilWriteMask(int mask) {
+	stencilWriteMask = mask;
+    }
+
+    /**
+     * Set the stencil write mask
+     */
+    final void setStencilWriteMask(int mask) {
+	initStencilWriteMask(mask);	
+	sendMessage(STENCIL_WRITE_MASK, new Integer(mask));
+    }
+
+    /**
+     * Retrieves the current stencil write mask
+     */
+    final int getStencilWriteMask() {
+	return stencilWriteMask;
+    }
+
     
     /**
      * Updates the native context.
      */
+
+    // TODO : Need to handle stencil operation on the native side -- Chien
     native void updateNative(long ctx,
 			     boolean depthBufferWriteEnableOverride,
                              boolean depthBufferEnableOverride,
@@ -381,19 +509,26 @@ class RenderingAttributesRetained extends NodeComponentRetained {
                              int depthTestFunction,
 			     float alphaTestValue, int alphaTestFunction,
 			     boolean ignoreVertexColors,
-			     boolean rasterOpEnable, int rasterOp );
+			     boolean rasterOpEnable, int rasterOp,
+			     boolean userStencilAvailable, boolean stencilEnable, 
+			     int stencilFailOp, int stencilZFailOp, int stencilZPassOp,
+			     int stencilFunction, int stencilReferenceValue, 
+			     int stencilCompareMask, int stencilWriteMask );
 
     /**
      * Updates the native context.
      */
-    void updateNative(long ctx,
+    void updateNative(Canvas3D c3d,
 		      boolean depthBufferWriteEnableOverride,
                       boolean depthBufferEnableOverride) {
-	updateNative(ctx, 
+	updateNative(c3d.ctx, 
 		     depthBufferWriteEnableOverride, depthBufferEnableOverride,
 		     depthBufferEnable, depthBufferWriteEnable,  depthTestFunction,
                      alphaTestValue, alphaTestFunction, ignoreVertexColors,
-		     rasterOpEnable, rasterOp);
+		     rasterOpEnable, rasterOp, c3d.userStencilAvailable, stencilEnable, 
+		     stencilFailOp, stencilZFailOp, stencilZPassOp,
+		     stencilFunction, stencilReferenceValue, stencilCompareMask,
+		     stencilWriteMask  );
     }
 
    /**
@@ -432,8 +567,8 @@ class RenderingAttributesRetained extends NodeComponentRetained {
      *  given "value"
      */
     synchronized void updateMirrorObject(int component, Object value) {
-	RenderingAttributesRetained mirrorRa = (RenderingAttributesRetained)mirror;
-      
+	RenderingAttributesRetained mirrorRa = (RenderingAttributesRetained)mirror;      
+
 	if ((component & DEPTH_ENABLE) != 0) {
 	    mirrorRa.depthBufferEnable = ((Boolean)value).booleanValue();
 	}
@@ -460,7 +595,25 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	}	
 	else if ((component & RASTER_OP_VALUE) != 0) {
 	    mirrorRa.rasterOp = (((Integer)value).intValue());
-	}	
+	}
+	else if ((component & STENCIL_ENABLE) != 0) {
+	    mirrorRa.stencilEnable = (((Boolean)value).booleanValue());
+	}
+	else if ((component & STENCIL_OP_VALUES) != 0) {
+	    ArrayList arrlist = (ArrayList) value;
+	    mirrorRa.stencilFailOp = (((Integer)arrlist.get(0)).intValue());
+	    mirrorRa.stencilZFailOp = (((Integer)arrlist.get(1)).intValue());
+	    mirrorRa.stencilZPassOp = (((Integer)arrlist.get(2)).intValue());
+	}
+	else if ((component & STENCIL_FUNC) != 0) {
+	    ArrayList arrlist = (ArrayList) value;
+	    mirrorRa.stencilFunction = (((Integer)arrlist.get(0)).intValue());
+	    mirrorRa.stencilReferenceValue = (((Integer)arrlist.get(1)).intValue());
+	    mirrorRa.stencilCompareMask = (((Integer)arrlist.get(2)).intValue());
+	}
+	else if ((component & STENCIL_WRITE_MASK) != 0) {
+	    mirrorRa.stencilWriteMask = (((Integer)value).intValue());
+	}
     }
 
     boolean equivalent(RenderingAttributesRetained rr) {
@@ -474,7 +627,15 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 		(rr.ignoreVertexColors == ignoreVertexColors) &&
 		(rr.rasterOpEnable == rasterOpEnable) &&
 		(rr.rasterOp == rasterOp) &&
-		(rr.depthTestFunction == depthTestFunction));
+		(rr.depthTestFunction == depthTestFunction) &&
+		(rr.stencilEnable == stencilEnable) &&
+		(rr.stencilFailOp == stencilFailOp) &&
+		(rr.stencilZFailOp == stencilZFailOp) &&
+		(rr.stencilZPassOp == stencilZPassOp) &&
+		(rr.stencilFunction == stencilFunction) &&
+		(rr.stencilReferenceValue == stencilReferenceValue) &&
+		(rr.stencilCompareMask == stencilCompareMask) &&
+		(rr.stencilWriteMask == stencilWriteMask));
     }
 
     protected void set(RenderingAttributesRetained ra) {
@@ -488,6 +649,15 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	ignoreVertexColors = ra.ignoreVertexColors;
 	rasterOpEnable = ra.rasterOpEnable;
 	rasterOp = ra.rasterOp;
+	stencilEnable = ra.stencilEnable;
+	stencilFailOp = ra.stencilFailOp;
+	stencilZFailOp = ra.stencilZFailOp;
+	stencilZPassOp = ra.stencilZPassOp;
+	stencilFunction = ra.stencilFunction;
+	stencilReferenceValue = ra.stencilReferenceValue;
+	stencilCompareMask = ra.stencilCompareMask;
+	stencilWriteMask = ra.stencilWriteMask;
+
     }
     
     final void sendMessage(int attrMask, Object attr) {
@@ -531,7 +701,7 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 
     }
 
-
+    // TODO : Need to handle stencil operation -- Chien
     void handleFrequencyChange(int bit) {
 	int mask = 0;
 	
@@ -549,6 +719,14 @@ class RenderingAttributesRetained extends NodeComponentRetained {
 	    mask = DEPTH_WRITE_ENABLE;
 	if( bit == RenderingAttributes.ALLOW_DEPTH_TEST_FUNCTION_WRITE)
 	    mask = DEPTH_TEST_FUNC;
+
+	if( bit == RenderingAttributes.ALLOW_STENCIL_ATTRIBUTES_WRITE)
+	    mask = DEPTH_TEST_FUNC;
+
+	if( bit == RenderingAttributes.ALLOW_DEPTH_TEST_FUNCTION_WRITE)
+	    mask = STENCIL_ENABLE | STENCIL_OP_VALUES | STENCIL_FUNC | 
+		STENCIL_WRITE_MASK;
+
 	if (mask != 0)
 	    setFrequencyChangeMask(bit, mask);
 	//	System.out.println("changedFreqent2 = "+changedFrequent);

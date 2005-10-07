@@ -1109,6 +1109,13 @@ public class RenderingAttributes extends NodeComponent {
 	rt.initIgnoreVertexColors(attr.getIgnoreVertexColors());
 	rt.initRasterOpEnable(attr.getRasterOpEnable());
 	rt.initRasterOp(attr.getRasterOp());
+	rt.initStencilEnable(attr.getStencilEnable());
+	int[] ops = new int[3];
+	attr.getStencilOp(ops);
+	rt.initStencilOp(ops[0], ops[1], ops[2]);
+	attr.getStencilFunction(ops);
+	rt.initStencilFunction(ops[0], ops[1], ops[2]);
+	rt.initStencilWriteMask(attr.getStencilWriteMask());
 
     }
 
@@ -1180,7 +1187,11 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-        throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilEnable(state);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilEnable(state);
+
     }
 
     /**
@@ -1202,7 +1213,7 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	return ((RenderingAttributesRetained)this.retained).getStencilEnable();
     }
 
     /**
@@ -1235,7 +1246,15 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilOp(failOp, 
+								      zFailOp, 
+								      zPassOp);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilOp(failOp, 
+								       zFailOp, 
+								       zPassOp);
+
     }
 
     /**
@@ -1262,7 +1281,14 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilOp(stencilOps[0], 
+								      stencilOps[1],
+								      stencilOps[2]);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilOp(stencilOps[0], 
+								       stencilOps[1],
+								       stencilOps[2]);
     }
 
     /**
@@ -1287,8 +1313,8 @@ public class RenderingAttributes extends NodeComponent {
 		throw new CapabilityNotSetException(J3dI18N.getString("RenderingAttributes17"));
             }
         }
-
-	throw new RuntimeException("not implemented");
+	
+	((RenderingAttributesRetained)this.retained).getStencilOp(stencilOps);
     }
 
     /**
@@ -1321,8 +1347,14 @@ public class RenderingAttributes extends NodeComponent {
 		throw new CapabilityNotSetException(J3dI18N.getString("RenderingAttributes16"));
             }
         }
-
-	throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilFunction(function, 
+									    refValue,
+									    compareMask);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilFunction(function, 
+									     refValue,
+									     compareMask);
     }
 
     /**
@@ -1350,7 +1382,15 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilFunction(params[0], 
+									    params[1],
+									    params[2]);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilFunction(params[0], 
+									     params[1],
+									     params[2]);
+
     }
 
     /**
@@ -1376,7 +1416,7 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	((RenderingAttributesRetained)this.retained).getStencilFunction(params);
     }
 
     /**
@@ -1399,7 +1439,10 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	if (isLive())
+	    ((RenderingAttributesRetained)this.retained).setStencilWriteMask(mask);
+	else
+	    ((RenderingAttributesRetained)this.retained).initStencilWriteMask(mask);
     }
 
     /**
@@ -1420,7 +1463,7 @@ public class RenderingAttributes extends NodeComponent {
             }
         }
 
-	throw new RuntimeException("not implemented");
+	return ((RenderingAttributesRetained)this.retained).getStencilWriteMask();
     }
 
 }
