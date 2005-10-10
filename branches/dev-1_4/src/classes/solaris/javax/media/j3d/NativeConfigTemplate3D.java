@@ -149,10 +149,10 @@ class NativeConfigTemplate3D {
             } else {
 		freeFBConfig(fbConfig[0]);
             }
-
-        return gc1;
+	}   
+	return gc1;
     }
-
+	
     /*
      * Determine if a given GraphicsConfiguration object can be used
      * by Java 3D.
