@@ -592,8 +592,12 @@ else
 	bindTextureIdLen = 1;
     }
 
-    jclass canvasCls =  env->GetObjectClass(obj);
-    jfieldID id = env->GetFieldID(canvasCls, "numTexCoordSupported", "I");
+
+     jclass canvasCls =  env->GetObjectClass(obj);
+     jfieldID id;
+
+    // TODO check it !!!!
+	 id = env->GetFieldID(canvasCls, "maxTexCoordSets", "I"); //was numtexCoordSupported
     env->SetIntField(obj, id, TEXSTAGESUPPORT);
 
     if (bindTextureIdLen > 1) {
@@ -604,7 +608,9 @@ else
 	multiTextureSupport = true;
 	id = env->GetFieldID(canvasCls, "multiTexAccelerated", "Z");
 	env->SetBooleanField(obj, id, JNI_TRUE);
-	id = env->GetFieldID(canvasCls, "numTexUnitSupported", "I");
+
+	// TODO check it !!!!
+	id = env->GetFieldID(canvasCls, "maxTextureUnits", "I"); //was numTexUnitSupported
 	env->SetIntField(obj, id, bindTextureIdLen);
     } else {
 	bindTextureIdLen = 1;
