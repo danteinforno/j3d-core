@@ -242,7 +242,7 @@ VOID D3dDriverInfo::release()
 
 VOID printInfo() 
 {
-    printf("Java 3D 1.3.3, Windows version is %d.%d ", 
+    printf("Java 3D 1.4, Windows version is %d.%d ", 
 	   osvi.dwMajorVersion, osvi.dwMinorVersion);
     
     printf("Build: %d, ", LOWORD(osvi.dwBuildNumber)); 
@@ -315,7 +315,7 @@ VOID D3dDriverInfo::initialize(JNIEnv *env)
     LPDIRECT3D9 pD3D = Direct3DCreate9( D3D_SDK_VERSION );
 	printf("[Java3D] Using DirectX D3D 9.0 or higher.\n");
 	if (debug){
-		printf("[Java3D] DirectX D3D renderer build 1.3.2.2005.07.29\n");
+		printf("[Java3D] DirectX D3D renderer build 1.4.2005.10.10\n");
 	}
     if (pD3D == NULL) {
 	D3dCtx::d3dError(D3DNOTFOUND);

@@ -58,6 +58,11 @@ public:
     // compute from above vertexFormat
     UINT                    stride;
 
+	UINT                    numCoorTexSupported;
+
+
+
+
     // Number of strips used for StripGeometryArray
     // For each strip i the number of vertex is
     // numVertices[i]

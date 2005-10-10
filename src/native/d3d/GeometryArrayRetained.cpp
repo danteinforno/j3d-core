@@ -22,6 +22,7 @@
 /*
  * This correspond to the constant in d3dtypes.h
  * under D3D 7.0/8.0 header and may not portable :
+ * Still valid with D3D 9.0 (aces)
  * D3DFVF_TEXTUREFORMAT1 3       
  * D3DFVF_TEXTUREFORMAT2 0       
  * D3DFVF_TEXTUREFORMAT3 1       
@@ -3670,9 +3671,9 @@ void executeGeometryArrayVA(
 /* execute geometry array with java array format */
 extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVABuffer(
-    JNIEnv *env, 
+   JNIEnv *env, 
     jobject obj,
-    jlong ctx,    
+    jlong ctxInfo,    
     jobject geo,
     jint geo_type, 
     jboolean isNonUniformScale,
@@ -3689,6 +3690,10 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVABuffer(
     jbyteArray  cbdata,    
     jint initialNormalIndex,
     jobject ndata,
+    jint vertexAttrCount,
+    jintArray vertexAttrSizes,
+    jintArray vertexAttrIndices,
+    jobjectArray vertexAttrData,
     jint pass,  
     jint texCoordMapLength,
     jintArray 	tcoordsetmap,
@@ -3764,13 +3769,13 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVABuffer(
 	}	
     }
 
-    executeGeometryArrayVA(env, obj, ctx, geo, geo_type,
-			   isNonUniformScale, false, 0,
-			   multiScreen, ignoreVertexColors,
+    executeGeometryArrayVA(env, obj, ctxInfo, geo, geo_type,
+			   isNonUniformScale, false, 0, multiScreen, ignoreVertexColors,
 			   vcount, vformat,  vdefined, initialCoordIndex,
 			   fverts, dverts, initialColorIndex,
 			   fclrs, bclrs, initialNormalIndex,
-			   norms, pass, texCoordMapLength,
+			   norms, 
+			   pass, texCoordMapLength,
 			   tcoordsetmap,numActiveTexUnit, tunitstatemap,
 			   texindices,texStride,texCoordPointer, NULL,
 			   NULL, cdirty);
@@ -3786,12 +3791,12 @@ extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVA(
     JNIEnv *env, 
     jobject obj,
-    jlong ctx,
+    jlong ctxInfo,    
     jobject geo,
     jint geo_type, 
     jboolean isNonUniformScale,
     jboolean multiScreen,
-    jboolean ignoreVertexColors,				   
+    jboolean ignoreVertexColors,
     jint vcount,
     jint vformat,
     jint vdefined,
@@ -3803,7 +3808,11 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVA(
     jbyteArray  cbdata,
     jint initialNormalIndex,
     jfloatArray ndata,
-    jint pass, // or texUnitIndex
+    jint vertexAttrCount,
+    jintArray vertexAttrSizes,
+    jintArray vertexAttrIndices,
+    jobjectArray vertexAttrData,
+    jint pass,  
     jint texCoordMapLength,
     jintArray 	tcoordsetmap,
     jint numActiveTexUnit,
@@ -3811,7 +3820,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVA(
     jintArray texindices,
     jint texStride,
     jobjectArray texCoords,
-    jint cDirty) 
+    jint cdirty)
    {
     
     jfloat *fverts = NULL;
@@ -3870,7 +3879,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVA(
 	    
 	}	
     }
-    executeGeometryArrayVA(env, obj, ctx, geo, geo_type,
+    executeGeometryArrayVA(env, obj, ctxInfo, geo, geo_type,
 			   isNonUniformScale, false, 0,
 			   multiScreen, ignoreVertexColors,
 			   vcount, vformat,  vdefined, initialCoordIndex,
@@ -3879,7 +3888,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_executeVA(
 			   norms, pass, texCoordMapLength,
 			   tcoordsetmap,numActiveTexUnit, tunitstatemap,
 			   texindices,texStride,texCoordPointer,
-			   NULL, NULL, cDirty);
+			   NULL, NULL, cdirty);
     
     if (floatCoordDefined) {
 	env->ReleasePrimitiveArrayCritical( vfcoords, fverts, 0); 
@@ -3933,12 +3942,12 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_disableGlobalAlpha(
 
 extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_setVertexFormat(
-    JNIEnv *env,
+    JNIEnv *env, 
     jobject obj,
+    jlong ctxInfo,
     jint vformat,
     jboolean useAlpha,
-    jboolean ignoreVertexColors,
-    jlong ctx)
+    jboolean ignoreVertexColors)
 {
     // not use in D3D
 }
@@ -4123,17 +4132,24 @@ void executeGeometryArray(JNIEnv *env,
 }
 
 
+/*
+ * Class:     javax_media_j3d_GeometryArrayRetained
+ * Method:    buildGA
+ * Signature: (JLjavax/media/j3d/GeometryArrayRetained;IZZFZIIII[II[II[I[D[D[F)V
+ */
 extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGA(JNIEnv *env, 
-		jobject obj, jlong ctx, jobject geo, jint geo_type, 
-                jboolean isNonUniformScale, jboolean updateAlpha, float alpha,
+		jobject obj, jlong ctx, jobject geo, 
+		jint geo_type, 
+        jboolean isNonUniformScale, jboolean updateAlpha, float alpha,
 		jboolean ignoreVertexColors,
 		jint startVIndex,
-  	        jint vcount, jint vformat, 
+  	    jint vcount, jint vformat, 
 		jint texCoordSetCount, 
-                jintArray texCoordSetMapArray,
+        jintArray texCoordSetMapArray,
 		jint texCoordMapLength,
 		jintArray texUnitOffset, 
+		jint vertexAttrCount, jintArray vertexAttrSizes,
 		jdoubleArray xform, jdoubleArray nxform,			
 		jfloatArray varray)
 {
@@ -4183,8 +4199,7 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGA(JNIEnv *env,
 
 extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_execute(JNIEnv *env,
-                jobject obj, jlong ctx,
-		jobject geo, jint geo_type,
+                jobject obj, jlong ctx,jobject geo, jint geo_type,
                 jboolean isNonUniformScale, jboolean useAlpha,
                 jboolean multiScreen,
                 jboolean ignoreVertexColors,
@@ -4192,10 +4207,11 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_execute(JNIEnv *env,
                 jint vcount, jint vformat, jint texCoordSetCount,
                 jintArray texCoordSetMapArray,
                 jint texCoordMapLength, jintArray texUnitOffset,
-		jint numActiveTexUnit,
-		jintArray tunitstatemap,
+		        jint numActiveTexUnit,
+		        jintArray tunitstatemap,
+				jint vertexAttrCount, jintArray vertexAttrSizes,
                 jfloatArray varray, jfloatArray carray,
-		jint texUnitIndex, jint cDirty)
+		        jint texUnitIndex, jint cDirty)
 {
     jfloat *verts = NULL;
 
@@ -5147,6 +5163,12 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForBuffer(
 			   javax_media_j3d_GeometryArrayRetained_VERTEX_CHANGED);
 }
 
+/* execute geometry array with java array format */
+/*
+ * Class:     javax_media_j3d_GeometryArrayRetained
+ * Method:    buildGAForByRef
+ * Signature: (JLjavax/media/j3d/GeometryArrayRetained;IZZFZIIII[F[DI[F[BI[FI[I[I[[FI[I[II[Ljava/lang/Object;[D[D)V
+ */
 
 extern "C" JNIEXPORT
 void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForByRef(
@@ -5170,7 +5192,11 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_buildGAForByRef(
     jbyteArray  cbdata,
     jint initialNormalIndex,
     jfloatArray ndata,
-    jint texCoordMapLength,
+	jint vertexAttrCount,
+    jintArray vertexAttrSizes,
+    jintArray vertexAttrIndices,
+    jobjectArray vertexAttrData,
+	jint texCoordMapLength,
     jintArray 	tcoordsetmap,
     jintArray texindices,
     jint texStride,

@@ -422,11 +422,21 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
     jboolean db_enable_override,
     jboolean db_enable,
     jboolean db_write_enable,
+	jint db_func,
     jfloat at_value,
     jint at_func,
     jboolean ignoreVertexColors,
     jboolean rasterOpEnable,
-    jint rasterOp)
+    jint rasterOp,
+	jboolean userStencilAvailable,
+    jboolean stencilEnable, 
+    jint stencilFailOp,
+    jint stencilZFailOp,
+    jint stencilZPassOp,
+    jint stencilFunction,
+    jint stencilReferenceValue,
+    jint stencilCompareMask,
+    jint stencilWriteMask)
 {
 
     GetDevice();

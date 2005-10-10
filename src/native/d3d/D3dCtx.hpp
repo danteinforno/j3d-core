@@ -26,6 +26,9 @@
 #define RECREATEDDRAW        2
 #define RECREATEDFAIL       -1
 
+#undef javax_media_j3d_Canvas3D_STENCIL_BUFFER
+#define javax_media_j3d_Canvas3D_STENCIL_BUFFER 4096L
+
 
 // Use in texCoordPosition[]
 // Must be negative number
