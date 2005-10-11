@@ -659,7 +659,8 @@ public class Morph extends Leaf {
     // have the bit set.
     private void checkForAllowIntersect() {
 	MorphRetained morphR = ((MorphRetained)this.retained);
-	for (int i = 0; i < morphR.numGeometryArrays; i++) {
+	int numGeometryArrays = morphR.getNumGeometryArrays();
+	for (int i = 0; i < numGeometryArrays; i++) {
 	    if (!morphR.geometryArrays[i].source.
 		getCapability(Geometry.ALLOW_INTERSECT)) {
 

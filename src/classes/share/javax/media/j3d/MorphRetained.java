@@ -56,7 +56,7 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
      */
     GeometryArrayRetained geometryArrays[];
 
-    int numGeometryArrays = 0;
+    private int numGeometryArrays = 0;
 
     /**
      * The weight vector the morph node.
@@ -618,8 +618,8 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
         } else {
             return super.getBounds();
         }
-    } 
-  
+    }
+
     Bounds getEffectiveBounds() {
         if(boundsAutoCompute) {
 	    return getBounds();
@@ -650,6 +650,11 @@ class MorphRetained extends LeafRetained implements GeometryUpdater {
 	    }
 	}
     } 
+
+    // Return the number of geometry arrays in this MorphRetained object.
+    int getNumGeometryArrays() {
+	return numGeometryArrays;
+    }
 
     // If the geometry of a morph changes, make sure that the
     // validVertexCount has not changed
