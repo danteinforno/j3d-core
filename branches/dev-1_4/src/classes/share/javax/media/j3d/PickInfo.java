@@ -790,8 +790,57 @@ public class PickInfo extends Object {
                 pickNode = pickInfo.getNode();
                 
                 if (pickNode instanceof Shape3D) {
-                    
-                    if (((Shape3DRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
+
+		    /*
+		     * @exception CapabilityNotSetException if the mode is
+		     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+		     * is not set in any Geometry objects referred to by any shape
+		     * node whose bounds intersects the PickShape.
+		     *
+                     * @exception CapabilityNotSetException if flags contains any of
+		     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+		     * or ALL_GEOM_INFO, and the capability bits that control reading of
+		     * coordinate data are not set in any GeometryArray object referred
+		     * to by any shape node that intersects the PickShape.
+		     * The capability bits that must be set to avoid this exception are 
+                     * as follows :
+		     * 
+		     * By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ
+		     * By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ
+		     * Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+		     * (in addition to one of the above)
+		     *     
+		     */
+		    
+                    if (!pickNode.getCapability(Shape3D.ALLOW_GEOMETRY_READ)) {
+			throw new CapabilityNotSetException(J3dI18N.getString("PickInfo0"));
+		    }
+		    
+		    for (int j = 0; j < ((Shape3D)pickNode).numGeometries(); j++) {
+			Geometry geo = ((Shape3D)pickNode).getGeometry(j);
+			
+			if(!geo.getCapability(Geometry.ALLOW_INTERSECT)) {
+			    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo1"));
+			}
+
+			if (geo instanceof GeometryArray) {
+			    if(!geo.getCapability(GeometryArray.ALLOW_COORDINATE_READ))
+				throw new CapabilityNotSetException(J3dI18N.getString("PickInfo2"));
+			    if(!geo.getCapability(GeometryArray.ALLOW_COUNT_READ))
+				throw new CapabilityNotSetException(J3dI18N.getString("PickInfo3"));
+			    if(!geo.getCapability(GeometryArray.ALLOW_FORMAT_READ))
+				throw new CapabilityNotSetException(J3dI18N.getString("PickInfo4")); 
+			    if (geo instanceof IndexedGeometryArray) {
+				if(!geo.getCapability(IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ))
+				    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo5"));
+			    }				
+			} else if (geo instanceof CompressedGeometry) {
+			    if(!geo.getCapability(CompressedGeometry.ALLOW_GEOMETRY_READ))
+				throw new CapabilityNotSetException(J3dI18N.getString("PickInfo0"));
+			}
+		    }
+		    
+		    if (((Shape3DRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         // System.out.println("  ---- geom " + i + " not intersected");
                         
                         pickInfoList.remove(i);
@@ -802,6 +851,53 @@ public class PickInfo extends Object {
                         return pickInfoArr;
                     }
                 } else if (pickNode instanceof Morph) {
+		    
+		    /*
+		     * @exception CapabilityNotSetException if the mode is
+		     * PICK_GEOMETRY and the Geometry.ALLOW_INTERSECT capability bit
+		     * is not set in any Geometry objects referred to by any shape
+		     * node whose bounds intersects the PickShape.
+		     *
+                     * @exception CapabilityNotSetException if flags contains any of
+		     * CLOSEST_INTERSECTION_POINT, CLOSEST_DISTANCE, CLOSEST_GEOM_INFO
+		     * or ALL_GEOM_INFO, and the capability bits that control reading of
+		     * coordinate data are not set in any GeometryArray object referred
+		     * to by any shape node that intersects the PickShape.
+		     * The capability bits that must be set to avoid this exception are 
+                     * as follows :
+		     * 
+		     * By-copy geometry : GeometryArray.ALLOW_COORDINATE_READ
+		     * By-reference geometry : GeometryArray.ALLOW_REF_DATA_READ
+		     * Indexed geometry : IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ
+		     * (in addition to one of the above)
+		     *     
+		     */
+
+                    if (!pickNode.getCapability(Morph.ALLOW_GEOMETRY_ARRAY_READ)) {
+			throw new CapabilityNotSetException(J3dI18N.getString("PickInfo6"));
+		    }
+		    
+		    int numGeo = ((MorphRetained)(pickNode.retained)).getNumGeometryArrays();
+		    for (int j = 0; j < numGeo; j++) {
+			GeometryArray geo = ((Morph)pickNode).getGeometryArray(j);
+
+			if(!geo.getCapability(Geometry.ALLOW_INTERSECT)) {
+			    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo1"));
+			}
+
+			if(!geo.getCapability(GeometryArray.ALLOW_COORDINATE_READ))
+			    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo2"));
+			if(!geo.getCapability(GeometryArray.ALLOW_COUNT_READ))
+			    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo3"));
+			if(!geo.getCapability(GeometryArray.ALLOW_FORMAT_READ))
+			    throw new CapabilityNotSetException(J3dI18N.getString("PickInfo4"));
+			
+			if (geo instanceof IndexedGeometryArray) {
+			    if(!geo.getCapability(IndexedGeometryArray.ALLOW_COORDINATE_INDEX_READ))
+				throw new CapabilityNotSetException(J3dI18N.getString("PickInfo5"));   
+			}
+		    }
+
                     if (((MorphRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
                         pickInfoList.remove(i);                        
                     }
@@ -822,9 +918,6 @@ public class PickInfo extends Object {
 	return null;
 	    
     }
-
-    
-    
     
     /**
      * The IntersectionInfo object holds extra information about an intersection 
