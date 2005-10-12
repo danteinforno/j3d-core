@@ -581,7 +581,7 @@ public class PickInfo extends Object {
 				  GeometryAtom geomAtoms[],
 			          Locale locale, int flags, int pickType) {
 
-        PickInfo pickInfo; 
+        PickInfo pickInfo = null; 
         ArrayList pickInfoList = new ArrayList(5);
         NodeRetained srcNode;
         ArrayList text3dList = null;
@@ -647,6 +647,7 @@ public class PickInfo extends Object {
             // If srcNode is instance of compile retained, then loop thru
             // the entire source list and add it to the scene graph path
             if (srcNode instanceof Shape3DCompileRetained) {
+
                 Shape3DCompileRetained s3dCR = (Shape3DCompileRetained)srcNode;
                 
                 Node[] mpath = null;
@@ -654,7 +655,7 @@ public class PickInfo extends Object {
                 
                 for (int n = 0; n < s3dCR.srcList.length; n++) {
                     
-                    pickInfo = new PickInfo();
+                    pickInfo = null;
                     
                     // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
                     if (((flags & SCENEGRAPHPATH) != 0) && 
@@ -669,12 +670,16 @@ public class PickInfo extends Object {
                             SceneGraphPath sgpath = new SceneGraphPath(locale,
                                     mpath, (Node) s3dCR.srcList[n]);
                             sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+			    if(pickInfo == null)
+				pickInfo = new PickInfo();
                             pickInfo.setSceneGraphPath(sgpath);
                         }
                     }
 
                     // PickInfo.NODE - request for computed intersected Node.
                     if ((flags & NODE) != 0) {
+			if(pickInfo == null)
+			    pickInfo = new PickInfo();
                         pickInfo.setNode((Node) s3dCR.srcList[n]);
                     }
                     
@@ -682,9 +687,11 @@ public class PickInfo extends Object {
                     //    - request for computed local to virtual world transform.
                     if ((flags & LOCAL_TO_VWORLD) != 0) {
                         Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+			if(pickInfo == null)
+			    pickInfo = new PickInfo();
                         pickInfo.setLocalToVWorld( new Transform3D(l2vw));
                     }
-
+		    
                     // NOTE : Piggy bag for geometry computation by caller.
                     if (((flags & CLOSEST_DISTANCE) != 0) ||
                         ((flags & CLOSEST_GEOM_INFO) != 0) ||
@@ -693,10 +700,13 @@ public class PickInfo extends Object {
 
                         pickInfo.setNodeRef((Node) s3dCR.srcList[n]);
                         Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
-                        pickInfo.setLocalToVWorldRef(l2vw);
+			if(pickInfo == null)
+			    pickInfo = new PickInfo();
+			pickInfo.setLocalToVWorldRef(l2vw);
                     }
-                    
-                    pickInfoList.add(pickInfo);
+
+		    if(pickInfo != null)
+			pickInfoList.add(pickInfo);
                     if(pickType == PICK_ANY) {
                         return pickInfoList;                      
                     }
@@ -704,24 +714,27 @@ public class PickInfo extends Object {
             }
             else {
                 Node[] mpath = null;
-                pickInfo = new PickInfo();
-                
+
                 // PickInfo.SCENEGRAPHPATH - request for computed SceneGraphPath.
                 if (((flags & SCENEGRAPHPATH) != 0)  && 
                     (inside(shape.branchGroupPath,bgRetained))) {
-                    
+
                     mpath = createPath(srcNode, bgRetained, geomAtoms[i], initpath);
                     
                     if(mpath != null) {
                         SceneGraphPath sgpath = new SceneGraphPath(locale, mpath,
                                 (Node) srcNode.source);
                         sgpath.setTransform(shape.getCurrentLocalToVworld(0));
+			if(pickInfo == null) 
+			    pickInfo = new PickInfo();
                         pickInfo.setSceneGraphPath(sgpath);
                     }
                 }
                 
                 // PickInfo.NODE - request for computed intersected Node.
                 if ((flags & NODE) != 0) {
+		    if(pickInfo == null) 
+			pickInfo = new PickInfo();
                     pickInfo.setNode((Node) srcNode.source);
                 }
                 
@@ -729,6 +742,8 @@ public class PickInfo extends Object {
                 //    - request for computed local to virtual world transform.
                 if ((flags & LOCAL_TO_VWORLD) != 0) {
                     Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+		    if(pickInfo == null) 
+			pickInfo = new PickInfo();
                     pickInfo.setLocalToVWorld( new Transform3D(l2vw));
                 }
                 
@@ -740,15 +755,19 @@ public class PickInfo extends Object {
 
                     pickInfo.setNodeRef((Node) srcNode.source);                    
                     Transform3D l2vw = geomAtoms[i].source.getCurrentLocalToVworld();
+		    if(pickInfo == null) 
+			pickInfo = new PickInfo();
                     pickInfo.setLocalToVWorldRef(l2vw);
                 }
 
-                pickInfoList.add(pickInfo);
+		if(pickInfo != null)
+		    pickInfoList.add(pickInfo);
                 if(pickType == PICK_ANY) {
                     return pickInfoList;                      
                 }
             }
         }
+
 	return pickInfoList;
     }
 
@@ -761,7 +780,7 @@ public class PickInfo extends Object {
         BranchGroupRetained bgRetained = null;
         ArrayList initPath = null;
         ArrayList pickInfoList = null;
-
+	
         if (node instanceof Locale) {
             locale = (Locale) node;
         }
@@ -777,14 +796,14 @@ public class PickInfo extends Object {
                 locale, flags, pickType);
         }
         
-        // We done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
+        // We're done with PICK_BOUNDS case, but there is still more work for PICK_GEOMETRY case.
         if((mode == PICK_GEOMETRY) && ((pickInfoListSize = pickInfoList.size()) > 0)) {
             
             //System.out.println("PickInfo.pick() - In geometry case : pickInfoList.size() is " + pickInfoListSize);
             PickInfo pickInfo = null;
             Node pickNode = null;
             
-            // Need to do in reverse order.    
+            // Order is impt. Need to do in reverse order.    
             for(int i = pickInfoListSize - 1; i >= 0; i--) {
                 pickInfo = (PickInfo) pickInfoList.get(i);
                 pickNode = pickInfo.getNode();
@@ -841,9 +860,10 @@ public class PickInfo extends Object {
 		    }
 		    
 		    if (((Shape3DRetained)(pickNode.retained)).intersect(pickInfo, pickShape, flags) == false) {
-                        // System.out.println("  ---- geom " + i + " not intersected");
-                        
-                        pickInfoList.remove(i);
+			// System.out.println("  ---- geom " + i + " not intersected");
+
+                        pickInfoList.remove(i);			
+
                     }
                     else if(pickType == PICK_ANY) {
                         pickInfoArr = new PickInfo[1];
@@ -910,9 +930,14 @@ public class PickInfo extends Object {
             }
         }
 
+	// System.out.println("PickInfo : pickInfoList " + pickInfoList);
+
         if ((pickInfoList != null) && (pickInfoList.size() > 0)) {
-		pickInfoArr = new PickInfo[pickInfoList.size()];
-		return (PickInfo []) pickInfoList.toArray(pickInfoArr); 
+	    // System.out.println("   ---  : pickInfoList.size() " + pickInfoList.size());
+	    // System.out.println("   ---  : pickInfoList's sgp " + 
+	    // ((PickInfo)(pickInfoList.get(0))).getSceneGraphPath());
+	    pickInfoArr = new PickInfo[pickInfoList.size()];
+	    return (PickInfo []) pickInfoList.toArray(pickInfoArr); 
 	}
 	
 	return null;
