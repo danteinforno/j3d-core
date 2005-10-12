@@ -82,10 +82,12 @@ public class SharedGroup extends Group {
      * @since Java 3D 1.3
      */
     public Link[] getLinks() {
-	if (isLiveOrCompiled())
-	    if (!this.getCapability(ALLOW_LINK_READ))
+	if (isLiveOrCompiled()) {
+	    if (!this.getCapability(ALLOW_LINK_READ)) {
 			throw new CapabilityNotSetException(J3dI18N.getString("SharedGroup1"));
-		return ((SharedGroupRetained)retained).getLinks();	
+            }
+        }
+        return ((SharedGroupRetained)retained).getLinks();	
     }
 
 
