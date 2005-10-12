@@ -1500,7 +1500,7 @@ jint JNICALL Java_javax_media_j3d_NativeConfigTemplate3D_choosePixelFormat(
 
     if (pFormatInfo->supportARB) {
 	
-	fprintf(stderr, "Using non standard ChoosePixelFormat.\n");
+	/* fprintf(stderr, "Using non standard ChoosePixelFormat.\n"); */
 
 	mx_ptr = (*env)->GetIntArrayElements(env, attrList, NULL);
 	
