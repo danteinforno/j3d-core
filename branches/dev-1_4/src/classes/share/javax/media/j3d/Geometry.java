@@ -38,9 +38,16 @@ public abstract class Geometry extends NodeComponent {
     public static final int
     ALLOW_INTERSECT = CapabilityBits.GEOMETRY_ALLOW_INTERSECT;
 
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_INTERSECT
+    };
+    
     /**
      * Constructs a new Geometry object.
      */
     public Geometry() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 }

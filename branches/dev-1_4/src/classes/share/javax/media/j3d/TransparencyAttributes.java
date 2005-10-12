@@ -264,7 +264,13 @@ public class TransparencyAttributes extends NodeComponent {
 
     static final int MAX_BLEND_FUNC_TABLE_SIZE = 9;
 
-
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_BLEND_FUNCTION_READ,
+        ALLOW_MODE_READ,
+        ALLOW_VALUE_READ
+    };
+    
     /**
      * Constructs a TransparencyAttributes object with default parameters.
      * The default values are as follows:
@@ -277,6 +283,8 @@ public class TransparencyAttributes extends NodeComponent {
      */
     public TransparencyAttributes() {
 	// Just use the default for all attributes
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -347,6 +355,9 @@ public class TransparencyAttributes extends NodeComponent {
             default:
             throw new IllegalArgumentException(J3dI18N.getString("TransparencyAttributes8"));
         }
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
 
         ((TransparencyAttributesRetained)this.retained).initTransparencyMode(tMode);
         ((TransparencyAttributesRetained)this.retained).initTransparency(tVal);

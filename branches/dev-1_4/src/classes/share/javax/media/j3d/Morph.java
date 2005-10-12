@@ -151,9 +151,19 @@ public class Morph extends Leaf {
     public static final int ALLOW_APPEARANCE_OVERRIDE_WRITE =
 	CapabilityBits.MORPH_ALLOW_APPEARANCE_OVERRIDE_WRITE;
 
-
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_GEOMETRY_ARRAY_READ,
+        ALLOW_APPEARANCE_READ,
+        ALLOW_WEIGHTS_READ,        
+        ALLOW_COLLISION_BOUNDS_READ,
+        ALLOW_APPEARANCE_OVERRIDE_READ
+    };
+                
     // non public default constructor
     Morph() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);        
     }
 
     /**
@@ -196,6 +206,9 @@ public class Morph extends Leaf {
      * vertexFormat includes the <code>VERTEX_ATTRIBUTES</code> flag).
      */
     public Morph(GeometryArray geometryArrays[]) {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+        
 	((MorphRetained)retained).setGeometryArrays(geometryArrays);
     }
 
@@ -231,7 +244,10 @@ public class Morph extends Leaf {
      * vertexFormat includes the <code>VERTEX_ATTRIBUTES</code> flag).
      */
     public Morph(GeometryArray geometryArrays[], Appearance appearance) {
-	((MorphRetained)retained).setGeometryArrays(geometryArrays);
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+
+        ((MorphRetained)retained).setGeometryArrays(geometryArrays);
 	((MorphRetained)this.retained).setAppearance(appearance);
     }
 

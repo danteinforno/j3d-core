@@ -104,6 +104,11 @@ public class ShaderAppearance extends Appearance {
 	ALLOW_SHADER_ATTRIBUTE_SET_WRITE =
 	CapabilityBits.SHADER_APPEARANCE_ALLOW_SHADER_ATTRIBUTE_SET_WRITE;
 
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+	ALLOW_SHADER_PROGRAM_READ,
+	ALLOW_SHADER_ATTRIBUTE_SET_READ
+    };
 
     /**
      * Constructs a ShaderAppearance component object using defaults for all
@@ -112,6 +117,8 @@ public class ShaderAppearance extends Appearance {
      */
     public ShaderAppearance() {
 	// Just use default values
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**

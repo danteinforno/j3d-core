@@ -341,10 +341,23 @@ public abstract class GeometryArray extends Geometry {
     
     private static final int[] defTexCoordMap = { 0 };
 
- 
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_COLOR_READ,
+        ALLOW_COORDINATE_READ,
+        ALLOW_COUNT_READ,
+        ALLOW_FORMAT_READ,
+        ALLOW_NORMAL_READ,
+        ALLOW_REF_DATA_READ,
+        ALLOW_TEXCOORD_READ,
+        ALLOW_VERTEX_ATTR_READ        
+    };
+    
 
     // non-public, no parameter constructor
     GeometryArray() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
 
@@ -780,7 +793,10 @@ public abstract class GeometryArray extends Geometry {
                 throw new IllegalArgumentException(J3dI18N.getString("GeometryArray131"));
             }
         }
-
+        
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+        
         ((GeometryArrayRetained)this.retained).createGeometryArrayData(
 	    vertexCount, vertexFormat,
 	    texCoordSetCount, texCoordSetMap,

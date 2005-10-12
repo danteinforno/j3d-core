@@ -76,12 +76,18 @@ public class ShaderAttributeSet extends NodeComponent {
 	ALLOW_ATTRIBUTES_WRITE =
 	CapabilityBits.SHADER_ATTRIBUTE_SET_ALLOW_ATTRIBUTES_WRITE;
 
-
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_ATTRIBUTES_READ
+    };
+    
     /**
      * Constructs an empty ShaderAttributeSet object. The attributes set
      * is initially empty.
      */
     public ShaderAttributeSet() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     //

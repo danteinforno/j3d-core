@@ -61,11 +61,22 @@ public abstract class ShaderAttributeObject extends ShaderAttribute {
 	ALLOW_VALUE_WRITE =
 	CapabilityBits.SHADER_ATTRIBUTE_OBJECT_ALLOW_VALUE_WRITE;
 
+
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+	ALLOW_VALUE_READ
+    };
+
+
     /**
      * Package scope constructor
      */
     ShaderAttributeObject(String attrName, Object value) {
 	super(attrName);	
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+
 	((ShaderAttributeObjectRetained)this.retained).createObjectData(value);
     }
 

@@ -51,6 +51,11 @@ public class LinearFog extends Fog {
     public static final int
     ALLOW_DISTANCE_WRITE = CapabilityBits.LINEAR_FOG_ALLOW_DISTANCE_WRITE;
 
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+	ALLOW_DISTANCE_READ
+    };
+
     /**
      * Constructs a LinearFog node with default parameters.
      * The default values are as follows:
@@ -61,6 +66,8 @@ public class LinearFog extends Fog {
      */
     public LinearFog() {
 	// Just use the defaults
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -69,6 +76,9 @@ public class LinearFog extends Fog {
      */
     public LinearFog(Color3f color) {
 	super(color);
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -79,6 +89,10 @@ public class LinearFog extends Fog {
      */
     public LinearFog(Color3f color, double frontDistance, double backDistance) {
 	super(color);
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+
 	((LinearFogRetained)this.retained).initFrontDistance(frontDistance);
 	((LinearFogRetained)this.retained).initBackDistance(backDistance);
     }
@@ -91,6 +105,9 @@ public class LinearFog extends Fog {
      */
     public LinearFog(float r, float g, float b) {
 	super(r, g, b);
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -104,6 +121,10 @@ public class LinearFog extends Fog {
     public LinearFog(float r, float g, float b,
 		     double frontDistance, double backDistance) {
 	super(r, g, b);
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+
 	((LinearFogRetained)this.retained).initFrontDistance(frontDistance);
 	((LinearFogRetained)this.retained).initBackDistance(backDistance);
     }

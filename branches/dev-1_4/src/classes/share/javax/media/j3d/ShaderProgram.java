@@ -47,7 +47,12 @@ public abstract class ShaderProgram extends NodeComponent {
     public static final int ALLOW_NAMES_READ =
 	CapabilityBits.SHADER_PROGRAM_ALLOW_NAMES_READ;
 
-
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_SHADERS_READ,
+        ALLOW_NAMES_READ        
+    };
+    
     /*
      * Default values (copied from GeometryArray.java):
      *
@@ -59,6 +64,8 @@ public abstract class ShaderProgram extends NodeComponent {
      * outside the javax.media.j3d package.
      */
     ShaderProgram() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**

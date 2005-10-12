@@ -88,10 +88,21 @@ public class CompressedGeometry extends Geometry {
     ALLOW_REF_DATA_READ =
 	CapabilityBits.COMPRESSED_GEOMETRY_ALLOW_REF_DATA_READ;
 
+
+    // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+	ALLOW_COUNT_READ,
+	ALLOW_HEADER_READ,
+	ALLOW_GEOMETRY_READ,
+	ALLOW_REF_DATA_READ
+    };
+
     /**
      * Package scoped default constructor for use by cloneNodeComponent.
      */
     CompressedGeometry() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -156,6 +167,9 @@ public class CompressedGeometry extends Geometry {
 	if ((hdr.size + hdr.start) > compressedGeometry.length)
 	    throw new IllegalArgumentException
 		(J3dI18N.getString("CompressedGeometry0")) ;
+
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
 
 	// Create a separate copy of the given header.
 	cgHeader = new CompressedGeometryHeader() ;
