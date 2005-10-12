@@ -374,7 +374,26 @@ abstract class NodeRetained extends SceneGraphObjectRetained implements NnuId {
 	return;
     }    
     
-    
+    /**
+     * Compute the LocalToVworld of this node even though it is not live. We
+     * assume the graph is attached at the origin of a locale
+     */
+    void computeNonLiveLocalToVworld(Transform3D t, Node caller) {
+        NodeRetained n = getParent();
+        
+        if (n==null)
+            t.setIdentity();
+        else
+            n.computeNonLiveLocalToVworld(t, caller);
+        
+        if (this instanceof TransformGroupRetained && this.source!=caller) {
+            Transform3D trans = new Transform3D();
+            ((TransformGroupRetained)this).getTransform(trans);
+            t.mul(trans);
+        }
+        
+    }
+        
     /**
      * Get the localToVworld transform for a node.
      */
