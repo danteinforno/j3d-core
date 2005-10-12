@@ -276,24 +276,36 @@ public abstract class Node extends SceneGraphObject {
      * of all transforms in the scene graph from the root down to
      * <code>this</code> node.  It is only valid
      * for nodes that are part of a live scene graph.
+     * If the node is not part of a live scene graph then the coordinates are
+     * calculated as if the graph was attached at the origin of a locale.
      * @param t the object that will receive the local coordinates to
      * Vworld coordinates transform.
-     * @exception RestrictedAccessException if the node is <em>not</em>
+     * @exception RestrictedAccessException if the node is compiled but not 
      * part of a live scene graph
      * @exception CapabilityNotSetException if appropriate capability is
-     * not set and this node is part of live scene graph
+     * not set and this node is part of live or compiled scene graph
      * @exception IllegalSharingException if the node is a descendant
      * of a SharedGroup node.
      */
     public void getLocalToVworld(Transform3D t) {
-	if (!isLive())
-	    throw new RestrictedAccessException(J3dI18N.getString("Node7"));
-
-	if(!this.getCapability(ALLOW_LOCAL_TO_VWORLD_READ))
-	    throw new CapabilityNotSetException(J3dI18N.getString("Node8"));
-
-	((NodeRetained)this.retained).getLocalToVworld(t);
+        if (isLiveOrCompiled()) {
+            if(!this.getCapability(ALLOW_LOCAL_TO_VWORLD_READ))
+                    throw new CapabilityNotSetException(J3dI18N.getString("Node8"));
+        }
+        
+	if (!isLive()) {
+            // TODO Support compiled graphs
+            if (isCompiled())
+                throw new RestrictedAccessException(J3dI18N.getString("Node7"));
+            
+            // In 1.4 we support getLocalToVworld for non live nodes
+            ((NodeRetained)this.retained).computeNonLiveLocalToVworld(t, this);
+	    //throw new RestrictedAccessException(J3dI18N.getString("Node7"));
+        } else {
+            ((NodeRetained)this.retained).getLocalToVworld(t);
+        }
     }
+    
 
     /**
      * Retrieves the local coordinates to virtual world coordinates
@@ -312,15 +324,19 @@ public abstract class Node extends SceneGraphObject {
      * @exception IllegalArgumentException if the specified path does
      * not contain a valid Locale, or if the last node in the path is
      * different from this node
+     * @exception IllegalSharingException if the node is not a descendant
+     * of a SharedGroup node.
      */
     public void getLocalToVworld(SceneGraphPath path, Transform3D t) {
-	if (!isLive())
+	if (!isLive()) {
 	    throw new RestrictedAccessException(J3dI18N.getString("Node7"));
-
-	if(!this.getCapability(ALLOW_LOCAL_TO_VWORLD_READ))
-	    throw new CapabilityNotSetException(J3dI18N.getString("Node8"));
+        } 
+        
+        if(!this.getCapability(ALLOW_LOCAL_TO_VWORLD_READ))
+            throw new CapabilityNotSetException(J3dI18N.getString("Node8"));
 
         ((NodeRetained)this.retained).getLocalToVworld(path,t);
+        
     }
 
     /**
