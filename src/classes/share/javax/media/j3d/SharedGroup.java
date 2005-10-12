@@ -67,11 +67,17 @@ public class SharedGroup extends Group {
     public static final int
     ALLOW_LINK_READ = CapabilityBits.SHARED_GROUP_ALLOW_LINK_READ;
 
+    // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_LINK_READ
+    };
 
     /**
      * Constructs and initializes a new SharedGroup node object.
      */
     public SharedGroup() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);                
     }
 
 

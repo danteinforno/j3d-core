@@ -126,7 +126,7 @@ public abstract class Node extends SceneGraphObject {
     public static final int
         ALLOW_LOCALE_READ = CapabilityBits.NODE_ALLOW_LOCALE_READ;
 
-    // TODO Chien : set default read capabilities
+   // Array for setting default read capabilities
     private static final int[] readCapabilities = {
         ALLOW_BOUNDS_READ,
         ALLOW_PICKABLE_READ,
@@ -134,7 +134,7 @@ public abstract class Node extends SceneGraphObject {
         ALLOW_AUTO_COMPUTE_BOUNDS_READ,
         ALLOW_LOCAL_TO_VWORLD_READ,
         ALLOW_PARENT_READ,
-        ALLOW_LOCALE_READ,
+        ALLOW_LOCALE_READ
     };
 
     // for checking for cycles
@@ -152,7 +152,7 @@ public abstract class Node extends SceneGraphObject {
      * </ul>
      */
     public Node() {
-        // TODO Chien : set default read capabilities
+        // set default read capabilities
         setDefaultReadCapabilities(readCapabilities);
     }
 

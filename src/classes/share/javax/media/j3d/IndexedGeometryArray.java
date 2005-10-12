@@ -27,7 +27,10 @@ import javax.vecmath.*;
 public abstract class IndexedGeometryArray extends GeometryArray {
 
     // non-public, no parameter constructor
-    IndexedGeometryArray() {}
+    IndexedGeometryArray() {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
+    }
     
   /**
    * Specifies that this IndexedGeometryArray allows reading the array of
@@ -103,6 +106,15 @@ public abstract class IndexedGeometryArray extends GeometryArray {
     public static final int
         ALLOW_VERTEX_ATTR_INDEX_WRITE = CapabilityBits.INDEXED_GEOMETRY_ARRAY_ALLOW_VERTEX_ATTR_INDEX_WRITE;
 
+    // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_COLOR_INDEX_READ,
+        ALLOW_COORDINATE_INDEX_READ,
+        ALLOW_NORMAL_INDEX_READ,
+        ALLOW_TEXCOORD_INDEX_READ,
+        ALLOW_VERTEX_ATTR_INDEX_READ
+    };
+
     /**
      * Constructs an empty IndexedGeometryArray object with the specified
      * number of vertices, vertex format, and number of indices.
@@ -140,6 +152,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
         if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
             throw new RuntimeException("Vertex attributes not implemented");
         }
+        
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
 
         ((IndexedGeometryArrayRetained)this.retained).createIndexedGeometryArrayData(indexCount);
     }
@@ -237,6 +252,9 @@ public abstract class IndexedGeometryArray extends GeometryArray {
         if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
             throw new RuntimeException("Vertex attributes not implemented");
         }
+        
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
 
 	((IndexedGeometryArrayRetained)this.retained).createIndexedGeometryArrayData(indexCount);
     }

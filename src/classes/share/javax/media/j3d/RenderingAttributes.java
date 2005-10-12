@@ -638,6 +638,17 @@ public class RenderingAttributes extends NodeComponent {
      */
     public static final int STENCIL_INVERT = 6;
 
+   // Array for setting default read capabilities
+    private static final int[] readCapabilities = {
+        ALLOW_ALPHA_TEST_FUNCTION_READ,
+        ALLOW_ALPHA_TEST_VALUE_READ,
+        ALLOW_DEPTH_ENABLE_READ,
+        ALLOW_DEPTH_TEST_FUNCTION_READ,
+        ALLOW_IGNORE_VERTEX_COLORS_READ,        
+        ALLOW_RASTER_OP_READ,
+        ALLOW_STENCIL_ATTRIBUTES_READ,
+        ALLOW_VISIBLE_READ
+    };
 
     /**
      * Constructs a RenderingAttributes object with default parameters.
@@ -664,6 +675,8 @@ public class RenderingAttributes extends NodeComponent {
      */
     public RenderingAttributes() {
 	// Just use default attributes
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
     }
 
     /**
@@ -711,6 +724,8 @@ public class RenderingAttributes extends NodeComponent {
 			       boolean ignoreVertexColors,
 			       boolean rasterOpEnable,
 			       int rasterOp) {
+        // set default read capabilities
+        setDefaultReadCapabilities(readCapabilities);
 	
 	((RenderingAttributesRetained)this.retained).initDepthBufferEnable(depthBufferEnable);
 	((RenderingAttributesRetained)this.retained).initDepthBufferWriteEnable(depthBufferWriteEnable);
