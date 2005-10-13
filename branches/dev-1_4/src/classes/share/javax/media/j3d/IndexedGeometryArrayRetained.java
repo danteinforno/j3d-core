@@ -51,7 +51,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     int maxNormalIndex = 0;
     int[] maxTexCoordIndices = null;
     int[] maxVertexAttrIndices = null;
-    
+
     void createIndexedGeometryArrayData(int indexCount) {
         this.indexCount = indexCount;
         this.validIndexCount = indexCount;
@@ -961,107 +961,108 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
         }
     }
 
-
-    // used for GeometryArrays
-    // TODO KCR : vertex attrs
+    // by-copy or interleaved, by reference, Java arrays
     private native void executeIndexedGeometry(long ctx,
-			GeometryArrayRetained geo, int geo_type, 
-			boolean isNonUniformScale,
-			boolean useAlpha,
-			boolean multiScreen,
-			boolean ignoreVertexColors,
-		        int initialIndexIndex,
-			int indexCount,
-			int vertexCount, int vformat, 
-			int texCoordSetCount, int texCoordSetMap[],
-			int texCoordSetMapLen,
-		        int[] texCoordSetOffset,
-			int numActiveTexUnitState,
-			int[] texUnitStateMap,
-			float[] varray, float[] cdata, 
-		        int texUnitIndex, int cdirty, 
-			int[] indexCoord);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean useAlpha,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int initialIndexIndex,
+            int indexCount,
+            int vertexCount, int vformat,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen,
+            int[] texCoordSetOffset,
+            int numActiveTexUnitState,
+            int[] texUnitStateMap,
+            float[] varray, float[] cdata,
+            int texUnitIndex, int cdirty,
+            int[] indexCoord);
 
-    // used for interleaved, by reference, nio buffer 
+    // interleaved, by reference, nio buffer
     private native void executeIndexedGeometryBuffer(long ctx,
-				       GeometryArrayRetained geo, int geo_type, 
-				       boolean isNonUniformScale,
-				       boolean useAlpha,
-				       boolean multiScreen,
-				       boolean ignoreVertexColors,
-				       int initialIndexIndex,
-				       int indexCount,
-				       int vertexCount, int vformat, 
-				       int texCoordSetCount, int texCoordSetMap[],
-				       int texCoordSetMapLen,
-				       int[] texCoordSetOffset,
-				       int numActiveTexUnitState,
-				       int[] texUnitStateMap,
-				       Object varray, float[] cdata, 
-				       int texUnitIndex, int cdirty, 
-				       int[] indexCoord);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean useAlpha,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int initialIndexIndex,
+            int indexCount,
+            int vertexCount, int vformat,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen,
+            int[] texCoordSetOffset,
+            int numActiveTexUnitState,
+            int[] texUnitStateMap,
+            Object varray, float[] cdata,
+            int texUnitIndex, int cdirty,
+            int[] indexCoord);
 
-
-	
-    // TODO KCR : vertex attrs
+    // non interleaved, by reference, Java arrays
     private native void executeIndexedGeometryVA(long ctx,
-					 GeometryArrayRetained geo, int geo_type, 
-					 boolean isNonUniformScale, 
-					 boolean multiScreen,
-					 boolean ignoreVertexColors,
-					 int initialIndexIndex,
-					 int validIndexCount,
-					 int vertexCount,		 
-					 int vformat,
-					 int vdefined,
-					 float[] vfcoords, double[] vdcoords,
-					 float[] cfdata, byte[] cbdata,
-					 float[] ndata,
-					 int pass, int texcoordmaplength, 
-					 int[] texcoordoffset, 
-					 int numActiveTexUnitState, int[] texunitstatemap,
-					 int texstride, Object[] texCoords,
-					 int cdirty, 
-					 int[] indexCoord);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int initialIndexIndex,
+            int validIndexCount,
+            int vertexCount,
+            int vformat,
+            int vdefined,
+            float[] vfcoords, double[] vdcoords,
+            float[] cfdata, byte[] cbdata,
+            float[] ndata,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            float[][] vertexAttrData,
+            int pass, int texcoordmaplength,
+            int[] texcoordoffset,
+            int numActiveTexUnitState, int[] texunitstatemap,
+            int texstride, Object[] texCoords,
+            int cdirty,
+            int[] indexCoord);
 
     // non interleaved, by reference, nio buffer
-    // TODO KCR : vertex attrs
     private native void executeIndexedGeometryVABuffer(long ctx,
-					       GeometryArrayRetained geo, int geo_type, 
-					       boolean isNonUniformScale, 
-					       boolean multiScreen,
-					       boolean ignoreVertexColors,
-					       int initialIndexIndex,
-					       int validIndexCount,
-					       int vertexCount,		 
-					       int vformat,
-					       int vdefined,
-					       Object vcoords,
-					       Object cdataBuffer,	       
-					       float[] cfdata, byte[] cbdata,
-					       Object normal,
-					       int pass, int texcoordmaplength, 
-					       int[] texcoordoffset, 
-					       int numActiveTexUnitState, int[] texunitstatemap,
-					       int texstride, Object[] texCoords,
-					       int cdirty, 
-					       int[] indexCoord);
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale,
+            boolean multiScreen,
+            boolean ignoreVertexColors,
+            int initialIndexIndex,
+            int validIndexCount,
+            int vertexCount,
+            int vformat,
+            int vdefined,
+            Object vcoords,
+            Object cdataBuffer,
+            float[] cfdata, byte[] cbdata,
+            Object normal,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            Object[] vertexAttrData,
+            int pass, int texcoordmaplength,
+            int[] texcoordoffset,
+            int numActiveTexUnitState, int[] texunitstatemap,
+            int texstride, Object[] texCoords,
+            int cdirty,
+            int[] indexCoord);
 
-    // used for IndexedGeometry
-    // TODO KCR : vertex attrs
-    private native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
-				     boolean isNonUniformScale, boolean updateAlpha,
-				     float alpha,
-				     boolean ignoreVertexColors,
-				     int initialIndexIndex,
-				     int validIndexCount,
-				     int vertexCount,
-				     int vformat, 
-				     int texCoordSetCount, int texCoordSetMap[],
-				     int texCoordSetMapLen,
-				     int[] texCoordSetMapOffset, 
-				     double[] xform, double[] nxform,
-				     float[] varray, int[] indexCoord);
+    // by-copy geometry
+    private native void buildIndexedGeometry(long ctx,
+            GeometryArrayRetained geo, int geo_type,
+            boolean isNonUniformScale, boolean updateAlpha,
+            float alpha,
+            boolean ignoreVertexColors,
+            int initialIndexIndex,
+            int validIndexCount,
+            int vertexCount,
+            int vformat,
+            int vertexAttrCount, int[] vertexAttrSizes,
+            int texCoordSetCount, int texCoordSetMap[],
+            int texCoordSetMapLen,
+            int[] texCoordSetMapOffset,
+            double[] xform, double[] nxform,
+            float[] varray, int[] indexCoord);
 
 
     void execute(Canvas3D cv, RenderAtom ra, boolean isNonUniformScale, 
@@ -1110,22 +1111,22 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    dirtyFlag = 0;
                 }
 
-                // TODO KCR : vertex attrs
-                executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale, 
-				       useAlpha,
-				       multiScreen,
-				       ignoreVertexColors,
-				       initialIndexIndex, 
-				       validIndexCount,
-                // Vertex Count is maxCoordIndex + 1
-				       maxCoordIndex + 1, 
-				       ((vertexFormat & GeometryArray.COLOR) != 0)?(vertexFormat|GeometryArray.COLOR_4):vertexFormat,
-				       texCoordSetCount, texCoordSetMap,
-				       (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
-				       texCoordSetMapOffset, 
-				       cv.numActiveTexUnit, cv.texUnitStateMap, 
-				       vdata, null,
-				       pass, cdirty, indexCoord);
+                executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale,
+                        useAlpha,
+                        multiScreen,
+                        ignoreVertexColors,
+                        initialIndexIndex,
+                        validIndexCount,
+                        // Vertex Count is maxCoordIndex + 1
+                        maxCoordIndex + 1,
+                        ((vertexFormat & GeometryArray.COLOR) != 0)?(vertexFormat|GeometryArray.COLOR_4):vertexFormat,
+                        vertexAttrCount, vertexAttrSizes,
+                        texCoordSetCount, texCoordSetMap,
+                        (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
+                        texCoordSetMapOffset,
+                        cv.numActiveTexUnit, cv.texUnitStateMap,
+                        vdata, null,
+                        pass, cdirty, indexCoord);
 
 
 	    } // end of non by reference
@@ -1155,25 +1156,24 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    }
 		    dirtyFlag = 0;
 		}
-		
-		executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale, 
-				       useAlpha,
-				       multiScreen,
-				       ignoreVertexColors,
-				       initialIndexIndex, 
-				       validIndexCount, 
-				       maxCoordIndex + 1,
-				       vertexFormat,
-				       texCoordSetCount, texCoordSetMap,
-				       (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
-				       texCoordSetMapOffset, 
-				       cv.numActiveTexUnit, cv.texUnitStateMap, 
-				       interLeavedVertexData, cdata,
-				       pass, cdirty, indexCoord);
+
+                executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale,
+                        useAlpha,
+                        multiScreen,
+                        ignoreVertexColors,
+                        initialIndexIndex,
+                        validIndexCount,
+                        maxCoordIndex + 1,
+                        vertexFormat,
+                        vertexAttrCount, vertexAttrSizes,
+                        texCoordSetCount, texCoordSetMap,
+                        (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
+                        texCoordSetMapOffset,
+                        cv.numActiveTexUnit, cv.texUnitStateMap,
+                        interLeavedVertexData, cdata,
+                        pass, cdirty, indexCoord);
 	    }  //end of interleaved
 	    else {
-                // TODO KCR : vertex attrs
-
                 // Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -1181,7 +1181,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    (((vertexFormat & GeometryArray.COLOR) != 0) &&
 		     (vertexType & COLOR_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.NORMALS) != 0) &&
-		     (vertexType & NORMAL_DEFINED) == 0) || 
+		     (vertexType & NORMAL_DEFINED) == 0) ||
+		    (((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		     (vertexType & VATTR_DEFINED) == 0) ||
 		    (((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		     (vertexType & TEXCOORD_DEFINED) == 0)) {
 		    return;  
@@ -1245,29 +1247,32 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 			vdefined |= COLOR_BYTE;
 		    if((vertexType & NORMAL_DEFINED) != 0)
 			vdefined |= NORMAL_FLOAT;
-		    if((vertexType & TEXCOORD_DEFINED) != 0)
-			vdefined |= TEXCOORD_FLOAT;
-		    
-		    executeIndexedGeometryVA(cv.ctx, this, geoType, isNonUniformScale, 
-					     multiScreen, 
-					     ignoreVertexColors,
-					     initialIndexIndex,
-					     validIndexCount,
-					     maxCoordIndex + 1,
-					     (vertexFormat | c4fAllocated),
-					     vdefined,
-					     mirrorFloatRefCoords, mirrorDoubleRefCoords,
-					     cfdata, cbdata,
-					     mirrorFloatRefNormals,
-					     pass,
-					     ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
-					     texCoordSetMap,
-					     cv.numActiveTexUnit,
-					     cv.texUnitStateMap,
-					     texCoordStride,
-					     mirrorRefTexCoords, cdirty, indexCoord);
+                    if((vertexType & VATTR_DEFINED) != 0)
+                        vdefined |= VATTR_FLOAT;
+                    if((vertexType & TEXCOORD_DEFINED) != 0)
+                        vdefined |= TEXCOORD_FLOAT;
 
-		}
+                    executeIndexedGeometryVA(cv.ctx, this, geoType, isNonUniformScale,
+                            multiScreen,
+                            ignoreVertexColors,
+                            initialIndexIndex,
+                            validIndexCount,
+                            maxCoordIndex + 1,
+                            (vertexFormat | c4fAllocated),
+                            vdefined,
+                            mirrorFloatRefCoords, mirrorDoubleRefCoords,
+                            cfdata, cbdata,
+                            mirrorFloatRefNormals,
+                            vertexAttrCount, vertexAttrSizes,
+                            mirrorFloatRefVertexAttrs,
+                            pass,
+                            ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
+                            texCoordSetMap,
+                            cv.numActiveTexUnit,
+                            cv.texUnitStateMap,
+                            texCoordStride,
+                            mirrorRefTexCoords, cdirty, indexCoord);
+                }
 	    } // end of non interleaved and by reference
 	}//end of non io buffer
 
@@ -1315,8 +1320,6 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				       pass, cdirty, indexCoord);
 	    }  //end of interleaved
 	    else {
-                // TODO KCR : vertex attrs
-
                 // Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
@@ -1324,7 +1327,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    (((vertexFormat & GeometryArray.COLOR) != 0) &&
 		     (vertexType & COLOR_DEFINED) == 0) ||
 		    (((vertexFormat & GeometryArray.NORMALS) != 0) &&
-		     (vertexType & NORMAL_DEFINED) == 0) || 
+		     (vertexType & NORMAL_DEFINED) == 0) ||
+		    (((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) &&
+		     (vertexType & VATTR_DEFINED) == 0) ||
 		    (((vertexFormat& GeometryArray.TEXTURE_COORDINATE) != 0) &&
 		     (vertexType & TEXCOORD_DEFINED) == 0)) {
 		    return;  
@@ -1403,29 +1408,37 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 			vdefined |= NORMAL_FLOAT;
 			normal = floatBufferRefNormals.getBufferAsObject();
 		    }
-		    
-		    if((vertexType & TEXCOORD_DEFINED) != 0)
-		       vdefined |= TEXCOORD_FLOAT;
 
-		    executeIndexedGeometryVABuffer(cv.ctx, this, geoType, isNonUniformScale, 
-						   multiScreen, 
-						   ignoreVertexColors,
-						   initialIndexIndex,
-						   validIndexCount,
-						   maxCoordIndex + 1,
-						   (vertexFormat | c4fAllocated),
-						   vdefined,
-						   vcoord,
-						   cdataBuffer,
-						   cfdata, cbdata,
-						   normal,
-						   pass,
-						   ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
-						   texCoordSetMap,
-						   cv.numActiveTexUnit,
-						   cv.texUnitStateMap,
-						   texCoordStride,
-						   refTexCoords, cdirty, indexCoord);
+                    if ((vertexType & VATTR_DEFINED) != 0) {
+                       vdefined |= VATTR_FLOAT;
+                    }
+
+                    if ((vertexType & TEXCOORD_DEFINED) != 0) {
+                       vdefined |= TEXCOORD_FLOAT;
+                    }
+
+                    executeIndexedGeometryVABuffer(cv.ctx,
+                            this, geoType, isNonUniformScale,
+                            multiScreen,
+                            ignoreVertexColors,
+                            initialIndexIndex,
+                            validIndexCount,
+                            maxCoordIndex + 1,
+                            (vertexFormat | c4fAllocated),
+                            vdefined,
+                            vcoord,
+                            cdataBuffer,
+                            cfdata, cbdata,
+                            normal,
+                            vertexAttrCount, vertexAttrSizes,
+                            nioFloatBufferRefVertexAttrs,
+                            pass,
+                            ((texCoordSetMap == null) ? 0:texCoordSetMap.length),
+                            texCoordSetMap,
+                            cv.numActiveTexUnit,
+                            cv.texUnitStateMap,
+                            texCoordStride,
+                            refTexCoords, cdirty, indexCoord);
 
 		}
 	    } // end of non interleaved and by reference
@@ -1445,8 +1458,6 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	else {
 	    
 	    if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
-                // TODO KCR : vertex attrs
-
                 float[] vdata;
 		//	    System.out.println("by-copy");
 		synchronized (this) {
@@ -1477,22 +1488,23 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    dirtyFlag = 0;
 		}
 
-		buildIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale, 
-				     updateAlpha, alpha, ignoreVertexColors,
-				     initialIndexIndex,
-				     validIndexCount,
-				     maxCoordIndex + 1,
-				     vertexFormat, 
-				     texCoordSetCount, texCoordSetMap,
-				     (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
-				     texCoordSetMapOffset, 
-				     (xform == null) ? null : xform.mat,
-				     (nxform == null) ? null : nxform.mat,
-				     vdata, indexCoord);
+                buildIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale,
+                        updateAlpha, alpha, ignoreVertexColors,
+                        initialIndexIndex,
+                        validIndexCount,
+                        maxCoordIndex + 1,
+                        vertexFormat,
+                        vertexAttrCount, vertexAttrSizes,
+                        texCoordSetCount, texCoordSetMap,
+                        (texCoordSetMap == null) ? 0 : texCoordSetMap.length,
+                        texCoordSetMapOffset,
+                        (xform == null) ? null : xform.mat,
+                        (nxform == null) ? null : nxform.mat,
+                        vdata, indexCoord);
 	    }
             // XXXX: Note that there is no "else" clause here, and no
             // buildIndexedGeometryForByRef() method.
-            // We would need to create one if we ever wanted to support
+            // We would need to create one if we ever wanted to support by-ref
             // indexed geometry in display lists. Better yet, we could fix
             // canBeInDisplayList so that unindexified by-ref geometry could
             // go into a display list.
