@@ -141,7 +141,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
     }
 
     private void unIndexifyJavaArray(IndexedGeometryStripArrayRetained src) {
-//        System.err.println("unIndexifyJavaArray");
+        System.err.println("unIndexifyJavaArray: under construction");
 
         // TODO KCR : vertex attrs
 
@@ -493,7 +493,7 @@ abstract class GeometryStripArrayRetained extends GeometryArrayRetained {
     }
 
     private void unIndexifyNIOBuffer(IndexedGeometryStripArrayRetained src) {
-//        System.err.println("unIndexifyNIOBuffer");
+        System.err.println("unIndexifyNIOBuffer: under construction");
 
         // TODO KCR : vertex attrs
 
