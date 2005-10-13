@@ -581,7 +581,6 @@ public class PickInfo extends Object {
 				  GeometryAtom geomAtoms[],
 			          Locale locale, int flags, int pickType) {
 
-        PickInfo pickInfo = null; 
         ArrayList pickInfoList = new ArrayList(5);
         NodeRetained srcNode;
         ArrayList text3dList = null;
@@ -591,13 +590,13 @@ public class PickInfo extends Object {
         }
         
 	for (int i=0; i < geomAtoms.length; i++) {
-            
             assert((geomAtoms[i] != null) &&
                     (geomAtoms[i].source != null));
             
+	    PickInfo pickInfo = null;
             Shape3DRetained shape = geomAtoms[i].source;
-            srcNode = shape.sourceNode;           
-            
+            srcNode = shape.sourceNode;
+
             if (srcNode == null) {
                 // The node is just detach from branch so sourceNode = null
                 continue;
