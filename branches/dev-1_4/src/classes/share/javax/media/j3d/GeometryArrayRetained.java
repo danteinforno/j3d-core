@@ -2989,10 +2989,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	}
     }
 
-    void unIndexifyJavaArray(IndexedGeometryArrayRetained src) {
-        // TODO KCR : handle vertex attributes
-        
-	int vOffset = 0, srcOffset, tOffset = 0;
+    private void unIndexifyJavaArray(IndexedGeometryArrayRetained src) {
+//        System.err.println("unIndexifyJavaArray");
+
+        int vOffset = 0, srcOffset, tOffset = 0;
         int index, colorStride = 0;
 	float[] vdata = null;
         int i;
@@ -3052,6 +3052,20 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			    vertexData, tcOffset, texCoordStride);
 		    }
 		}
+
+                if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+                    // vertex attributes can't be interleaved
+                    assert (src.vertexFormat & GeometryArray.INTERLEAVED) == 0;
+
+		    for (i = 0; i < vertexAttrCount; i++) {
+                        int vaOffset = vOffset + vertexAttrOffsets[i];
+
+			 System.arraycopy(vdata,
+			    (src.indexVertexAttr[i][index])*src.stride + src.vertexAttrOffsets[i],
+			    vertexData, vaOffset, vertexAttrSizes[i]);
+		    }
+                }
+
 		if ((vertexFormat & GeometryArray.COORDINATES) != 0){
 		    //		    System.out.println("===> copying coords");
 		    System.arraycopy(vdata,
@@ -3064,7 +3078,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    }
 
 	} else {
-	    if ((vertexFormat & GeometryArray.NORMALS) != 0){
+	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
 		vOffset = normalOffset;
 		switch ((src.vertexType & NORMAL_DEFINED)) { 
 		case NF: 
@@ -3089,7 +3103,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    break;
 		}
 	    }
-	    if ((vertexFormat & GeometryArray.COLOR) != 0){
+
+	    if ((vertexFormat & GeometryArray.COLOR) != 0) {
 		vOffset = colorOffset;
 		int multiplier = 3;
 		if ((src.vertexFormat & GeometryArray.WITH_ALPHA) != 0)
@@ -3173,6 +3188,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    break;
 		}
 	    }
+
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		vOffset = textureOffset;
 		switch ((src.vertexType & TEXCOORD_DEFINED)) {
@@ -3221,8 +3237,26 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		default:
 		    break;
 		}
-	    }	
-	    if ((vertexFormat & GeometryArray.COORDINATES) != 0){
+	    }
+
+            if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		vOffset = 0;
+		switch (src.vertexType & VATTR_DEFINED) {
+		case AF:
+		    for (index=start; index < end; index++) {
+			for (i = 0; i < vertexAttrCount; i++) {
+                            int vaOffset = vOffset + vertexAttrOffsets[i];
+			    System.arraycopy(src.floatRefVertexAttrs[i],
+				src.indexVertexAttr[i][index]*vertexAttrSizes[i],
+				vertexData, vaOffset, vertexAttrSizes[i]);
+			}
+			vOffset += stride;
+		    }
+		    break;
+		}
+            }
+
+	    if ((vertexFormat & GeometryArray.COORDINATES) != 0) {
 		vOffset = coordinateOffset;
 		switch ((src.vertexType & VERTEX_DEFINED)) {
 		case PF:
@@ -3267,13 +3301,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    }		
 
 	}
-    }   
+    }
 
 
-    void unIndexifyNIOBuffer(IndexedGeometryArrayRetained src) {
-        // TODO KCR : handle vertex attributes
-        
-	int vOffset = 0, srcOffset, tOffset = 0;
+    private void unIndexifyNIOBuffer(IndexedGeometryArrayRetained src) {
+//        System.err.println("unIndexifyNIOBuffer");
+
+        int vOffset = 0, srcOffset, tOffset = 0;
         int index, colorStride = 0;
 	float[] vdata = null;
         int i;
@@ -3331,7 +3365,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    }
 		}
 	    }
-	    if ((vertexFormat & GeometryArray.COLOR) != 0){
+
+            if ((vertexFormat & GeometryArray.COLOR) != 0){
 		vOffset = colorOffset;
 		int multiplier = 3;
 		if ((src.vertexFormat & GeometryArray.WITH_ALPHA) != 0)
@@ -3372,7 +3407,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		    break;
 		}
 	    }
-	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
+
+            if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		vOffset = textureOffset;
 		 FloatBufferWrapper texBuffer;
 		if ((src.vertexType & TEXCOORD_DEFINED) != 0) {
@@ -3387,8 +3423,24 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			vOffset += stride;
 		    }
 		}
-	    }	
-	    if ((vertexFormat & GeometryArray.COORDINATES) != 0){
+	    }
+
+            if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		vOffset = 0;
+		if ((src.vertexType & VATTR_DEFINED) == AF) {
+		    for (index=start; index < end; index++) {
+			for (i = 0; i < vertexAttrCount; i++) {
+                            int vaOffset = vOffset + vertexAttrOffsets[i];
+			    FloatBufferWrapper vaBuffer = src.floatBufferRefVertexAttrs[i];
+			    vaBuffer.position(src.indexVertexAttr[i][index]*vertexAttrSizes[i]);
+			    vaBuffer.get(vertexData, vaOffset, vertexAttrSizes[i]);
+			}
+			vOffset += stride;
+		    }
+		}
+	    }
+
+            if ((vertexFormat & GeometryArray.COORDINATES) != 0){
 		vOffset = coordinateOffset;
 		switch ((src.vertexType & VERTEX_DEFINED)) {
 		case PF:
@@ -3413,7 +3465,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    }		
 
 	}
-    }   
+    }
+
 
     /**
      * Returns the vertex stride in numbers of floats as a function 
@@ -8595,18 +8648,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	if (coords != null) {
 	    switch (coords.getBufferType()) {
 	    case J3DBuffer.TYPE_FLOAT:
-		if ( !((FloatBufferWrapper)coords.getBufferImpl()).isDirect())
-		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
-
-		// TODO: need to check whether byte order is is consistent
-		// with native byte order
+		assert ((FloatBufferWrapper)coords.getBufferImpl()).isDirect();
 		break;
 	    case J3DBuffer.TYPE_DOUBLE:
-		if ( !((DoubleBufferWrapper)coords.getBufferImpl()).isDirect())
-		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
-
-		// TODO: need to check whether byte order is is consistent
-		// with native byte order
+		assert ((DoubleBufferWrapper)coords.getBufferImpl()).isDirect();
 		break;
 	    case J3DBuffer.TYPE_NULL:
 		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray115"));
@@ -8933,12 +8978,10 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	if (colors != null) {
 	    switch(colors.getBufferType()) {
 	    case J3DBuffer.TYPE_FLOAT:
-		if ( !((FloatBufferWrapper)colors.getBufferImpl()).isDirect())
-		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
+		assert ((FloatBufferWrapper)colors.getBufferImpl()).isDirect();
 		break;
 	    case J3DBuffer.TYPE_BYTE:
-		if ( !((ByteBufferWrapper)colors.getBufferImpl()).isDirect())
-		    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
+		assert ((ByteBufferWrapper)colors.getBufferImpl()).isDirect();
 		break;
 	    case J3DBuffer.TYPE_NULL:
 		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray115"));
@@ -9317,8 +9360,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    
 	    bufferImpl = (FloatBufferWrapper)normals.getBufferImpl();
 
-	    if ( ! bufferImpl.isDirect())
-		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
+	    assert bufferImpl.isDirect();
 
 	    if ((vertexFormat & GeometryArray.NORMALS) == 0) {
 		throw new IllegalStateException(J3dI18N.getString("GeometryArray122"));
@@ -9478,8 +9520,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    bufferImpl = (FloatBufferWrapper)texCoords.getBufferImpl();
 	    int bufferSize = bufferImpl.limit();
 
-	    if ( ! bufferImpl.isDirect())
-		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
+	    assert bufferImpl.isDirect();
 
 	    int ts = getTexStride();
 
@@ -9654,11 +9695,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
             if (this instanceof IndexedGeometryArrayRetained) {
                 IndexedGeometryArrayRetained idx = (IndexedGeometryArrayRetained)this;
 
-                // TODO KCR : handle vertex attrs for indexed geometry
-//		if (sz*idx.maxVertexAttrIndices[vertexAttrNum] >= vertexAttrs.length) {
-//		    // TODO: new exception string
-//		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray25 XXX"));
-//		}
+		if (sz*idx.maxVertexAttrIndices[vertexAttrNum] >= vertexAttrs.length) {
+		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray30"));
+		}
 
 	    } else if (vertexAttrs.length < sz*(initialVertexAttrIndex[vertexAttrNum] + validVertexCount) ) {
 		throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray129"));
@@ -9706,20 +9745,16 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	    bufferImpl = (FloatBufferWrapper)vertexAttrs.getBufferImpl();
 	    int bufferSize = bufferImpl.limit();
 
-	    if (!bufferImpl.isDirect()) {
-		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
-            }
+	    assert bufferImpl.isDirect();
 
 	    int sz = vertexAttrSizes[vertexAttrNum];
 
             if (this instanceof IndexedGeometryArrayRetained) {
 		IndexedGeometryArrayRetained idx = (IndexedGeometryArrayRetained)this;
 
-                // TODO KCR : handle vertex attrs for indexed geometry
-//		if (idx.maxVertexAttrIndices[vertexAttrNum] * sz >= bufferSize) {
-//                    // TODO: new exception string
-//		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray25 XXX"));
-//		}
+		if (idx.maxVertexAttrIndices[vertexAttrNum] * sz >= bufferSize) {
+		    throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray30"));
+		}
 	    } else if (bufferSize < sz*(initialVertexAttrIndex[vertexAttrNum] + validVertexCount)) {
 		throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("GeometryArray129"));
             }
@@ -9817,10 +9852,9 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray116"));
 	    
 	    bufferImpl = (FloatBufferWrapper)vertexData.getBufferImpl();
-	    
-	    if (!bufferImpl.isDirect())
-		throw new IllegalArgumentException(J3dI18N.getString("GeometryArray120"));
-	    
+
+            assert bufferImpl.isDirect();
+
 	    int bufferSize = bufferImpl.limit();
 
 	    if (this instanceof IndexedGeometryArrayRetained) {
@@ -10726,7 +10760,8 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	float[] curVertexData;
 	int length, srcOffset;
 	int curOffset = 0;
-	// We only merge if the texCoordSetCount is 1;
+	// We only merge if the texCoordSetCount is 1 and there are no
+        // vertex attrs
 	if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 	    texCoordSetCount = 1;
 	    texCoordSetMap = new int[1];
@@ -10838,7 +10873,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	geomLock.getLock();
 	if (this instanceof IndexedGeometryArrayRetained) {
 	    if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
-		mirrorGeometry = (GeometryRetained)
+		mirrorGeometry =
 		    ((IndexedGeometryArrayRetained)this).cloneNonIndexedGeometry();
 	    }
 	    else {
@@ -10854,7 +10889,7 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 	geomLock.getLock();
 	if (this instanceof IndexedGeometryArrayRetained) {
 	    if (mirrorGeometry != null) {
-		mirrorGeometry = (GeometryRetained)
+		mirrorGeometry =
 		    ((IndexedGeometryArrayRetained)this).cloneNonIndexedGeometry();
 	    }
 	}

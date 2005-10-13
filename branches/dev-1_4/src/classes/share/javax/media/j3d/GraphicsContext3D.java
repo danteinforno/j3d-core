@@ -1979,7 +1979,7 @@ public class GraphicsContext3D extends Object   {
 	        if ((geometry.retained instanceof IndexedGeometryArrayRetained) &&
 		    ((((GeometryArrayRetained)geometry.retained).vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0)) {
 		    if (geoRetained.dirtyFlag != 0) {
-			geoRetained.mirrorGeometry = (GeometryRetained) 
+			geoRetained.mirrorGeometry =
 			    ((IndexedGeometryArrayRetained)geoRetained).cloneNonIndexedGeometry();
 			// Change the source geometry dirtyFlag
 			// drawGeo.execute() will change the

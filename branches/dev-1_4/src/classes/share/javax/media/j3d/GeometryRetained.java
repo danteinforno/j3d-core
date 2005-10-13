@@ -255,6 +255,13 @@ abstract class GeometryRetained extends NodeComponentRetained {
     }
 
 
+    // Return a flag indicating whether or not this Geometry object can be in
+    // a display list.
+    //
+    // XXXX: Note that for IndexedGeometryArray objects, the original
+    // vertex format is used in making this determination, even when it has
+    // been unindexified. This should be fixed by using the vertex format of
+    // the mirror geometry if there is one.
     boolean canBeInDisplayList(boolean alphaEditable) {
         // Check global flag to see whether we can build display lists
         if (!VirtualUniverse.mc.isDisplayList) {
@@ -262,6 +269,8 @@ abstract class GeometryRetained extends NodeComponentRetained {
         }
 
         // Can't build display lists if geometry is editable
+        // XXXX: should look at isFrequent bit and allow DL if
+        // infrequently writable
         if (this.isEditable) {
             return false;
         }
@@ -289,6 +298,10 @@ abstract class GeometryRetained extends NodeComponentRetained {
                     return false;
                 }
 
+                // XXXX: we could change this to allow display lists for
+                // non-interleaved NIO buffers, but we would first need to
+                // update the now-obsolete buildGAForBuffer method to handle
+                // vertex attrs
                 if ((vFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
                     return false;
                 }
