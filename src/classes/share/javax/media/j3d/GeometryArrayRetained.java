@@ -36,8 +36,6 @@ import com.sun.j3d.internal.DoubleBufferWrapper;
 
 abstract class GeometryArrayRetained extends GeometryRetained{
 
-
-
     // XXXX: Memory footprint reduction. Should have separate object to
     //       to contain specific data such as a ByRef object for
     //       all ByRef related data. So that incases where no
@@ -5251,8 +5249,21 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point2f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+	this.vertexData[offset] = vertexAttr.x;
+	this.vertexData[offset+1] = vertexAttr.y;
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
     /**
@@ -5267,8 +5278,22 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point3f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+	this.vertexData[offset] = vertexAttr.x;
+	this.vertexData[offset+1] = vertexAttr.y;
+	this.vertexData[offset+2] = vertexAttr.z;
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
     /**
@@ -5283,8 +5308,23 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttr(int vertexAttrNum, int index,
 		       Point4f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+	this.vertexData[offset] = vertexAttr.x;
+	this.vertexData[offset+1] = vertexAttr.y;
+	this.vertexData[offset+2] = vertexAttr.z;
+	this.vertexData[offset+3] = vertexAttr.w;
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
     /**
@@ -5304,10 +5344,6 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     void setVertexAttrs(int vertexAttrNum, int index,
 			float[] vertexAttrs,
 			int start, int length) {
-
-        if ((this.vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
-            throw new IllegalStateException(J3dI18N.getString("GeometryArray82"));
-        }
 
 	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
         int size = vertexAttrSizes[vertexAttrNum];
@@ -5350,8 +5386,24 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point2f[] vertexAttrs,
 			int start, int length) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j, k;
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+        for (i = start, j = offset, k = 0; k < length; i++, j += this.stride, k++) {
+	    this.vertexData[j] = vertexAttrs[i].x;
+	    this.vertexData[j+1] = vertexAttrs[i].y;
+        }
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
     /**
@@ -5373,8 +5425,25 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point3f[] vertexAttrs,
 			int start, int length) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j, k;
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+        for (i = start, j = offset, k = 0; k < length; i++, j += this.stride, k++) {
+	    this.vertexData[j] = vertexAttrs[i].x;
+	    this.vertexData[j+1] = vertexAttrs[i].y;
+	    this.vertexData[j+2] = vertexAttrs[i].z;
+        }
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
     /**
@@ -5396,8 +5465,26 @@ abstract class GeometryArrayRetained extends GeometryRetained{
 			Point4f[] vertexAttrs,
 			int start, int length) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j, k;
+
+	geomLock.getLock();
+	dirtyFlag |= VATTR_CHANGED;
+
+        for (i = start, j = offset, k = 0; k < length; i++, j += this.stride, k++) {
+	    this.vertexData[j] = vertexAttrs[i].x;
+	    this.vertexData[j+1] = vertexAttrs[i].y;
+	    this.vertexData[j+2] = vertexAttrs[i].z;
+	    this.vertexData[j+3] = vertexAttrs[i].w;
+        }
+        
+	if (source == null || !source.isLive()) {
+	    geomLock.unLock();
+	    return;
+	}
+
+	geomLock.unLock();
+	sendDataChangedMessage(false);
     }
 
 
@@ -6021,8 +6108,14 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttr(int vertexAttrNum, int index,
 			      float[] vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int size = vertexAttrSizes[vertexAttrNum];
+
+	for (int i = 0; i < size; i++) {
+	    vertexAttr[i] = this.vertexData[offset+i];
+	    
+        }
+
     }
 
     /**
@@ -6033,8 +6126,11 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttr(int vertexAttrNum, int index,
 			      Point2f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	vertexAttr.x = this.vertexData[offset];
+	vertexAttr.y = this.vertexData[offset+1];
+
     }
 
     /**
@@ -6045,8 +6141,12 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttr(int vertexAttrNum, int index,
 			      Point3f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	vertexAttr.x = this.vertexData[offset];
+	vertexAttr.y = this.vertexData[offset+1];
+	vertexAttr.z = this.vertexData[offset+2];
+
     }
 
     /**
@@ -6057,8 +6157,13 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttr(int vertexAttrNum, int index,
 			      Point4f vertexAttr) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+
+	vertexAttr.x = this.vertexData[offset];
+	vertexAttr.y = this.vertexData[offset+1];
+	vertexAttr.z = this.vertexData[offset+2];
+	vertexAttr.w = this.vertexData[offset+3];
+
     }
 
     /**
@@ -6069,9 +6174,18 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttrs(int vertexAttrNum, int index,
 			       float[] vertexAttrs) {
 
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int size = vertexAttrSizes[vertexAttrNum];
+        int i, j, k;
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+        for (i = 0, j = offset; 
+	     ((i < vertexAttrs.length) && (j < this.vertexData.length)) ; 
+	     i += size, j += this.stride) {
+            for (k = 0; k < size; k++) {
+                vertexAttrs[i+k] = this.vertexData[j+k];
+            }
+        }
+
     }
 
     /**
@@ -6082,8 +6196,16 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttrs(int vertexAttrNum, int index,
 			       Point2f[] vertexAttrs) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j;
+
+        for (i = 0, j = offset; 
+	     ((i < vertexAttrs.length) && (j < this.vertexData.length)) ; 
+	     i++, j += this.stride) {
+	    vertexAttrs[i].x = this.vertexData[j];
+	    vertexAttrs[i].y = this.vertexData[j+1];
+        }
+
     }
 
     /**
@@ -6094,8 +6216,17 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttrs(int vertexAttrNum, int index,
 			       Point3f[] vertexAttrs) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j;
+
+        for (i = 0, j = offset; 
+	     ((i < vertexAttrs.length) && (j < this.vertexData.length)) ; 
+	     i++, j += this.stride) {
+	    vertexAttrs[i].x = this.vertexData[j];
+	    vertexAttrs[i].y = this.vertexData[j+1];
+	    vertexAttrs[i].z = this.vertexData[j+2];
+        }
+
     }
 
     /**
@@ -6106,8 +6237,18 @@ abstract class GeometryArrayRetained extends GeometryRetained{
     public void getVertexAttrs(int vertexAttrNum, int index,
 			       Point4f[] vertexAttrs) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int offset = this.stride*index + vertexAttrOffsets[vertexAttrNum];
+        int i, j;
+
+        for (i = 0, j = offset; 
+	     ((i < vertexAttrs.length) && (j < this.vertexData.length)) ; 
+	     i++, j += this.stride) {
+	    vertexAttrs[i].x = this.vertexData[j];
+	    vertexAttrs[i].y = this.vertexData[j+1];
+	    vertexAttrs[i].z = this.vertexData[j+2];
+	    vertexAttrs[i].w = this.vertexData[j+3];
+        }
+
     }
 
 
