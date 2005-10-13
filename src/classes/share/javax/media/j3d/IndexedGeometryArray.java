@@ -148,11 +148,6 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 				int indexCount) {
 	super(vertexCount, vertexFormat);
 
-        // TODO KCR: Temporary until vertex attributes are implemented for indexed geometry
-        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
-            throw new RuntimeException("Vertex attributes not implemented");
-        }
-        
         // set default read capabilities
         setDefaultReadCapabilities(readCapabilities);
 
@@ -247,12 +242,7 @@ public abstract class IndexedGeometryArray extends GeometryArray {
 	super(vertexCount, vertexFormat,
 	      texCoordSetCount, texCoordSetMap,
 	      vertexAttrCount, vertexAttrSizes);
-        
-        // TODO KCR: Temporary until vertex attributes are implemented for indexed geometry
-        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
-            throw new RuntimeException("Vertex attributes not implemented");
-        }
-        
+
         // set default read capabilities
         setDefaultReadCapabilities(readCapabilities);
 

@@ -743,8 +743,13 @@ public abstract class GeometryArray extends Geometry {
             throw new IllegalArgumentException(J3dI18N.getString("GeometryArray128"));
         }
 
+        if ((vertexFormat & USE_COORD_INDEX_ONLY) != 0 &&
+                !(this instanceof IndexedGeometryArray)) {
+            throw new IllegalArgumentException(J3dI18N.getString("GeometryArray135"));
+        }
+
         if ((vertexFormat & USE_NIO_BUFFER) != 0 &&
-	    (vertexFormat & BY_REFERENCE) == 0)
+            (vertexFormat & BY_REFERENCE) == 0)
 	    throw new IllegalArgumentException(J3dI18N.getString("GeometryArray117"));
 
 	if ((vertexFormat & TEXTURE_COORDINATE) != 0) {

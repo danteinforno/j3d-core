@@ -2073,7 +2073,6 @@ executeIndexedGeometryArray(
     int cstride = 0;
     table = *env;
 
-    /*    fprintf(stderr, "Java_javax_media_j3d_IndexedGeometryArrayRetained_executeIndexedGeometry \n");*/
     geo_class =  (jclass) (*(table->GetObjectClass))(env, geo);
 
     /* This matches the code in GeometryArrayRetained.java */

@@ -90,32 +90,37 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
         }
     }
 
-  
-  Object cloneNonIndexedGeometry() {
-     GeometryArrayRetained obj = null;
-     int vOffset;
-     
-     switch (this.geoType) {
-     case GEO_TYPE_INDEXED_LINE_SET:
-        obj = new LineArrayRetained();
-        break;
-     case GEO_TYPE_INDEXED_POINT_SET:
-        obj = new PointArrayRetained();
-        break;
-     case GEO_TYPE_INDEXED_QUAD_SET:
-        obj = new QuadArrayRetained();
-        break;
-     case GEO_TYPE_INDEXED_TRI_SET:
-        obj = new TriangleArrayRetained();
-        break;
-     }
-     obj.createGeometryArrayData(validIndexCount, (vertexFormat & ~(GeometryArray.BY_REFERENCE|GeometryArray.INTERLEAVED|GeometryArray.USE_NIO_BUFFER)),
-				 texCoordSetCount, texCoordSetMap);
-     obj.cloneSourceArray = this;
-     obj.unIndexify(this);
- 
-     return (Object)obj;
-  }
+
+    GeometryArrayRetained cloneNonIndexedGeometry() {
+        GeometryArrayRetained obj = null;
+        int vOffset;
+
+        switch (this.geoType) {
+        case GEO_TYPE_INDEXED_LINE_SET:
+            obj = new LineArrayRetained();
+            break;
+        case GEO_TYPE_INDEXED_POINT_SET:
+            obj = new PointArrayRetained();
+            break;
+        case GEO_TYPE_INDEXED_QUAD_SET:
+            obj = new QuadArrayRetained();
+            break;
+        case GEO_TYPE_INDEXED_TRI_SET:
+            obj = new TriangleArrayRetained();
+            break;
+        default:
+            assert false; // Should never get here
+        }
+
+        obj.createGeometryArrayData(validIndexCount,
+                (vertexFormat & ~(GeometryArray.BY_REFERENCE|GeometryArray.INTERLEAVED|GeometryArray.USE_NIO_BUFFER)),
+                texCoordSetCount, texCoordSetMap,
+                vertexAttrCount, vertexAttrSizes);
+        obj.cloneSourceArray = this;
+        obj.unIndexify(this);
+
+        return obj;
+    }
 
 
   /**
@@ -137,14 +142,19 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    doTexCoordCheck(newMax, i);
 		}
 	    }
+            if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    doVertexAttrCheck(newMax, i);
+		}
+            }
 	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
 		doNormalCheck(newMax);
-	    }	    
-	}	
+	    }
+	}
     }
-    
+
     void doCoordCheck(int newMax) {
-	// Check to make sure that the array length defined by the user is ateast maxCoordIndex long
+        // Check to make sure that the array length defined by the user is ateast maxCoordIndex long
 	if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
 	    if (newMax >= vertexCount) {
 		throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray23"));
@@ -414,8 +424,42 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
     }
 
-    // TODO KCR : implement the following method.
-    //void doVertexAttrCheck(...)
+    void doVertexAttrCheck(int newMax, int vertexAttrNum) {
+
+        // Check to make sure that the array length defined by the user is ateast maxVertexAttrIndex long
+        if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) == 0) {
+            return;
+        }
+
+        // Vertex attributes must not be interleaved
+        assert (vertexFormat & GeometryArray.INTERLEAVED) == 0;
+
+        if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
+            if (newMax >= vertexCount) {
+                throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray30"));
+            }
+        } else {
+            int multiplier = vertexAttrSizes[vertexAttrNum];
+
+            if(( vertexFormat & GeometryArray.USE_NIO_BUFFER) != 0) {
+                switch (vertexType & VATTR_DEFINED) {
+                case AF:
+                    if(multiplier * newMax >= floatBufferRefVertexAttrs[vertexAttrNum].limit()) {
+                        throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray30"));
+                    }
+                    break;
+                }
+            } else {
+                switch (vertexType & VATTR_DEFINED) {
+                case AF:
+                    if (multiplier * newMax >= floatRefVertexAttrs[vertexAttrNum].length) {
+                        throw new ArrayIndexOutOfBoundsException(J3dI18N.getString("IndexedGeometryArray30"));
+                    }
+                    break;
+                }
+            }
+        }
+    }
 
 
     /**
@@ -437,6 +481,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		for (int i = 0; i < texCoordSetCount; i++) {
 		    maxTexCoordIndices[i] = newMax;
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = newMax;
 		}
 	    }
 	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
@@ -553,6 +602,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		for (i = 0; i < texCoordSetCount; i++) {
 		    maxTexCoordIndices[i] = newMax;
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = newMax;
 		}
 	    }
 	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
@@ -731,8 +785,20 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
                                    int index,
                                    int vertexAttrIndex) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+	int newMax;
+	int [] indices = this.indexVertexAttr[vertexAttrNum];
+
+        newMax = doIndexCheck(index, maxVertexAttrIndices[vertexAttrNum],indices, vertexAttrIndex);
+        if (newMax > maxVertexAttrIndices[vertexAttrNum]) {
+            doVertexAttrCheck(newMax, vertexAttrNum);
+        }
+        geomLock.getLock();
+        maxVertexAttrIndices[vertexAttrNum] = newMax;
+        indices[index] = vertexAttrIndex;
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -744,8 +810,24 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
                                      int index,
                                      int[] vertexAttrIndices) {
   
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+        int i, j, num = vertexAttrIndices.length;
+        int [] indices = this.indexVertexAttr[vertexAttrNum];
+
+        int newMax;
+
+        newMax = doIndicesCheck(index, maxVertexAttrIndices[vertexAttrNum], indices, vertexAttrIndices);
+        if (newMax > maxVertexAttrIndices[vertexAttrNum]) {
+            doVertexAttrCheck(newMax, vertexAttrNum);
+        }
+        geomLock.getLock();
+        maxVertexAttrIndices[vertexAttrNum] = newMax;
+        for (i=0, j = index; i < num;i++, j++) {
+            indices[j] = vertexAttrIndices[i];
+        }
+        geomLock.unLock();
+        if (!inUpdater && source != null && source.isLive()) {
+            sendDataChangedMessage(false);
+        }
     }
 
     /**
@@ -857,8 +939,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     public int getVertexAttrIndex(int vertexAttrNum,
                                   int index) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+        int [] indices = this.indexVertexAttr[vertexAttrNum];
+
+        return indices[index];
     }
 
     /**
@@ -870,12 +953,17 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
                                      int index,
                                      int[] vertexAttrIndices) {
 
-        // TODO KCR : implement this
-	throw new RuntimeException("not implemented");
+        int i, j, num = vertexAttrIndices.length;
+        int [] indices = this.indexVertexAttr[vertexAttrNum];
+
+        for (i=0, j = index;i < num;i++, j++) {
+            vertexAttrIndices[i] = indices[j];
+        }
     }
 
 
     // used for GeometryArrays
+    // TODO KCR : vertex attrs
     private native void executeIndexedGeometry(long ctx,
 			GeometryArrayRetained geo, int geo_type, 
 			boolean isNonUniformScale,
@@ -915,6 +1003,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
 
 	
+    // TODO KCR : vertex attrs
     private native void executeIndexedGeometryVA(long ctx,
 					 GeometryArrayRetained geo, int geo_type, 
 					 boolean isNonUniformScale, 
@@ -936,6 +1025,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					 int[] indexCoord);
 
     // non interleaved, by reference, nio buffer
+    // TODO KCR : vertex attrs
     private native void executeIndexedGeometryVABuffer(long ctx,
 					       GeometryArrayRetained geo, int geo_type, 
 					       boolean isNonUniformScale, 
@@ -958,6 +1048,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 					       int[] indexCoord);
 
     // used for IndexedGeometry
+    // TODO KCR : vertex attrs
     private native void buildIndexedGeometry(long ctx, GeometryArrayRetained geo, int geo_type, 
 				     boolean isNonUniformScale, boolean updateAlpha,
 				     float alpha,
@@ -1017,9 +1108,10 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    // RenderBin render the geometry. So it is safe
 		    // just to set the dirty flag here
 		    dirtyFlag = 0;
-		}
-	    
-		executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale, 
+                }
+
+                // TODO KCR : vertex attrs
+                executeIndexedGeometry(cv.ctx, this, geoType, isNonUniformScale, 
 				       useAlpha,
 				       multiScreen,
 				       ignoreVertexColors,
@@ -1079,8 +1171,10 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				       interLeavedVertexData, cdata,
 				       pass, cdirty, indexCoord);
 	    }  //end of interleaved
-	    else { 
-		// Check if a vertexformat is set, but the array is null
+	    else {
+                // TODO KCR : vertex attrs
+
+                // Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
 		    ((vertexType & VERTEX_DEFINED) == 0) ||
@@ -1220,8 +1314,10 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				       interleavedFloatBufferImpl.getBufferAsObject(), cdata,
 				       pass, cdirty, indexCoord);
 	    }  //end of interleaved
-	    else { 
-		// Check if a vertexformat is set, but the array is null
+	    else {
+                // TODO KCR : vertex attrs
+
+                // Check if a vertexformat is set, but the array is null
 		// if yes, don't draw anything
 		if ((vertexType == 0) ||
 		    ((vertexType & VERTEX_DEFINED) == 0) ||
@@ -1349,7 +1445,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	else {
 	    
 	    if ((vertexFormat & GeometryArray.BY_REFERENCE) == 0) {
-		float[] vdata;
+                // TODO KCR : vertex attrs
+
+                float[] vdata;
 		//	    System.out.println("by-copy");
 		synchronized (this) {
 		    cdirty = dirtyFlag;
@@ -1392,6 +1490,12 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 				     (nxform == null) ? null : nxform.mat,
 				     vdata, indexCoord);
 	    }
+            // XXXX: Note that there is no "else" clause here, and no
+            // buildIndexedGeometryForByRef() method.
+            // We would need to create one if we ever wanted to support
+            // indexed geometry in display lists. Better yet, we could fix
+            // canBeInDisplayList so that unindexified by-ref geometry could
+            // go into a display list.
 	}
     }
     
@@ -1414,7 +1518,8 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
                 indexColor = new int[indexCount];
             if ((vertexFormat  &  GeometryArray.NORMALS) != 0)
                 indexNormal = new int[indexCount];
-            // We only merge if texCoordSetCount = 1
+            // We only merge if the texCoordSetCount is 1 and there are no
+            // vertex attrs
             if ((vertexFormat  &  GeometryArray.TEXTURE_COORDINATE) != 0) {
                 indexTexCoord = new int[1][];
                 indexTexCoord[0] = new int[indexCount];
@@ -1453,12 +1558,14 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 
     boolean isWriteStatic() {
 
-	if (!super.isWriteStatic() ||
-	    source.getCapability(IndexedGeometryArray.ALLOW_COORDINATE_INDEX_WRITE ) ||
-	    source.getCapability(IndexedGeometryArray.ALLOW_COLOR_INDEX_WRITE) || 
-	    source.getCapability(IndexedGeometryArray.ALLOW_NORMAL_INDEX_WRITE) ||
-	    source.getCapability(IndexedGeometryArray.ALLOW_TEXCOORD_INDEX_WRITE)) 
-	    return false;
+        if (!super.isWriteStatic() ||
+                source.getCapability(IndexedGeometryArray.ALLOW_COORDINATE_INDEX_WRITE ) ||
+                source.getCapability(IndexedGeometryArray.ALLOW_COLOR_INDEX_WRITE) ||
+                source.getCapability(IndexedGeometryArray.ALLOW_NORMAL_INDEX_WRITE) ||
+                source.getCapability(IndexedGeometryArray.ALLOW_VERTEX_ATTR_INDEX_WRITE) ||
+                source.getCapability(IndexedGeometryArray.ALLOW_TEXCOORD_INDEX_WRITE)) {
+            return false;
+        }
 
 	return true;
     }
@@ -1492,8 +1599,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	int newCoordMax =0;
 	int newColorIndex=0;
 	int newNormalIndex=0;
-	int newTexCoordIndex[]=null;
-	
+	int[] newTexCoordIndex = null;
+        int[] newVertexAttrIndex = null;
+
 	newCoordMax = computeMaxIndex(initialIndexIndex, validIndexCount,indexCoord );
 	doErrorCheck(newCoordMax);
 	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
@@ -1507,6 +1615,15 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		   newTexCoordIndex[i] =  computeMaxIndex(initialIndexIndex,validIndexCount,
 								  indexTexCoord[i]);
 		   doTexCoordCheck(newTexCoordIndex[i], i);
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		newVertexAttrIndex = new int[vertexAttrCount];
+		for (int i = 0; i < vertexAttrCount; i++) {
+		   newVertexAttrIndex[i] = computeMaxIndex(initialIndexIndex,
+                                                           validIndexCount,
+                                                           indexVertexAttr[i]);
+		   doVertexAttrCheck(newVertexAttrIndex[i], i);
 		}
 	    }
 	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
@@ -1525,6 +1642,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    maxTexCoordIndices[i] = newTexCoordIndex[i];
 		}
 	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = newVertexAttrIndex[i];
+		}
+	    }
 	    maxNormalIndex = newNormalIndex;
 	}
 	else {
@@ -1533,6 +1655,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		for (int i = 0; i < texCoordSetCount; i++) {
 		    maxTexCoordIndices[i] = maxCoordIndex;
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = maxCoordIndex;
 		}
 	    }
 	}
@@ -1552,8 +1679,9 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	int newCoordMax =0;
 	int newColorIndex=0;
 	int newNormalIndex=0;
-	int newTexCoordIndex[]=null;
-	
+	int[] newTexCoordIndex = null;
+        int[] newVertexAttrIndex = null;
+
 	newCoordMax = computeMaxIndex(initialIndexIndex, validIndexCount, indexCoord);
 	doErrorCheck(newCoordMax);
 	if ((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) {
@@ -1567,6 +1695,15 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		   newTexCoordIndex[i] =  computeMaxIndex(initialIndexIndex,validIndexCount,
 							  indexTexCoord[i]);
 		   doTexCoordCheck(newTexCoordIndex[i], i);
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		newVertexAttrIndex = new int[vertexAttrCount];
+		for (int i = 0; i < vertexAttrCount; i++) {
+		   newVertexAttrIndex[i] = computeMaxIndex(initialIndexIndex,
+                                                           validIndexCount,
+                                                           indexVertexAttr[i]);
+		   doVertexAttrCheck(newVertexAttrIndex[i], i);
 		}
 	    }
 	    if ((vertexFormat & GeometryArray.NORMALS) != 0) {
@@ -1586,6 +1723,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 		    maxTexCoordIndices[i] = newTexCoordIndex[i];
 		}
 	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = newVertexAttrIndex[i];
+		}
+	    }
 	    maxNormalIndex = newNormalIndex;
 	}
 	else {
@@ -1594,6 +1736,11 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	    if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0) {
 		for (int i = 0; i < texCoordSetCount; i++) {
 		    maxTexCoordIndices[i] = maxCoordIndex;
+		}
+	    }
+	    if ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0) {
+		for (int i = 0; i < vertexAttrCount; i++) {
+		    maxVertexAttrIndices[i] = maxCoordIndex;
 		}
 	    }
 	}
@@ -1612,6 +1759,7 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
     int getValidIndexCount() {
 	return validIndexCount;
     }
+
     void handleFrequencyChange(int bit) {
 	if ((bit == IndexedGeometryArray.ALLOW_COORDINATE_INDEX_WRITE) ||
 	    (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) &&
@@ -1620,10 +1768,14 @@ abstract class IndexedGeometryArrayRetained extends GeometryArrayRetained {
 	    (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0) &&
 	     ((vertexFormat & GeometryArray.NORMALS) != 0) &&
 	     bit == IndexedGeometryArray.ALLOW_NORMAL_INDEX_WRITE) ||
+            (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0)&&
+             ((vertexFormat & GeometryArray.VERTEX_ATTRIBUTES) != 0)&&
+             bit == IndexedGeometryArray.ALLOW_VERTEX_ATTR_INDEX_WRITE) ||
 	    (((vertexFormat & GeometryArray.USE_COORD_INDEX_ONLY) == 0)&&
 	     ((vertexFormat & GeometryArray.TEXTURE_COORDINATE) != 0)&&
 	     bit == IndexedGeometryArray.ALLOW_TEXCOORD_INDEX_WRITE)) {
-	    setFrequencyChangeMask(bit, 0x1);
+
+            setFrequencyChangeMask(bit, 0x1);
 	}
 	else {
 	    super.handleFrequencyChange(bit);
