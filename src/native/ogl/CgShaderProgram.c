@@ -1025,7 +1025,6 @@ Java_javax_media_j3d_CgShaderProgramRetained_lookupNativeShaderAttrNames(
 
     /* Now lookup the location of each name in the attrNames array */
     for (i = 0; i < numAttrNames; i++) {
-        int j;
 	jboolean err;
 	CgParameterInfo *cgParamInfo;
 

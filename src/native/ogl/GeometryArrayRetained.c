@@ -50,9 +50,9 @@ static float EPS = 0.0001f;
 	}
 
 
-extern void enableTexCoordPointer(GraphicsContextPropertiesInfo *, int, int,
-					int, int, void *);
-extern void disableTexCoordPointer(GraphicsContextPropertiesInfo *, int);
+static void enableTexCoordPointer(GraphicsContextPropertiesInfo *, int, int,
+				  int, int, void *);
+static void disableTexCoordPointer(GraphicsContextPropertiesInfo *, int);
 static void clientActiveTextureUnit(GraphicsContextPropertiesInfo *, int);
 
 /* 
@@ -1960,7 +1960,6 @@ void JNICALL Java_javax_media_j3d_GeometryArrayRetained_setVertexFormat(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
     jlong ctx = ctxProperties->context;
-    int i;
 
 #ifdef VERBOSE
     fprintf(stderr,
