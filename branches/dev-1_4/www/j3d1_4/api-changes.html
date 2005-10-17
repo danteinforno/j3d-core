@@ -19,8 +19,8 @@
 *
 * NOTE: This file must be edited by hand to avoid Mozilla Composer
 * putting all preformatted lines into a single line with "<br>"
-* replacing ASCII newlines (which, in turn, causes problems with some
-* editors).
+* replacing ASCII newlines, making it impossible to do a meaningful
+* "diff" operation.
 *
 ************************************************************************
 -->
@@ -49,6 +49,12 @@ to the Java&nbsp;3D API.
 <pre>
 I. New/deprecated fields, constructors, methods
 
+    Canvas3D
+    --------
+    New methods:
+	public boolean isShadingLanguageSupported(int shadingLanguage)
+
+
     SceneGraphObject
     ----------------
     New methods:
@@ -69,19 +75,149 @@ I. New/deprecated fields, constructors, methods
 			     int texCoordSetCount,
 			     int[] texCoordSetMap,
 			     int vertexAttrCount,
-			     int[] vertexAttrFormats,
-			     String[] vertexAttrNames)
+			     int[] vertexAttrSizes)
 
     New methods:
 	public int getVertexAttrCount()
-	public void getVertexAttrFormats(int[] vertexAttrFormats)
-	public void getVertexAttrNames(String[] vertexAttrNames)
+	public void getVertexAttrSizes(int[] vertexAttrSizes)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  float[] vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point2f vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point3f vertexAttr)
+	public void setVertexAttr(int vertexAttrNum, int index,
+				  Point4f vertexAttr)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs,
+				   int start, int length)
+	public void setVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs,
+				   int start, int length)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  float[] vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point2f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point3f vertexAttr)
+	public void getVertexAttr(int vertexAttrNum, int index,
+				  Point4f vertexAttr)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   float[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point2f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point3f[] vertexAttrs)
+	public void getVertexAttrs(int vertexAttrNum, int index,
+				   Point4f[] vertexAttrs)
+	public void setInitialVertexAttrIndex(int vertexAttrNum,
+					      int initialVertexAttrIndex)
+	public int getInitialVertexAttrIndex(int vertexAttrNum)
+	public void setVertexAttrRefBuffer(int vertexAttrNum, J3DBuffer vertexAttrs)
+	public J3DBuffer getVertexAttrRefBuffer(int vertexAttrNum)
+	public void setVertexAttrRefFloat(int vertexAttrNum, float[] vertexAttrs)
+	public float[] getVertexAttrRefFloat(int vertexAttrNum)
+
+
+    TriangleArray
+    -------------
+    New constructors:
+	public TriangleArray(int vertexCount,
+			     int vertexFormat,
+			     int texCoordSetCount,
+			     int[] texCoordSetMap,
+			     int vertexAttrCount,
+			     int[] vertexAttrSizes)
 
 
     Node
     ----
     New fields:
 	public static final int ALLOW_PARENT_READ
+	public static final int ALLOW_LOCALE_READ
+
+    New methods:
+	public Locale getLocale()
+
+
+    VirtualUniverse
+    ---------------
+    New methods:
+	public void addGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void removeGraphStructureChangeListener(GraphStructureChangeListener listener)
+	public void addShaderErrorListener(ShaderErrorListener listener)
+	public void removeShaderErrorListener(ShaderErrorListener listener)
+
+
+    Locale
+    ------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
+    BranchGroup
+    -----------
+    New methods:
+	public PickInfo[] pickAll( int mode, int flags, PickShape pickShape )
+	public PickInfo[] pickAllSorted( int mode, int flags, PickShape pickShape )
+	public PickInfo pickClosest( int mode, int flags, PickShape pickShape )
+	public PickInfo pickAny( int mode, int flags, PickShape pickShape )
+
+
+    Sensor
+    ------
+    Deprecated fields:
+	public static final int PREDICT_NONE
+	public static final int PREDICT_NEXT_FRAME_TIME
+	public static final int NO_PREDICTOR
+	public static final int HEAD_PREDICTOR
+	public static final int HAND_PREDICTOR
+
+    Deprecated methods:
+	public void setPredictor(int predictor)
+	public int getPredictor()
+	public void setPredictionPolicy(int policy)
+	public int getPredictionPolicy()
+	public void getRead(Transform3D read, long deltaT)
+
+
+    RenderingAttributes
+    -----------
+    New fields:
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_READ
+	public static final int ALLOW_DEPTH_TEST_FUNCTION_WRITE
+
+    New constructors:
+	public RenderingAttributes(boolean depthBufferEnable,
+				   boolean depthBufferWriteEnable,
+				   int depthTestFunction,
+				   float alphaTestValue,
+				   int alphaTestFunction,
+				   boolean visible,
+				   boolean ignoreVertexColors,
+				   boolean rasterOpEnable,
+				   int rasterOp)
+
+    New methods:
+	public void setDepthTestFunction(int function)
+	public int getDepthTestFunction()
 
 
 II. Reparented classes
@@ -123,41 +259,49 @@ III. New classes and interfaces (in javax.media.j3d)
     ------
 	public abstract class Shader extends NodeComponent
 
+    SourceCodeShader
+    ----------------
+	public class SourceCodeShader extends Shader
+
     ShaderProgram
     -------------
 	public abstract class ShaderProgram extends NodeComponent
-
-    CgShader
-    --------
-	public abstract class CgShader extends Shader
-
-    CgFragmentShader
-    ----------------
-	public class CgFragmentShader extends CgShader
-
-    CgVertexShader
-    --------------
-	public class CgVertexShader extends CgShader
 
     CgShaderProgram
     ---------------
 	public class CgShaderProgram extends ShaderProgram
 
-    GLSLShader
-    ----------
-	public abstract class GLSLShader extends Shader
-
-    GLSLFragmentShader
-    ------------------
-	public class GLSLFragmentShader extends GLSLShader
-
-    GLSLVertexShader
-    ----------------
-	public class GLSLVertexShader extends GLSLShader
-
     GLSLShaderProgram
     -----------------
 	public class GLSLShaderProgram extends ShaderProgram
+
+    ShaderError
+    -----------
+	public class ShaderError extends Object
+
+    ShaderErrorListener
+    -------------------
+	public interface ShaderErrorListener
+
+    GraphStructureChangeListener
+    ----------------------------
+	public interface GraphStructureChangeListener
+
+    PickInfo
+    --------
+	public class PickInfo extends Object
+
+    PickInfo.IntersectionInfo
+    -------------------------
+	public class PickInfo.IntersectionInfo extends Object
+
+
+IV. Deprecated classes and interfaces (in javax.media.j3d)
+
+    CompressedGeometry
+    CompressedGeometryHeader
+    PickPoint
+    Morph
 </pre>
 <p><font color="gray">Page last updated &#8212;
 $Date$
