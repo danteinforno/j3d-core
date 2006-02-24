@@ -585,11 +585,6 @@ public class Canvas3D extends Canvas {
     // is the handle to the native X11 drawable.
     int window = 0;
 
-    // The vid field when running Windows is the pixel format.  With X11 it is
-    // the visual id.
-    int vid = 0;
-
-
     // fbConfig is a pointer to the fbConfig object that is associated with 
     // the GraphicsConfiguration object used to create this Canvas.
     //
@@ -625,7 +620,6 @@ public class Canvas3D extends Canvas {
     private String nativeGraphicsVendor = "<UNKNOWN>";
     private String nativeGraphicsRenderer = "<UNKNOWN>";
     
-    NativeWSInfo nativeWSobj = new NativeWSInfo();
     boolean firstPaintCalled = false;
 
     // This reflects whether or not this canvas has seen an addNotify.
@@ -779,6 +773,7 @@ public class Canvas3D extends Canvas {
     // Use by D3D to indicate using one pass Blend mode 
     // if Texture interpolation mode is support.
     static final int TEXTURE_LERP               = 0x4000;
+    static final int TEXTURE_NON_POWER_OF_TWO	= 0x8000;
 
     int textureExtendedFeatures = 0;
 
@@ -882,13 +877,13 @@ public class Canvas3D extends Canvas {
     /* native int getTextureColorTableSize(long ctx); */
 
     // This is the native method for creating the underlying graphics context.
-    private native long createNewContext(long display, int window, int vid,
+    private native long createNewContext(long display, int window,
             long fbConfig, long shareCtx, boolean isSharedCtx,
             boolean offScreen,
             boolean glslLibraryAvailable,
             boolean cgLibraryAvailable);
 
-    private native void createQueryContext(long display, int window, int vid,
+    private native void createQueryContext(long display, int window,
             long fbConfig, boolean offScreen, int width, int height,
             boolean glslLibraryAvailable,
             boolean cgLibraryAvailable);
@@ -896,7 +891,7 @@ public class Canvas3D extends Canvas {
     native static void destroyContext(long display, int window, long context);
 
     // This is the native for creating offscreen buffer
-    native int createOffScreenBuffer(long ctx, long display, int vid, long fbConfig, int width, int height);
+    native int createOffScreenBuffer(long ctx, long display, long fbConfig, int width, int height);
 
     native void destroyOffScreenBuffer(long ctx, long display, long fbConfig, int window);
 
@@ -1195,9 +1190,6 @@ public class Canvas3D extends Canvas {
 
 	this.offScreen = offScreen;
 	this.graphicsConfiguration = graphicsConfiguration;
-
-	// Needed for Win32-D3D only.
-	vid = nativeWSobj.getCanvasVid(graphicsConfiguration);
 
         // Issue 163 : Set dirty bits for both Renderer and RenderBin
         cvDirtyMask[0] = VIEW_INFO_DIRTY;
@@ -2428,7 +2420,6 @@ public class Canvas3D extends Canvas {
     long createNewContext(long shareCtx, boolean isSharedCtx) {
         long retVal = createNewContext(this.screen.display,
                 this.window,
-                this.vid,
                 this.fbConfig,
                 shareCtx, isSharedCtx,
                 this.offScreen,
@@ -3301,6 +3292,10 @@ public class Canvas3D extends Canvas {
      * <td>Float</td>
      * </tr>
      * <tr>
+     * <td><code>textureNonPowerOfTwoAvailable</code></td>
+     * <td>Boolean</td>
+     * </tr>
+     * <tr>
      * <td><code>vertexAttrsMax</code></td>
      * <td>Integer</td>
      * </tr>
@@ -3621,6 +3616,18 @@ public class Canvas3D extends Canvas {
      * layer, and an attempt to set anisotropic filter degree will be ignored.
      * </ul>
      * </li>
+
+     * <li>
+     * <code>textureNonPowerOfTwoAvailable</code>
+     * <ul>
+     * A Boolean indicating whether or not texture dimensions that are
+     * not powers of two are supported for
+     * for this Canvas3D. If it indicates false, then textures with
+     * non power of two sizes will be ignored. Set the property 
+     * j3d.textureEnforcePowerOfTwo to revert to the pre-1.5 behavior
+     * of throwing exceptions for non power of two textures.
+     * </ul>
+     * </li>
      *
      * <li>
      * <code>vertexAttrsMax</code>
@@ -3681,7 +3688,7 @@ public class Canvas3D extends Canvas {
 	// extensions, the context will destroy immediately
 	// inside the native code after setting the various 
 	// fields in this object
-	createQueryContext(screen.display, window, vid,
+	createQueryContext(screen.display, window,
 			   fbConfig, offScreen, 1, 1,
                            VirtualUniverse.mc.glslLibraryAvailable,
                            VirtualUniverse.mc.cgLibraryAvailable);
@@ -3790,6 +3797,14 @@ public class Canvas3D extends Canvas {
         keys.add("textureLodOffsetAvailable");
         values.add(new Boolean(
 		(textureExtendedFeatures & TEXTURE_LOD_OFFSET) != 0));
+
+        keys.add("textureNonPowerOfTwoAvailable");
+        if (VirtualUniverse.mc.enforcePowerOfTwo) {
+            values.add(Boolean.FALSE);
+        } else {
+            values.add(new Boolean(
+                    (textureExtendedFeatures & TEXTURE_NON_POWER_OF_TWO) != 0));
+        }
 
         keys.add("textureCoordSetsMax");
         values.add(new Integer(maxTexCoordSets));

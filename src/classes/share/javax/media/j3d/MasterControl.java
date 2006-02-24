@@ -322,14 +322,6 @@ class MasterControl {
     // This is a counter for rendererBit
     private int rendererCount = 0;
 
-    /*
-    // Flag that indicates whether the JVM is version JDK1.5 or later.
-    // If so, then the jvm15OrBetter flag is set to true, indicating that
-    // 1.5 functionality can be used.
-    // We don't use any JDK 1.5 features yet, so this is a placeholder.
-    static boolean jvm15OrBetter = false;
-    */
-
     // Flag that indicates whether to shared display context or not
     boolean isSharedCtx = false;
 
@@ -397,6 +389,11 @@ class MasterControl {
     // or drawpixel clear the background
     boolean isBackgroundTexture = true;
     
+    // Flag that indicates the pre-1.5 behavior of enforcing power-of-two
+    // textures. If set, then any non-power-of-two textures will throw an
+    // exception.
+    boolean enforcePowerOfTwo = false;
+    
     // Flag that indicates whether the framebuffer is sharing the
     // Z-buffer with both the left and right eyes when in stereo mode.
     // If this is true, we need to clear the Z-buffer between rendering
@@ -413,8 +410,8 @@ class MasterControl {
     // False to disable rescale normal if OGL support
     boolean isForceNormalized = false;
 
-    // True to allow simulated (multi-pass) multi-texture
-    boolean allowSimulatedMultiTexture = false;
+    // Simulated (multi-pass) multi-texture is no longer allowed
+    static final boolean allowSimulatedMultiTexture = false;
 
     // Hashtable that maps a GraphicsDevice to its associated
     // Screen3D--this is only used for on-screen Canvas3Ds
@@ -462,18 +459,6 @@ class MasterControl {
 
     // Method to get number of procesor
     private native int getNumberOfProcessor();
-
-    // Methods to set/get system thread concurrency
-    private native void setThreadConcurrency(int newLevel);
-    private native int getThreadConcurrency();
-
-    // Native method to get the high-resolution timer value.
-    // This method is only called by the J3dClock.getHiResTimerValue.
-    // It is defined as a MasterControl method for convenience, so we don't
-    // have to have yet another class with native methods.
-    //
-    // NOTE: once we drop support for JDK 1.4.2, this method will go away.
-    static native long getNativeTimerValue();
 
     // Maximum lights supported by the native API 
     private native int getMaximumLights();
@@ -591,16 +576,8 @@ class MasterControl {
 			       isForceNormalized,
 			       "force normalized");
 
-        allowSimulatedMultiTexture =
-	    getBooleanProperty("j3d.simulatedMultiTexture",
-			       allowSimulatedMultiTexture,
-			       "simulated multi-texture");
-
-	if (allowSimulatedMultiTexture) {
-	    System.err.println("************************************************************************");
-	    System.err.println(J3dI18N.getString("MasterControl2"));
-	    System.err.println(J3dI18N.getString("MasterControl3"));
-	    System.err.println("************************************************************************");
+	if (getProperty("j3d.simulatedMultiTexture") != null) {
+	    System.err.println("j3d.simulatedMultiTexture : property ignored");
 	}
 
         boolean j3dOptimizeSpace =
@@ -631,6 +608,11 @@ class MasterControl {
 	isJ3dG2dDrawPixel = getBooleanProperty("j3d.g2ddrawpixel",
 					       isJ3dG2dDrawPixel,
 					       "Graphics2D DrawPixel");
+        
+        // Check to see whether we enforce power-of-two textures
+        enforcePowerOfTwo = getBooleanProperty("j3d.textureEnforcePowerOfTwo",
+					       enforcePowerOfTwo,
+					       "checking power-of-two textures");
 
 	// Check to see whether BackgroundRetained uses texturemapping
 	// or drawpixel clear the background
@@ -671,22 +653,6 @@ class MasterControl {
 	if (J3dDebug.debug || cpuLimit != defaultThreadLimit) {
 	    System.err.println("Java 3D: concurrent threadLimit = " +
 			       cpuLimit);
-	}
-
-	// Ensure that there are at least enough system threads to
-	// support all of Java 3D's threads running in parallel
-	int threadConcurrency = getThreadConcurrency();
-	if (J3dDebug.debug) {
-	    System.err.println("System threadConcurrency = " +
-			       threadConcurrency);
-	}
-	if (threadConcurrency != -1 && threadConcurrency < (cpuLimit + 1)) {
-	    threadConcurrency = cpuLimit + 1;
-	    if (J3dDebug.debug) {
-		System.err.println("Setting system threadConcurrency to " +
-				   threadConcurrency);
-	    }
-	    setThreadConcurrency(threadConcurrency);
 	}
 
 	// Get the input device scheduler sampling time
@@ -3652,23 +3618,6 @@ class MasterControl {
 
     // Static initializer
     static {
-	/*
-        // Determine whether the JVM is version JDK1.5 or later.
-        // XXXX: replace this with code that checks for the existence
-	// of a class or method that is defined in 1.5, but not in 1.4
-        String versionString =
-            (String) java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction() {
-                public Object run() {
-                    return System.getProperty("java.version");
-                }
-            });
-        jvm15OrBetter = !(versionString.startsWith("1.4") ||
-			  versionString.startsWith("1.3") ||
-			  versionString.startsWith("1.2") ||
-			  versionString.startsWith("1.1"));
-	*/
-
 	// create ThreadGroup
 	java.security.AccessController.doPrivileged(
   	    new java.security.PrivilegedAction() {
