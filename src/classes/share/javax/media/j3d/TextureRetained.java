@@ -163,8 +163,8 @@ abstract class TextureRetained extends NodeComponentRetained {
     Object resourceLock = new Object();
 
 
-    void initialize(int	format, int width, int widPower, 
-			int height, int heiPower, int mipmapMode,
+    void initialize(int	format, int width, int widLevels, 
+			int height, int heiLevels, int mipmapMode,
 			int boundaryWidth) {
 
 	this.mipmapMode = mipmapMode;
@@ -176,10 +176,10 @@ abstract class TextureRetained extends NodeComponentRetained {
 	// determine the maximum number of mipmap levels that can be
 	// defined from the specified dimension
 
-        if (widPower > heiPower) {
-            maxMipMapLevels = widPower + 1;
+        if (widLevels > heiLevels) {
+            maxMipMapLevels = widLevels + 1;
         } else {
-            maxMipMapLevels = heiPower + 1;
+            maxMipMapLevels = heiLevels + 1;
 	}
 
 
@@ -331,6 +331,10 @@ abstract class TextureRetained extends NodeComponentRetained {
      * power of 2 OR invalid format/mipmapMode is specified.
      */
     void initImage(int level, ImageComponent image) {
+
+        // Issue 172 : call checkImageSize even for non-live setImage calls
+        checkImageSize(level, image);
+
 	if (this.images == null) {
            throw new IllegalArgumentException(J3dI18N.getString("TextureRetained0"));
 	} 
@@ -375,17 +379,21 @@ abstract class TextureRetained extends NodeComponentRetained {
 
     final void checkImageSize(int level, ImageComponent image) {
         if (image != null) {
-            int imgHeight = ((ImageComponentRetained)image.retained).height;
 	    int imgWidth  = ((ImageComponentRetained)image.retained).width;
-	    int i, tmp = 1;
-	    // calculate tmp = 2**level
-	    for (i=0; i < level; i++,tmp *= 2);
+            int imgHeight = ((ImageComponentRetained)image.retained).height;
 
-	    int hgt = height/tmp, wdh = width / tmp;
-	    if (hgt < 1) hgt = 1;
+            int wdh = width;
+	    int hgt = height;
+	    for (int i = 0; i < level; i++) {
+                wdh >>= 1;
+                hgt >>= 1;
+            }
+
 	    if (wdh < 1) wdh = 1;
+	    if (hgt < 1) hgt = 1;
     
-	    if ((hgt != imgHeight) || (wdh != imgWidth)) {
+	    if ((wdh != (imgWidth - 2*boundaryWidth)) ||
+                    (hgt != (imgHeight - 2*boundaryWidth))) {
 	       throw new IllegalArgumentException(
 				J3dI18N.getString("TextureRetained1"));
 	    }
@@ -393,36 +401,31 @@ abstract class TextureRetained extends NodeComponentRetained {
     }
 
     final void checkSizes(ImageComponentRetained images[]) {
-        // check that the image at each level is w/2 h/2 of the image at the
-        // previous level
+        // Issue 172 : this method is now redundant
+
+        // Assertion check that the image at each level is the correct size
+        // This shouldn't be needed since we already should have checked the
+        // size at each level, and verified that all levels are set.
         if (images != null) {
-    
-            // only need to check if there is more than 1 level
-            if (images.length > 1) {
-	        int compareW = images[0].width/2;
-	        int compareH = images[0].height/2;
-	        int w, h;
-	        for (int i = 1; i < images.length; i++) {
-	            w = images[i].width;
-	            h = images[i].height;
-	            if (compareW < 1) compareW = 1;
-	            if (compareH < 1) compareH = 1;
-	            if ((w != compareW) && (h != compareH)) {
-	                throw new IllegalArgumentException(
-				J3dI18N.getString("TextureRetained1"));
-	            }
-	            compareW = w/2;
-	            compareH = h/2;
-	        }
-             }				
-        }	      
+            int hgt = height;
+            int wdh = width;
+            for (int level = 0; level < images.length; level++) {
+                int imgWidth  = images[level].width;
+                int imgHeight = images[level].height;
+                
+                assert (wdh == (imgWidth - 2*boundaryWidth)) &&
+                       (hgt == (imgHeight - 2*boundaryWidth));
+
+                wdh /= 2;
+                hgt /= 2;
+                if (wdh < 1) wdh = 1;
+                if (hgt < 1) hgt = 1;
+            }
+        }
     }
 
     final void setImage(int level, ImageComponent image) {
-
-        checkImageSize(level, image);
-	
-	initImage(level, image);
+        initImage(level, image);
 
         Object arg[] = new Object[3];
 	arg[0] = new Integer(level);
@@ -466,14 +469,8 @@ abstract class TextureRetained extends NodeComponentRetained {
     final void setImages(ImageComponent[] images) {
 
         int i;
-        ImageComponentRetained[] imagesRet = 
-	  new ImageComponentRetained[images.length];
-        for (i = 0; i < images.length; i++) {
-	  imagesRet[i] = (ImageComponentRetained)images[i].retained;
-	}
-        checkSizes(imagesRet);
 
-	initImages(images);
+        initImages(images);
 
 	ImageComponent [] imgs = new ImageComponent[images.length];
 	for (i = 0; i < images.length; i++) {
@@ -936,13 +933,6 @@ abstract class TextureRetained extends NodeComponentRetained {
 
     void setLive(boolean backgroundGroup, int refCount) {
 
-        // check the sizes of the images
-	if (images != null) {
-	    for (int j = 0; j < numFaces; j++) {
-                checkSizes(images[j]);
-	    }
-	}
-
 	// This line should be assigned before calling doSetLive, so that
 	// the mirror object's enable is assigned correctly!
 	enable = userSpecifiedEnable;
@@ -964,6 +954,14 @@ abstract class TextureRetained extends NodeComponentRetained {
 		      }
 	    	      images[j][i].setLive(backgroundGroup, refCount);
 		 }
+	    }
+	}
+
+        // Issue 172 : assertion check the sizes of the images after we have
+        // checked for all mipmap levels being set
+	if (images != null) {
+	    for (int j = 0; j < numFaces; j++) {
+                checkSizes(images[j]);
 	    }
 	}
 

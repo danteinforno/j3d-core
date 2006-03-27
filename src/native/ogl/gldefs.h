@@ -129,8 +129,8 @@
 #include "javax_media_j3d_Material.h"
 #include "javax_media_j3d_MaterialRetained.h"
 #include "javax_media_j3d_ModelClipRetained.h"
-#include "javax_media_j3d_NativeAPIInfo.h"
 #include "javax_media_j3d_NativeConfigTemplate3D.h"
+#include "javax_media_j3d_NativePipeline.h"
 #include "javax_media_j3d_NodeRetained.h"
 #include "javax_media_j3d_PointAttributesRetained.h"
 #include "javax_media_j3d_PointLightRetained.h"
@@ -646,6 +646,9 @@ struct GraphicsContextPropertiesInfoRec {
 
     /* GL_SGIX_texture_lod_bias */
     jboolean textureLodBiasAvailable;
+
+    /* GL_ARB_texture_non_power_of_two */
+    jboolean textureNonPowerOfTwoAvailable;
 
     /* extension mask */
     jint extMask;
