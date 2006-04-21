@@ -390,6 +390,12 @@ checkTextureExtensions(
 	ctxInfo->textureExtMask |=
 			javax_media_j3d_Canvas3D_TEXTURE_LOD_OFFSET;
     }
+    if (isExtensionSupported(tmpExtensionStr,
+				"GL_ARB_texture_non_power_of_two")) {
+	ctxInfo->textureNonPowerOfTwoAvailable = JNI_TRUE;
+	ctxInfo->textureExtMask |=
+			javax_media_j3d_Canvas3D_TEXTURE_NON_POWER_OF_TWO;
+    }
 }
 
 jboolean
@@ -539,16 +545,9 @@ getPropertiesFromCurrentContext(
     /* *********************************************************/
     /* setup the graphics context properties */
 
-    /* NOTE : At some point we will want to require OpenGL 1.3 */
-    /* Check for OpenGL 1.2 core or better */
+    /* Check for OpenGL 1.3 core or better */
     if ((versionNumbers[0] > 1) ||
-	(versionNumbers[0] == 1 && versionNumbers[1] >= 2)) {
-
-	if (versionNumbers[0] == 1 && versionNumbers[1] == 2) {
-	    fprintf(stderr,
-		"Java 3D WARNING : OpenGL 1.3 will be required in the near future (GL_VERSION=%d.%d)\n",
-		versionNumbers[0], versionNumbers[1]);
-	}
+	(versionNumbers[0] == 1 && versionNumbers[1] >= 3)) {
 
         ctxInfo->rescale_normal_ext = JNI_TRUE;
 	ctxInfo->rescale_normal_ext_enum = GL_RESCALE_NORMAL;
@@ -605,7 +604,7 @@ getPropertiesFromCurrentContext(
 	jclass rte;
 
 	fprintf(stderr,
-		"Java 3D ERROR : OpenGL 1.2 or better is required (GL_VERSION=%d.%d)\n",
+		"Java 3D ERROR : OpenGL 1.3 or better is required (GL_VERSION=%d.%d)\n",
 		versionNumbers[0], versionNumbers[1]);
 	if ((rte = (*(table->FindClass))(env, "java/lang/IllegalStateException")) != NULL) {
 	    (*(table->ThrowNew))(env, rte, "GL_VERSION");
@@ -613,9 +612,16 @@ getPropertiesFromCurrentContext(
 	return JNI_FALSE;
     }
 
+    /* look for OpenGL 2.0 features */
+    if (versionNumbers[0] >= 2) {
+	ctxInfo->textureNonPowerOfTwoAvailable = JNI_TRUE;
+	ctxInfo->textureExtMask |=
+			javax_media_j3d_Canvas3D_TEXTURE_NON_POWER_OF_TWO;
+    }
+
     /*
      * TODO: Remove extension checks for those features that are core
-     * in OpenGL 1.2 and just use the core feature.
+     * in OpenGL 1.3 and just use the core feature.
      */
 
     /* check extensions for remaining of 1.1 and 1.2 */
@@ -1025,9 +1031,9 @@ void setupCanvasProperties(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_destroyContext(
+void JNICALL Java_javax_media_j3d_NativePipeline_destroyContext(
     JNIEnv *env,
-    jclass cl,
+    jobject obj,
     jlong display,
     jint window,
     jlong ctxInfo)
@@ -1075,12 +1081,12 @@ LONG WINAPI WndProc( HWND hWnd, UINT msg,
 
 
 JNIEXPORT
-jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
+jlong JNICALL Java_javax_media_j3d_NativePipeline_createNewContext(
     JNIEnv *env, 
     jobject obj, 
+    jobject cv, 
     jlong display,
     jint window, 
-    jint vid,
     jlong fbConfigListPtr,
     jlong sharedCtxInfo,
     jboolean isSharedCtx,
@@ -1133,7 +1139,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     else if((fbConfigList == NULL) || (fbConfigList[0] == NULL)) {
 	/*
 	 * fbConfig must be a valid pointer to an GLXFBConfig struct returned
-	 * by glXChooseFBConfig() for a physical screen.  The visual id in vid
+	 * by glXChooseFBConfig() for a physical screen.  The visual id
 	 * is not sufficient for handling OpenGL with Xinerama mode disabled:
 	 * it doesn't distinguish between the physical screens making up the
 	 * virtual screen when the X server is running in Xinerama mode.
@@ -1186,7 +1192,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     
     /*
       fprintf(stderr, "Canvas3D_createNewContext: \n");
-      fprintf(stderr, "vid %d window 0x%x\n", vid, window);
+      fprintf(stderr, "window 0x%x\n", window);
     */
     if(sharedCtxInfo == 0)
 	sharedCtx = 0;
@@ -1198,11 +1204,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     hdc =  (HDC) window;
 
     /* Need to handle onScreen and offScreen differently */
-    /* vid is for onScreen and fbConfigListPtr is for offScreen */ 
-    /*
-     * vid must be a PixelFormat returned
-     * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
-     */
+    /* fbConfigListPtr has both an on-screen and off-screen pixel format */
 
     if(!offScreen) {  /* Fix to issue 104 */
 	if ((PixelFormatInfoPtr == NULL) || (PixelFormatInfoPtr->onScreenPFormat <= 0)) {
@@ -1268,7 +1270,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     initializeCtxInfo(env, ctxInfo);
     ctxInfo->context = gctx;
 
-    if (!getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
+    if (!getPropertiesFromCurrentContext(env, cv, ctxInfo, (jlong) hdc, PixelFormatID,
 					 fbConfigListPtr, offScreen,
 					 glslLibraryAvailable, cgLibraryAvailable)) {
 	return 0;
@@ -1279,7 +1281,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     
     if(!isSharedCtx){
 	/* Setup field in Java side */
-	setupCanvasProperties(env, obj, ctxInfo);
+	setupCanvasProperties(env, cv, ctxInfo);
     }
     
     /* Set up rescale_normal if extension supported */
@@ -1309,9 +1311,9 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 
 
 JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_useCtx(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_useCtx(
     JNIEnv *env, 
-    jclass cl, 
+    jobject obj, 
     jlong ctxInfo,
     jlong display, 
     jint window)
@@ -1351,7 +1353,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_useCtx(
 }
 
 JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_getNumCtxLights(
+jint JNICALL Java_javax_media_j3d_NativePipeline_getNumCtxLights(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo)
@@ -1365,7 +1367,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_getNumCtxLights(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_composite(
+void JNICALL Java_javax_media_j3d_NativePipeline_composite(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -1467,7 +1469,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
 
 
 JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_initTexturemapping(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_initTexturemapping(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -1505,7 +1507,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_initTexturemapping(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
+void JNICALL Java_javax_media_j3d_NativePipeline_texturemapping(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -1637,7 +1639,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_clear(
+void JNICALL Java_javax_media_j3d_NativePipeline_clear(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,
@@ -1843,7 +1845,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
+void JNICALL Java_javax_media_j3d_NativePipeline_textureclear(JNIEnv *env,
 							jobject obj,
 							jlong ctxInfo,
 							jint maxX, 
@@ -1915,7 +1917,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
 	glPushAttrib(GL_ENABLE_BIT|GL_TEXTURE_BIT|GL_POLYGON_BIT); 
 	disableAttribFor2D(ctxProperties);
 
-	Java_javax_media_j3d_Canvas3D_resetTexCoordGeneration(env, obj, ctxInfo); 
+	Java_javax_media_j3d_NativePipeline_resetTexCoordGeneration(env, obj, ctxInfo); 
 
 	glEnable(GL_TEXTURE_2D);
 
@@ -2152,7 +2154,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_textureclear(JNIEnv *env,
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setRenderMode(
+void JNICALL Java_javax_media_j3d_NativePipeline_setRenderMode(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,
@@ -2221,7 +2223,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setRenderMode(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_clearAccum(
+void JNICALL Java_javax_media_j3d_NativePipeline_clearAccum(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo)
@@ -2232,7 +2234,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clearAccum(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_accum(
+void JNICALL Java_javax_media_j3d_NativePipeline_accum(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,
@@ -2248,7 +2250,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_accum(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_accumReturn(
+void JNICALL Java_javax_media_j3d_NativePipeline_accumReturn(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo)
@@ -2259,7 +2261,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_accumReturn(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setDepthBufferWriteEnable(
+void JNICALL Java_javax_media_j3d_NativePipeline_setDepthBufferWriteEnable(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,
@@ -2274,9 +2276,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setDepthBufferWriteEnable(
 
 
 JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
+jint JNICALL Java_javax_media_j3d_NativePipeline_swapBuffers(
     JNIEnv *env, 
     jobject obj,
+    jobject cv,
     jlong ctxInfo,
     jlong display, 
     jint win)
@@ -2306,7 +2309,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_syncRender(
+void JNICALL Java_javax_media_j3d_NativePipeline_syncRender(
       JNIEnv *env,
       jobject obj,
       jlong ctxInfo,
@@ -2321,7 +2324,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_syncRender(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_newDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_newDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -2336,7 +2339,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_newDisplayList(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_endDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_endDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo)
@@ -2346,7 +2349,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_endDisplayList(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setGlobalAlpha(
+void JNICALL Java_javax_media_j3d_NativePipeline_setGlobalAlpha(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -2363,23 +2366,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setGlobalAlpha(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_disableGlobalAlpha(
-    JNIEnv *env,
-    jobject obj,
-    jlong ctxInfo)
-{
-
-    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
-    jlong ctx = ctxProperties->context;
-	
-    /* GL_GLOBAL_ALPHA_SUN */
-    if(ctxProperties->global_alpha_sun){
-	glDisable(GL_GLOBAL_ALPHA_SUN);
-    }
-}
-
-JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_callDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_callDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -2415,9 +2402,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_callDisplayList(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_freeDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_freeDisplayList(
     JNIEnv *env,
-    jclass cl,
+    jobject obj,
     jlong ctxInfo,
     jint id)
 {
@@ -2431,9 +2418,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_freeDisplayList(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_freeTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_freeTexture(
     JNIEnv *env,
-    jclass cl,
+    jobject obj,
     jlong ctxInfo,
     jint id)
 {    
@@ -2505,62 +2492,13 @@ int getTextureColorTableSize(
     return size;
 }
 
-/* For dvr support */
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_videoResize(
-    JNIEnv *env, 
-    jobject obj,
-    jlong ctxInfo,
-    jlong display, 
-    jint win,
-    jfloat dvrFactor)
-{
-#if defined(UNIX)
-
-    GraphicsContextPropertiesInfo* ctxProperties =  (GraphicsContextPropertiesInfo* )ctxInfo;
-
-    /* Not need to do ext. supported checking. This check is done in java. */
-
-    /* fprintf(stderr, "Canvas3D.c -- glXVideoResize -- %d %f\n", win, dvrFactor); */
-    ctxProperties->glXVideoResizeSUN((Display *)display, (Window)win, (float) dvrFactor);
-#endif
-
-}
-
-JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_videoResizeCompensation(
-    JNIEnv *env, 
-    jobject obj,
-    jlong ctxInfo,
-    jboolean enable)
-{
-    
-#if defined(UNIX)
-    GraphicsContextPropertiesInfo *ctxProperties = 
-	(GraphicsContextPropertiesInfo *)ctxInfo; 
-
-    if (ctxProperties->videoResizeAvailable) {
-	if(enable == JNI_TRUE) {
-	    /* fprintf(stderr, "videoResizeCompensation - glEnable"); */
-	    glEnable(GL_VIDEO_RESIZE_COMPENSATION_SUN);
-	}
-	else {
-	    /* fprintf(stderr, "videoResizeCompensation - glDisable"); */
-	    glDisable(GL_VIDEO_RESIZE_COMPENSATION_SUN);
-	}
-    }
-
-#endif
-
-}
-
-JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
+jint JNICALL Java_javax_media_j3d_NativePipeline_createOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctxInfo,    
     jlong display,
-    jint vid,
     jlong fbConfigListPtr,
     jint width,
     jint height)
@@ -2710,7 +2648,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
 	    (int) display,  pFormatInfoPtr->offScreenPFormat, width, height);
     */
 
-    cv_class =  (jclass) (*(table->GetObjectClass))(env, obj);
+    cv_class =  (jclass) (*(table->GetObjectClass))(env, cv);
     offScreenBuffer_field =
 	(jfieldID) (*(table->GetFieldID))(env, cv_class, "offScreenBufferInfo", "J");
     
@@ -2801,7 +2739,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
 	offScreenBufferInfo->isPbuffer = GL_TRUE;
 	offScreenBufferInfo->hpbuf = hpbuf;
 
-	(*(table->SetLongField))(env, obj, offScreenBuffer_field, (jlong)offScreenBufferInfo);
+	(*(table->SetLongField))(env, cv, offScreenBuffer_field, (jlong)offScreenBufferInfo);
 
 	return (jint) hpbufdc;
     }
@@ -2856,7 +2794,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
     offScreenBufferInfo->isPbuffer = GL_FALSE;
     offScreenBufferInfo->hpbuf = 0;
     
-    (*(table->SetLongField))(env, obj, offScreenBuffer_field, (jlong)offScreenBufferInfo);
+    (*(table->SetLongField))(env, cv, offScreenBuffer_field, (jlong)offScreenBufferInfo);
 
     return ((jint)bitmapHdc);
     
@@ -2864,9 +2802,10 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
+void JNICALL Java_javax_media_j3d_NativePipeline_destroyOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctxInfo,    
     jlong display,
     jlong fbConfigListPtr,
@@ -2900,12 +2839,12 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
     OffScreenBufferInfo *offScreenBufferInfo = NULL;
     HDC hpbufdc = (HDC) window;
     
-    cv_class =  (jclass) (*(table->GetObjectClass))(env, obj);
+    cv_class =  (jclass) (*(table->GetObjectClass))(env, cv);
     offScreenBuffer_field =
 	(jfieldID) (*(table->GetFieldID))(env, cv_class, "offScreenBufferInfo", "J");
 
     offScreenBufferInfo =
-	(OffScreenBufferInfo *) (*(table->GetLongField))(env, obj, offScreenBuffer_field);
+	(OffScreenBufferInfo *) (*(table->GetLongField))(env, cv, offScreenBuffer_field);
 
     /*
     fprintf(stderr,"Canvas3D_destroyOffScreenBuffer : offScreenBufferInfo 0x%x\n",
@@ -2935,16 +2874,17 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
     }
     
     free(offScreenBufferInfo);
-    (*(table->SetLongField))(env, obj, offScreenBuffer_field, (jlong)0);
+    (*(table->SetLongField))(env, cv, offScreenBuffer_field, (jlong)0);
 
 #endif /* WIN32 */
 }
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
+void JNICALL Java_javax_media_j3d_NativePipeline_readOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctxInfo,    
     jint format,
     jint width,
@@ -2963,10 +2903,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
     glPixelStorei(GL_PACK_ROW_LENGTH, width);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-    cv_class =  (jclass) (*(table->GetObjectClass))(env, obj);
+    cv_class =  (jclass) (*(table->GetObjectClass))(env, cv);
     byteData_field = (jfieldID) (*(table->GetFieldID))(env, cv_class,
                                         "byteBuffer", "[B");
-    byteData_array = (jbyteArray)(*(table->GetObjectField))(env, obj,
+    byteData_array = (jbyteArray)(*(table->GetObjectField))(env, cv,
                                         byteData_field);
     byteData = (jbyte *)(*(table->GetPrimitiveArrayCritical))(env,
                                         byteData_array, NULL);
@@ -3091,6 +3031,7 @@ initializeCtxInfo(JNIEnv *env , GraphicsContextPropertiesInfo* ctxInfo)
     ctxInfo->textureColorTableSize = 0;
     ctxInfo->textureLodAvailable = JNI_FALSE;
     ctxInfo->textureLodBiasAvailable = JNI_FALSE;
+    ctxInfo->textureNonPowerOfTwoAvailable = JNI_FALSE;
     
     /* extension mask */
     ctxInfo->extMask = 0;
@@ -3231,12 +3172,12 @@ HWND createDummyWindow(const char* szAppName) {
 #endif
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
+void JNICALL Java_javax_media_j3d_NativePipeline_createQueryContext(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong display,
     jint window,
-    jint vid,
     jlong fbConfigListPtr,
     jboolean offScreen,
     jint width,
@@ -3313,10 +3254,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
 	}
     }
     else if(window == 0 && offScreen){
-	newWin = Java_javax_media_j3d_Canvas3D_createOffScreenBuffer( env, obj, 0,
-								      display, window,
-								      fbConfigListPtr,
-								      width, height);
+	newWin = Java_javax_media_j3d_NativePipeline_createOffScreenBuffer(env,
+                obj, cv, 0, display,
+                fbConfigListPtr,
+                width, height);
     }
     else if(window != 0) {
 	newWin = window;
@@ -3350,11 +3291,6 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
       fprintf(stderr, "Canvas3D_createQueryContext:\n");
       fprintf(stderr, "window is  0x%x, offScreen %d\n", window, offScreen);
     */
-    
-    /*
-     * vid must be valid PixelFormat returned
-     * by wglChoosePixelFormat() or wglChoosePixelFormatARB.
-     */    
 
     /* Fix to issue 104 */
     if(!offScreen) {
@@ -3387,9 +3323,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     }
     else if(window == 0 && offScreen){
 	/* fprintf(stderr, "CreateQueryContext : window == 0 && offScreen\n"); */
-	hdc = (HDC)Java_javax_media_j3d_Canvas3D_createOffScreenBuffer( env, obj, 0, display,
-									vid, fbConfigListPtr,
-									width, height);
+	hdc = (HDC)Java_javax_media_j3d_NativePipeline_createOffScreenBuffer(env,
+                obj, cv, 0, display,
+                fbConfigListPtr,
+                width, height);
     }
     else if(window != 0){
 	/* fprintf(stderr, "CreateQueryContext : window != 0 0x%x\n", window); */
@@ -3430,18 +3367,18 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     ctxInfo->context = gctx;
     
     /* get current context properties */
-    if (getPropertiesFromCurrentContext(env, obj, ctxInfo, (jlong) hdc, PixelFormatID,
+    if (getPropertiesFromCurrentContext(env, cv, ctxInfo, (jlong) hdc, PixelFormatID,
 					fbConfigListPtr, offScreen,
 					glslLibraryAvailable, cgLibraryAvailable)) {
 	/* put the properties to the Java side */
-	setupCanvasProperties(env, obj, ctxInfo);
+	setupCanvasProperties(env, cv, ctxInfo);
     }
 
 
     /* clear up the context , colormap and window if appropriate */
     if(window == 0 && !offScreen){
 #if defined(UNIX)
-	Java_javax_media_j3d_Canvas3D_destroyContext(env, obj, display, newWin, (jlong)ctxInfo); 
+	Java_javax_media_j3d_NativePipeline_destroyContext(env, obj, display, newWin, (jlong)ctxInfo); 
 	XDestroyWindow((Display *)display, glWin);
 	XFreeColormap((Display *)display, cmap);
 #endif /* UNIX */
@@ -3450,23 +3387,23 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
 	ReleaseDC(hDummyWnd, hdc);
 	/* Destroy context */
 	/* This will free ctxInfo also */
-	Java_javax_media_j3d_Canvas3D_destroyContext(env, obj, display,newWin, (jlong)ctxInfo);
+	Java_javax_media_j3d_NativePipeline_destroyContext(env, obj, display,newWin, (jlong)ctxInfo);
 	DestroyWindow(hDummyWnd);
 	UnregisterClass(szAppName, (HINSTANCE)NULL);
 #endif /* WIN32 */
     }
     else if(window == 0 && offScreen) {
-	Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(env, obj, gctx, display, fbConfigListPtr,  newWin);
-	Java_javax_media_j3d_Canvas3D_destroyContext(env, obj, display, newWin, (jlong)ctxInfo);
+	Java_javax_media_j3d_NativePipeline_destroyOffScreenBuffer(env, obj, cv, gctx, display, fbConfigListPtr,  newWin);
+	Java_javax_media_j3d_NativePipeline_destroyContext(env, obj, display, newWin, (jlong)ctxInfo);
     }
     else if(window != 0){
-	Java_javax_media_j3d_Canvas3D_destroyContext(env, obj, display, newWin, (jlong)ctxInfo);
+	Java_javax_media_j3d_NativePipeline_destroyContext(env, obj, display, newWin, (jlong)ctxInfo);
     }
 }
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_beginScene(
+void JNICALL Java_javax_media_j3d_NativePipeline_beginScene(
        JNIEnv *env,
        jobject obj, 
        jlong ctxInfo)
@@ -3476,7 +3413,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_beginScene(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_endScene(
+void JNICALL Java_javax_media_j3d_NativePipeline_endScene(
        JNIEnv *env,
        jobject obj, 
        jlong ctxInfo)
@@ -3488,7 +3425,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_endScene(
 }
 
 /* Setup the multisampling for full scene antialiasing */
-JNIEXPORT void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing
+JNIEXPORT void JNICALL Java_javax_media_j3d_NativePipeline_setFullSceneAntialiasing
 (JNIEnv *env, jobject obj, jlong ctxInfo, jboolean enable)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
@@ -3511,7 +3448,7 @@ JNIEXPORT void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing
  * Return false if <= 8 bit color under windows
  */
 JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_validGraphicsMode(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_validGraphicsMode(
        JNIEnv *env,
        jobject obj) 
 {
@@ -3525,6 +3462,15 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_validGraphicsMode(
 #if defined(UNIX)
     return JNI_TRUE;
 #endif
+}
+
+
+JNIEXPORT
+void JNICALL Java_javax_media_j3d_NativePipeline_cleanupRenderer(
+    JNIEnv *env,
+    jobject obj)
+{
+    /* No-op for OGL pipeline */
 }
 
 

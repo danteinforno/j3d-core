@@ -41,6 +41,10 @@ class TextureCubeMapRetained extends TextureRetained {
      * Sets a specified mipmap level for a particular face of the cubemap.
      */
     void initImage(int level, int face, ImageComponent image) {
+
+        // Issue 172 : call checkImageSize even for non-live setImage calls
+        checkImageSize(level, image);
+
 	if (this.images == null) {
             throw new IllegalArgumentException(
 			J3dI18N.getString("TextureRetained0"));
@@ -81,8 +85,6 @@ class TextureCubeMapRetained extends TextureRetained {
 
     final void setImage(int level, int face, ImageComponent image) {
 
-        checkImageSize(level, image);
-	
 	initImage(level, face, image);
 
         Object arg[] = new Object[3];
@@ -126,14 +128,8 @@ class TextureCubeMapRetained extends TextureRetained {
     final void setImages(int face, ImageComponent[] images) {
 
         int i;
-        ImageComponentRetained[] imagesRet = 
-	  new ImageComponentRetained[images.length];
-        for (i = 0; i < images.length; i++) {
-	  imagesRet[i] = (ImageComponentRetained)images[i].retained;
-	}
-        checkSizes(imagesRet);
 
-	initImages(face, images);
+        initImages(face, images);
 
 	ImageComponent [] imgs = new ImageComponent[images.length];
 	for (i = 0; i < images.length; i++) {
@@ -221,42 +217,64 @@ class TextureCubeMapRetained extends TextureRetained {
     }
 
 
-    native void bindTexture(long ctx, int objectId, boolean enable);
+    void bindTexture(long ctx, int objectId, boolean enable) {
+        Pipeline.getPipeline().bindTextureCubeMap(ctx, objectId, enable);
+    }
 
-    native void updateTextureFilterModes(long ctx, int minFilter, 
-					int magFilter);
+    void updateTextureBoundary(long ctx,
+            int boundaryModeS, int boundaryModeT,
+            float boundaryRed, float boundaryGreen,
+            float boundaryBlue, float boundaryAlpha) {
 
-    native void updateTextureBoundary(long ctx,
-                                   int boundaryModeS, int boundaryModeT,
-                                   float boundaryRed, float boundaryGreen,
-                                   float boundaryBlue, float boundaryAlpha);
+        Pipeline.getPipeline().updateTextureCubeMapBoundary(ctx,
+                boundaryModeS, boundaryModeT,
+                boundaryRed, boundaryGreen,
+                boundaryBlue, boundaryAlpha);
+    }
 
-    native void updateTextureSharpenFunc(long ctx,
-                                   int numSharpenTextureFuncPts,
-                                   float[] sharpenTextureFuncPts);
+    void updateTextureFilterModes(long ctx,
+            int minFilter, int magFilter) {
 
-    native void updateTextureFilter4Func(long ctx,
-                                   int numFilter4FuncPts,
-                                   float[] filter4FuncPts);
+        Pipeline.getPipeline().updateTextureCubeMapFilterModes(ctx,
+                minFilter, magFilter);
+    }
 
-    native void updateTextureAnisotropicFilter(long ctx, float degree);
+    void updateTextureSharpenFunc(long ctx,
+            int numSharpenTextureFuncPts,
+            float[] sharpenTextureFuncPts) {
 
-    native void updateTextureImage(long ctx,
-				   int face,
-				   int numLevels,
-				   int level,
-				   int internalFormat, int format, 
-				   int width, int height, 
-				   int boundaryWidth, byte[] imageYup); 
+        Pipeline.getPipeline().updateTextureCubeMapSharpenFunc(ctx,
+            numSharpenTextureFuncPts, sharpenTextureFuncPts);
+    }
 
-    native void updateTextureSubImage(long ctx, int face,
-				      int level, int xoffset, int yoffset,
-				      int internalFormat,int format,
-				      int imgXOffset, int imgYOffset,
-				      int tilew,
-				      int width, int height,
-				      byte[] image);
-        
+    void updateTextureFilter4Func(long ctx,
+            int numFilter4FuncPts,
+            float[] filter4FuncPts) {
+
+        Pipeline.getPipeline().updateTextureCubeMapFilter4Func(ctx,
+                numFilter4FuncPts, filter4FuncPts);
+    }
+
+    void updateTextureAnisotropicFilter(long ctx, float degree) {
+        Pipeline.getPipeline().updateTextureCubeMapAnisotropicFilter(ctx, degree);
+    }
+
+
+    void updateTextureLodRange(long ctx,
+            int baseLevel, int maximumLevel,
+            float minimumLod, float maximumLod) {
+
+        Pipeline.getPipeline().updateTextureCubeMapLodRange(ctx, baseLevel, maximumLevel,
+                minimumLod, maximumLod);
+    }
+
+    void updateTextureLodOffset(long ctx,
+            float lodOffsetX, float lodOffsetY,
+            float lodOffsetZ) {
+
+        Pipeline.getPipeline().updateTextureCubeMapLodOffset(ctx,
+                lodOffsetX, lodOffsetY, lodOffsetZ);
+    }
 
 
     /**
@@ -265,7 +283,7 @@ class TextureCubeMapRetained extends TextureRetained {
      */
     void updateTextureDimensions(Canvas3D cv) {
 	for (int i = 0; i < 6; i++) {
-            updateTextureImage(cv.ctx, i, maxLevels, 0,
+            updateTextureImage(cv, i, maxLevels, 0,
                 format, ImageComponentRetained.BYTE_RGBA,
                 width, height, boundaryWidth, null);
 	}
@@ -274,28 +292,33 @@ class TextureCubeMapRetained extends TextureRetained {
 
 
     // This is just a wrapper of the native method.
+    void updateTextureImage(Canvas3D cv,
+            int face, int numLevels, int level,
+            int internalFormat, int storedFormat,
+            int width, int height,
+            int boundaryWidth,
+            byte[] imageData) {
 
-    void updateTextureImage(Canvas3D cv, int face, int numLevels, int level,
-                                int format, int storedFormat,
-                                int width, int height, 
-				int boundaryWidth, byte[] data) {
-
-        updateTextureImage(cv.ctx,  face, numLevels, level, format,
-                                storedFormat, width, height, 
-				boundaryWidth, data);
+        Pipeline.getPipeline().updateTextureCubeMapImage(cv.ctx,
+                face, numLevels, level,
+                internalFormat, storedFormat,
+                width, height,
+                boundaryWidth, imageData);
     }
 
-
     // This is just a wrapper of the native method.
+    void updateTextureSubImage(Canvas3D cv,
+            int face, int level,
+            int xoffset, int yoffset,
+            int internalFormat, int storedFormat,
+            int imgXOffset, int imgYOffset,
+            int tilew, int width, int height,
+            byte[] imageData) {
 
-    void updateTextureSubImage(Canvas3D cv, int face, int level,
-                                int xoffset, int yoffset, int format,
-                                int storedFormat, int imgXOffset,
-                                int imgYOffset, int tileWidth,
-                                int width, int height, byte[] data) {
-
-        updateTextureSubImage(cv.ctx, face, level, xoffset, yoffset, format,
-                                storedFormat, imgXOffset, imgYOffset,
-                                tileWidth, width, height, data);
+        Pipeline.getPipeline().updateTextureCubeMapSubImage(cv.ctx,
+                face, level, xoffset, yoffset,
+                internalFormat, storedFormat,
+                imgXOffset, imgYOffset,
+                tilew, width, height, imageData);
     }
 }

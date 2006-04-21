@@ -161,8 +161,6 @@ class Renderer extends J3dThread {
     // It is used when sharedCtx = true;
     ArrayList textureIDResourceTable = new ArrayList(5);
 
-    native void D3DCleanUp();
-
     private synchronized int newInstanceNum() {
 	return (++numInstances);
     }
@@ -276,6 +274,10 @@ class Renderer extends J3dThread {
 		         cv.postSwap();
 		     } catch (RuntimeException e) {
 		         System.err.println("Exception occurred during Canvas3D callback:");
+		         e.printStackTrace();
+		     } catch (Error e) {
+                         // Issue 264 - catch Error so Renderer doesn't die
+		         System.err.println("Error occurred during Canvas3D callback:");
 		         e.printStackTrace();
 		     }
 		     // reset flag 
@@ -470,7 +472,6 @@ class Renderer extends J3dThread {
 		    canvas.window = 
 			canvas.createOffScreenBuffer(canvas.ctx, 
 						     canvas.screen.display,
-						     canvas.vid,
 						     canvas.fbConfig,
 						     canvas.offScreenCanvasSize.width, 
 						     canvas.offScreenCanvasSize.height);
@@ -1005,39 +1006,6 @@ class Renderer extends J3dThread {
 					     Canvas3D.FIELD_ALL,
 					     canvas.useDoubleBuffer);
 
-			// Support DVR
-			/*
-			System.out.println("canvas.supportVideoResize()	is " +
-					   canvas.supportVideoResize()); 
-			*/
-			if(canvas.supportVideoResize()) {
-			    if(canvas.view.dvrResizeCompensation !=
-			       canvas.cachedDvrResizeCompensation) {
-				/*
-				  System.out.println("Renderer : dvrResizeComp " + 
-				  canvas.view.dvrResizeCompensation);
-				*/
-				canvas.videoResizeCompensation(canvas.ctx, 
-							       canvas.view.dvrResizeCompensation);
-				canvas.cachedDvrResizeCompensation = 
-				    canvas.view.dvrResizeCompensation;
-				
-			    }				
-			    if(canvas.view.dvrFactor != canvas.cachedDvrFactor) {
-				/*
-				System.out.println("Renderer : dvrFactor is " + 
-						   canvas.view.dvrFactor);
-				*/
-				canvas.videoResize(canvas.ctx, 
-						   canvas.screen.display,
-						   canvas.window, 
-						   canvas.view.dvrFactor);
-				canvas.cachedDvrFactor = canvas.view.dvrFactor;
-				
-			    }
-
-			}
-
 			canvas.beginScene();
 
 			// this is if the background image resizes with the canvas
@@ -1095,9 +1063,12 @@ class Renderer extends J3dThread {
                         try {
                             canvas.preRender();
                         } catch (RuntimeException e) {
-                            System.err.println("Exception occurred " +
-                                            "during Canvas3D callback:");
+                            System.err.println("Exception occurred during Canvas3D callback:");
                             e.printStackTrace();
+                         } catch (Error e) {
+                             // Issue 264 - catch Error so Renderer doesn't die
+                             System.err.println("Error occurred during Canvas3D callback:");
+                             e.printStackTrace();
                         }
                         canvas.view.inCanvasCallback = false;
 			
@@ -1295,9 +1266,12 @@ class Renderer extends J3dThread {
                                 try {
                                     canvas.renderField(stereo_mode);
                                 } catch (RuntimeException e) {
-                                System.err.println("Exception occurred during " +
-                                                 "Canvas3D callback:");
-                                   e.printStackTrace();
+                                    System.err.println("Exception occurred during Canvas3D callback:");
+                                    e.printStackTrace();
+                                } catch (Error e) {
+                                    // Issue 264 - catch Error so Renderer doesn't die
+                                    System.err.println("Error occurred during Canvas3D callback:");
+                                    e.printStackTrace();
                                 }
                                 canvas.view.inCanvasCallback = false;
 				if ((VirtualUniverse.mc.doDsiRenderLock) &&
@@ -1340,8 +1314,11 @@ class Renderer extends J3dThread {
                         try {
                             canvas.postRender();
                         } catch (RuntimeException e) {
-                            System.err.println("Exception occurred during " +
-                                           "Canvas3D callback:");
+                            System.err.println("Exception occurred during Canvas3D callback:");
+                            e.printStackTrace();
+                        } catch (Error e) {
+                            // Issue 264 - catch Error so Renderer doesn't die
+                            System.err.println("Error occurred during Canvas3D callback:");
                             e.printStackTrace();
                         }
                         canvas.view.inCanvasCallback = false;
@@ -1358,6 +1335,10 @@ class Renderer extends J3dThread {
                                 canvas.postSwap();
                             } catch (RuntimeException e) {
                                 System.err.println("Exception occurred during Canvas 3D callback:");
+                                e.printStackTrace();
+                            } catch (Error e) {
+                                // Issue 264 - catch Error so Renderer doesn't die
+                                System.err.println("Error occurred during Canvas3D callback:");
                                 e.printStackTrace();
                             }
 
@@ -1442,10 +1423,7 @@ class Renderer extends J3dThread {
     // resource clean up
     void shutdown() {
 	removeAllCtxs();
-
-	if (VirtualUniverse.mc.isD3D()) {
-	    D3DCleanUp();
-	}
+        Pipeline.getPipeline().cleanupRenderer();
     }
 
     void cleanup() {
@@ -1512,7 +1490,7 @@ class Renderer extends J3dThread {
 		    listOfCtxs.remove(idx);
 		    listOfCanvases.remove(idx);
 		    // display is always 0 under windows
-		    if ((MasterControl.isWin32 || (display != 0)) && 
+		    if ((VirtualUniverse.mc.isWindows() || (display != 0)) && 
 			(window != 0) && cv.added) {
 			// cv.ctx may reset to -1 here so we
 			// always use the ctx pass in.
@@ -1565,7 +1543,7 @@ class Renderer extends J3dThread {
 		cv = (Canvas3D) listOfCanvases.get(i);
 
 		if ((cv.screen != null) && (cv.ctx != 0)) {
-		    if ((MasterControl.isWin32 || (display != 0)) && 
+		    if ((VirtualUniverse.mc.isWindows() || (display != 0)) && 
 			(cv.window != 0) && cv.added) {
 			if (cv.drawingSurfaceObject.renderLock()) {
 			    // We need to free sharedCtx resource

@@ -21,9 +21,9 @@ class NativeScreenInfo {
     private static boolean glxChecked = false;
     private static boolean isGLX13;
 
-    private native static long openDisplay();
-    private native static int getDefaultScreen(long display);
-    private native static boolean queryGLX13(long display);
+    private static native long openDisplay();
+    private static native int getDefaultScreen(long display);
+    private static native boolean queryGLX13(long display);
 
     // Fix for issue 20.
     // This method will return true if glx version is 1.3 or higher, 
@@ -62,7 +62,6 @@ class NativeScreenInfo {
     int getScreen() {
 	return screen;
     }
-
 
     // Ensure that the native libraries are loaded
     static {

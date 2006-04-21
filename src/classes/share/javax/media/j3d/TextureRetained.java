@@ -163,8 +163,8 @@ abstract class TextureRetained extends NodeComponentRetained {
     Object resourceLock = new Object();
 
 
-    void initialize(int	format, int width, int widPower, 
-			int height, int heiPower, int mipmapMode,
+    void initialize(int	format, int width, int widLevels, 
+			int height, int heiLevels, int mipmapMode,
 			int boundaryWidth) {
 
 	this.mipmapMode = mipmapMode;
@@ -176,10 +176,10 @@ abstract class TextureRetained extends NodeComponentRetained {
 	// determine the maximum number of mipmap levels that can be
 	// defined from the specified dimension
 
-        if (widPower > heiPower) {
-            maxMipMapLevels = widPower + 1;
+        if (widLevels > heiLevels) {
+            maxMipMapLevels = widLevels + 1;
         } else {
-            maxMipMapLevels = heiPower + 1;
+            maxMipMapLevels = heiLevels + 1;
 	}
 
 
@@ -331,6 +331,10 @@ abstract class TextureRetained extends NodeComponentRetained {
      * power of 2 OR invalid format/mipmapMode is specified.
      */
     void initImage(int level, ImageComponent image) {
+
+        // Issue 172 : call checkImageSize even for non-live setImage calls
+        checkImageSize(level, image);
+
 	if (this.images == null) {
            throw new IllegalArgumentException(J3dI18N.getString("TextureRetained0"));
 	} 
@@ -375,17 +379,21 @@ abstract class TextureRetained extends NodeComponentRetained {
 
     final void checkImageSize(int level, ImageComponent image) {
         if (image != null) {
-            int imgHeight = ((ImageComponentRetained)image.retained).height;
 	    int imgWidth  = ((ImageComponentRetained)image.retained).width;
-	    int i, tmp = 1;
-	    // calculate tmp = 2**level
-	    for (i=0; i < level; i++,tmp *= 2);
+            int imgHeight = ((ImageComponentRetained)image.retained).height;
 
-	    int hgt = height/tmp, wdh = width / tmp;
-	    if (hgt < 1) hgt = 1;
+            int wdh = width;
+	    int hgt = height;
+	    for (int i = 0; i < level; i++) {
+                wdh >>= 1;
+                hgt >>= 1;
+            }
+
 	    if (wdh < 1) wdh = 1;
+	    if (hgt < 1) hgt = 1;
     
-	    if ((hgt != imgHeight) || (wdh != imgWidth)) {
+	    if ((wdh != (imgWidth - 2*boundaryWidth)) ||
+                    (hgt != (imgHeight - 2*boundaryWidth))) {
 	       throw new IllegalArgumentException(
 				J3dI18N.getString("TextureRetained1"));
 	    }
@@ -393,36 +401,31 @@ abstract class TextureRetained extends NodeComponentRetained {
     }
 
     final void checkSizes(ImageComponentRetained images[]) {
-        // check that the image at each level is w/2 h/2 of the image at the
-        // previous level
+        // Issue 172 : this method is now redundant
+
+        // Assertion check that the image at each level is the correct size
+        // This shouldn't be needed since we already should have checked the
+        // size at each level, and verified that all levels are set.
         if (images != null) {
-    
-            // only need to check if there is more than 1 level
-            if (images.length > 1) {
-	        int compareW = images[0].width/2;
-	        int compareH = images[0].height/2;
-	        int w, h;
-	        for (int i = 1; i < images.length; i++) {
-	            w = images[i].width;
-	            h = images[i].height;
-	            if (compareW < 1) compareW = 1;
-	            if (compareH < 1) compareH = 1;
-	            if ((w != compareW) && (h != compareH)) {
-	                throw new IllegalArgumentException(
-				J3dI18N.getString("TextureRetained1"));
-	            }
-	            compareW = w/2;
-	            compareH = h/2;
-	        }
-             }				
-        }	      
+            int hgt = height;
+            int wdh = width;
+            for (int level = 0; level < images.length; level++) {
+                int imgWidth  = images[level].width;
+                int imgHeight = images[level].height;
+                
+                assert (wdh == (imgWidth - 2*boundaryWidth)) &&
+                       (hgt == (imgHeight - 2*boundaryWidth));
+
+                wdh /= 2;
+                hgt /= 2;
+                if (wdh < 1) wdh = 1;
+                if (hgt < 1) hgt = 1;
+            }
+        }
     }
 
     final void setImage(int level, ImageComponent image) {
-
-        checkImageSize(level, image);
-	
-	initImage(level, image);
+        initImage(level, image);
 
         Object arg[] = new Object[3];
 	arg[0] = new Integer(level);
@@ -466,14 +469,8 @@ abstract class TextureRetained extends NodeComponentRetained {
     final void setImages(ImageComponent[] images) {
 
         int i;
-        ImageComponentRetained[] imagesRet = 
-	  new ImageComponentRetained[images.length];
-        for (i = 0; i < images.length; i++) {
-	  imagesRet[i] = (ImageComponentRetained)images[i].retained;
-	}
-        checkSizes(imagesRet);
 
-	initImages(images);
+        initImages(images);
 
 	ImageComponent [] imgs = new ImageComponent[images.length];
 	for (i = 0; i < images.length; i++) {
@@ -936,13 +933,6 @@ abstract class TextureRetained extends NodeComponentRetained {
 
     void setLive(boolean backgroundGroup, int refCount) {
 
-        // check the sizes of the images
-	if (images != null) {
-	    for (int j = 0; j < numFaces; j++) {
-                checkSizes(images[j]);
-	    }
-	}
-
 	// This line should be assigned before calling doSetLive, so that
 	// the mirror object's enable is assigned correctly!
 	enable = userSpecifiedEnable;
@@ -964,6 +954,14 @@ abstract class TextureRetained extends NodeComponentRetained {
 		      }
 	    	      images[j][i].setLive(backgroundGroup, refCount);
 		 }
+	    }
+	}
+
+        // Issue 172 : assertion check the sizes of the images after we have
+        // checked for all mipmap levels being set
+	if (images != null) {
+	    for (int j = 0; j < numFaces; j++) {
+                checkSizes(images[j]);
 	    }
 	}
 
@@ -1017,52 +1015,69 @@ abstract class TextureRetained extends NodeComponentRetained {
 	}
     }
 
-    // Simply pass along to the NodeComponents
-    /**
-     * This method updates the native context.  The implementation for 2D
-     * texture mapping happens here.  Texture3D implements its own version
-     * of this.
+    /*
+     * The following methods update the native context.
+     * The implementation for Texture2D happens here.
+     * Texture3D and TextureCubeMap implement their own versions.
      */
-    native void bindTexture(long ctx, int objectId, boolean enable);
 
-    native void updateTextureFilterModes(long ctx, 
-					int minFilter, int magFilter);
+    void bindTexture(long ctx, int objectId, boolean enable) {
+        Pipeline.getPipeline().bindTexture2D(ctx, objectId, enable);
+    }
 
-    native void updateTextureLodRange(long ctx,
-				   int baseLevel, int maximumLevel,
-				   float minimumLod, float maximumLod);
+    void updateTextureBoundary(long ctx,
+            int boundaryModeS, int boundaryModeT,
+            float boundaryRed, float boundaryGreen,
+            float boundaryBlue, float boundaryAlpha) {
 
-    native void updateTextureLodOffset(long ctx,
-				   float lodOffsetX, float lodOffsetY,
-				   float lodOffsetZ);
+        Pipeline.getPipeline().updateTexture2DBoundary(ctx,
+                boundaryModeS, boundaryModeT,
+                boundaryRed, boundaryGreen,
+                boundaryBlue, boundaryAlpha);
+    }
 
+    void updateTextureFilterModes(long ctx,
+            int minFilter, int magFilter) {
 
-    native void updateTextureBoundary(long ctx, 
-				   int boundaryModeS, int boundaryModeT, 
-				   float boundaryRed, float boundaryGreen, 
-				   float boundaryBlue, float boundaryAlpha);
+        Pipeline.getPipeline().updateTexture2DFilterModes(ctx,
+                minFilter, magFilter);
+    }
 
-    native void updateTextureSharpenFunc(long ctx,
-				   int numSharpenTextureFuncPts,
-				   float[] sharpenTextureFuncPts);
+    void updateTextureSharpenFunc(long ctx,
+            int numSharpenTextureFuncPts,
+            float[] sharpenTextureFuncPts) {
 
-    native void updateTextureFilter4Func(long ctx,
-				   int numFilter4FuncPts,
-				   float[] filter4FuncPts);
+        Pipeline.getPipeline().updateTexture2DSharpenFunc(ctx,
+            numSharpenTextureFuncPts, sharpenTextureFuncPts);
+    }
 
-    native void updateTextureAnisotropicFilter(long ctx, float degree);
+    void updateTextureFilter4Func(long ctx,
+            int numFilter4FuncPts,
+            float[] filter4FuncPts) {
 
-    native void updateTextureImage(long ctx, 
-				int numLevels, int level,
-                                int format, int storedFormat,
-                                int width, int height, 
-				int boundaryWidth, byte[] data);
+        Pipeline.getPipeline().updateTexture2DFilter4Func(ctx,
+                numFilter4FuncPts, filter4FuncPts);
+    }
 
-    native void updateTextureSubImage(long ctx, int level,
-                                int xoffset, int yoffset, int format,
-                                int storedFormat, int imgXOffset,
-                                int imgYOffset, int tileWidth,
-                                int width, int height, byte[] data);
+    void updateTextureAnisotropicFilter(long ctx, float degree) {
+        Pipeline.getPipeline().updateTexture2DAnisotropicFilter(ctx, degree);
+    }
+
+    void updateTextureLodRange(long ctx,
+            int baseLevel, int maximumLevel,
+            float minimumLod, float maximumLod) {
+
+        Pipeline.getPipeline().updateTexture2DLodRange(ctx, baseLevel, maximumLevel,
+                minimumLod, maximumLod);
+    }
+
+    void updateTextureLodOffset(long ctx,
+            float lodOffsetX, float lodOffsetY,
+            float lodOffsetZ) {
+
+        Pipeline.getPipeline().updateTexture2DLodOffset(ctx,
+                lodOffsetX, lodOffsetY, lodOffsetZ);
+    }
 
 
     // get an ID for Texture 2D 
@@ -1100,23 +1115,23 @@ abstract class TextureRetained extends NodeComponentRetained {
      * mipmapping when level 0 is not the base level
      */
     void updateTextureDimensions(Canvas3D cv) {
-	updateTextureImage(cv.ctx, maxLevels, 0, 
+	updateTextureImage(cv, 0, maxLevels, 0, 
 		format, ImageComponentRetained.BYTE_RGBA,
 		width, height, boundaryWidth, null);
     }
-
+    
 
     void updateTextureLOD(Canvas3D cv) {
 
 	if ((cv.textureExtendedFeatures & Canvas3D.TEXTURE_LOD_RANGE) != 0 ) {
-	    updateTextureLodRange(cv.ctx, baseLevel, maximumLevel,
-				minimumLod, maximumLod);
+            updateTextureLodRange(cv.ctx, baseLevel, maximumLevel,
+                    minimumLod, maximumLod);
 	}
 
-	if ((lodOffset != null) &&
-	    ((cv.textureExtendedFeatures & Canvas3D.TEXTURE_LOD_OFFSET) != 0)) {
-	    updateTextureLodOffset(cv.ctx, 
-					lodOffset.x, lodOffset.y, lodOffset.z);
+        if ((lodOffset != null) &&
+                ((cv.textureExtendedFeatures & Canvas3D.TEXTURE_LOD_OFFSET) != 0)) {
+            updateTextureLodOffset(cv.ctx,
+                    lodOffset.x, lodOffset.y, lodOffset.z);
 	}
     }
 
@@ -1218,35 +1233,36 @@ abstract class TextureRetained extends NodeComponentRetained {
     }
 
 
+    // Wrapper around the native call for 2D textures; overridden for
+    // Texture3D and TextureCureMap
+    void updateTextureImage(Canvas3D cv,
+            int face, int numLevels, int level,
+            int internalFormat, int storedFormat,
+            int width, int height,
+            int boundaryWidth, byte[] imageData) {
 
-    // wrapper of the native call
-
-    void updateTextureImage(Canvas3D cv, int face, 
-				int numLevels, int level,
-                                int format, int storedFormat,
-                                int width, int height, 
-				int boundaryWidth, byte[] data) {
-
-        updateTextureImage(cv.ctx, maxLevels, level,
-                                format, storedFormat,
-                                width, height, boundaryWidth, data);
+        Pipeline.getPipeline().updateTexture2DImage(cv.ctx,
+                numLevels, level,
+                internalFormat, storedFormat,
+                width, height, boundaryWidth, imageData);
     }
 
+    // Wrapper around the native call for 2D textures; overridden for
+    // Texture3D and TextureCureMap
+    void updateTextureSubImage(Canvas3D cv,
+            int face, int level,
+            int xoffset, int yoffset,
+            int internalFormat, int storedFormat,
+            int imgXOffset, int imgYOffset,
+            int tilew, int width, int height,
+            byte[] imageData) {
 
-
-    // wrapper of the native call
-
-    void updateTextureSubImage(Canvas3D cv, int face, int level,
-                                int xoffset, int yoffset, int format,
-                                int storedFormat, int imgXOffset,
-                                int imgYOffset, int tileWidth,
-                                int width, int height, byte[] data) {
-
-        updateTextureSubImage(cv.ctx, level,
-                                xoffset, yoffset, format,
-                                storedFormat, imgXOffset,
-                                imgYOffset, tileWidth,
-                                width, height, data);
+        Pipeline.getPipeline().updateTexture2DSubImage(cv.ctx,
+                level, xoffset, yoffset,
+                internalFormat, storedFormat,
+                imgXOffset, imgYOffset,
+                tilew, width, height,
+                imageData);
     }
 
 
@@ -1265,10 +1281,11 @@ abstract class TextureRetained extends NodeComponentRetained {
 
 	//System.out.println("....imageYupAllocated= " + image.imageYupAllocated);
 
-	updateTextureImage(cv,  face, numLevels, level, format, 
-				image.storedYupFormat,
-				image.width, image.height, 
-				boundaryWidth, image.imageYup);
+        updateTextureImage(cv,
+                face, numLevels, level,
+                format, image.storedYupFormat,
+                image.width, image.height,
+                boundaryWidth, image.imageYup);
 
 	// Now take care of the RenderedImage case. Note, if image
 	// is a RenderedImage, then imageYup will be null
@@ -1306,13 +1323,13 @@ abstract class TextureRetained extends NodeComponentRetained {
 		    java.awt.image.Raster ras;
 		    ras = image.bImage[0].getTile(n,m);
 		    byte[] tmpImage =  ((DataBufferByte)ras.getDataBuffer()).getData();
-		    updateTextureSubImage(cv, face,
-					level, xoffset, yoffset, format,
-					image.storedYupFormat,
-					imageXOffset, imageYOffset,
-					image.tilew,
-					curw, curh,
-					tmpImage);
+                    updateTextureSubImage(cv, face,
+                            level, xoffset, yoffset, format,
+                            image.storedYupFormat,
+                            imageXOffset, imageYOffset,
+                            image.tilew,
+                            curw, curh,
+                            tmpImage);
 	  	    xoffset += curw;
 	  	    imageXOffset = 0;
 		    tmpw -= curw;
@@ -1378,11 +1395,11 @@ abstract class TextureRetained extends NodeComponentRetained {
 		}
 	    }
 
-	    updateTextureSubImage(cv, face, level, 
-				xoffset, yoffset,
-				format, image.storedYupFormat, 
-				xoffset, yoffset,
-				image.width, width, height, imageData);
+            updateTextureSubImage(cv, face, level,
+                    xoffset, yoffset,
+                    format, image.storedYupFormat,
+                    xoffset, yoffset,
+                    image.width, width, height, imageData);
 	} else {
 
 	    // System.out.println("RenderedImage subImage update");
@@ -1483,11 +1500,11 @@ abstract class TextureRetained extends NodeComponentRetained {
 		    ras = image.bImage[0].getTile(xTile, yTile);
 		    imageData = ((DataBufferByte)ras.getDataBuffer()).getData();
 
-		    updateTextureSubImage(cv, face, level, 
-			textureX, textureY,
-			format, image.storedYupFormat,
-			imgX, imgY, image.tilew, curw, curh, imageData);
-
+                    updateTextureSubImage(cv, face, level,
+                            textureX, textureY,
+                            format, image.storedYupFormat,
+                            imgX, imgY,
+                            image.tilew, curw, curh, imageData);
 
                     // move to the next tile in x direction
 

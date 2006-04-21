@@ -44,8 +44,8 @@ class NativeConfigTemplate3D {
 			       int[] attrList, long[] fbConfig);
 
     // Native method to free an GLXFBConfig struct.  This is static since it
-    // may need to be called to clean up the Canvas3D fbConfigTable after the
-    // NativeConfigTemplate3D has been disposed of.
+    // may need to be called to clean up the Canvas3D graphicsConfigTable
+    // after the NativeConfigTemplate3D has been disposed of.
     static native void freeFBConfig(long fbConfig);
 
     // Native methods to return whether a particular attribute is available
@@ -58,9 +58,8 @@ class NativeConfigTemplate3D {
     /*
      *  Chooses the best FBConfig for Java 3D apps.
      */
-    GraphicsConfiguration
-      getBestConfiguration(GraphicsConfigTemplate3D template,
-                           GraphicsConfiguration[] gc) {
+    GraphicsConfiguration getBestConfiguration(GraphicsConfigTemplate3D template,
+            GraphicsConfiguration[] gc) {
 
         X11GraphicsDevice gd =
             (X11GraphicsDevice)((X11GraphicsConfig)gc[0]).getDevice();
@@ -125,34 +124,42 @@ class NativeConfigTemplate3D {
 
         if (visID == 0 || fbConfig[0] == 0) {
 	    return null;  // no valid visual was found
-	}	
+	}
 
         // search list of graphics configurations for config
         // with matching visualId
-        GraphicsConfiguration gc1 = null;
-        for (int i = 0; i < gc.length; i++)
+        X11GraphicsConfig gc0 = null;
+        for (int i = 0; i < gc.length; i++) {
             if (((X11GraphicsConfig)gc[i]).getVisual() == visID) {
-                gc1 = gc[i];
+                gc0 = (X11GraphicsConfig)gc[i];
                 break;
             }
-	
-	// To support disabling Solaris OpenGL Xinerama mode, we need to cache
-	// the pointer to the actual GLXFBConfig that glXChooseFBConfig()
-	// returns, since this is not cached with X11GraphicsConfig and there
-	// are no public constructors to allow us to extend it.	
-	synchronized (Canvas3D.fbConfigTable) {
-	    if (Canvas3D.fbConfigTable.get(gc1) == null) {
-                GraphicsConfigInfo gcInfo = new GraphicsConfigInfo();
-                gcInfo.setFBConfig(fbConfig[0]);
-                gcInfo.setRequestedStencilSize(attrList[STENCIL_SIZE]);
-		Canvas3D.fbConfigTable.put(gc1, gcInfo);
+        }
+
+        // Just return if we didn't find a match
+        if (gc0 == null) {
+            return null;
+        }
+
+        // Create a new GraphicsConfig object based on the one we found
+        X11GraphicsConfig gc1 =
+            X11GraphicsConfig.getConfig(gd, gc0.getVisual(),
+                gc0.getDepth(), gc0.getColormap(), false);
+
+	// We need to cache the GraphicsTemplate3D and the private
+        // fbconfig info.
+	synchronized (Canvas3D.graphicsConfigTable) {
+	    if (Canvas3D.graphicsConfigTable.get(gc1) == null) {
+                GraphicsConfigInfo gcInfo = new GraphicsConfigInfo(template);
+                gcInfo.setPrivateData(new Long(fbConfig[0]));
+		Canvas3D.graphicsConfigTable.put(gc1, gcInfo);
             } else {
 		freeFBConfig(fbConfig[0]);
             }
 	}   
 	return gc1;
     }
-	
+
     /*
      * Determine if a given GraphicsConfiguration object can be used
      * by Java 3D.

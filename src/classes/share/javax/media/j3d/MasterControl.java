@@ -45,12 +45,6 @@ class MasterControl {
     static final int WAITING_FOR_CPU     = 4;
     static final int WAITING_FOR_RENDERER_CLEANUP = 5;
 
-    // The Rendering API's that we currently know about
-    static final int RENDER_OPENGL_SOLARIS = 0;
-    static final int RENDER_OPENGL_WIN32   = 1;
-    static final int RENDER_DIRECT3D       = 2;
-    static final int RENDER_OPENGL_LINUX   = 3;
-
     // Constants used in renderer thread argument
     static final Integer REQUESTRENDER = new Integer(Renderer.REQUESTRENDER);
     static final Integer RENDER = new Integer(Renderer.RENDER);
@@ -295,15 +289,11 @@ class MasterControl {
      */
     static long systemStartTime = 0L;
 
-    // The rendering API we are using
-    private int renderingAPI = RENDER_OPENGL_SOLARIS;
-    static boolean isD3DAPI = false;
-   
-    // Are we on a Win32 system
-    static boolean isWin32 = false;
- 
-    // The class that describes the low level rendering code
-    private NativeAPIInfo nativeAPIInfo = null;
+    // Flag indicating that we are on a Windows OS
+    private static boolean isWindowsOs = false;
+    
+    // Flag indicating we are on MacOS
+    private static boolean isMacOs = false;
 
     // This is a counter for texture id's, valid id starts from 1
     private int textureIdCount = 0;
@@ -321,14 +311,6 @@ class MasterControl {
 
     // This is a counter for rendererBit
     private int rendererCount = 0;
-
-    /*
-    // Flag that indicates whether the JVM is version JDK1.5 or later.
-    // If so, then the jvm15OrBetter flag is set to true, indicating that
-    // 1.5 functionality can be used.
-    // We don't use any JDK 1.5 features yet, so this is a placeholder.
-    static boolean jvm15OrBetter = false;
-    */
 
     // Flag that indicates whether to shared display context or not
     boolean isSharedCtx = false;
@@ -356,6 +338,16 @@ class MasterControl {
     // be in display list.
     boolean vertexAttrsInDisplayList = false;
 
+    // Issue 249 - flag that indicates whether the soleUser optimization is permitted
+    boolean allowSoleUser = false;
+
+    // Issue 266 - Flag indicating whether null graphics configs are allowed
+    // Set by -Dj3d.allowNullGraphicsConfig property
+    // Setting this flag causes Canvas3D to allow a null GraphicsConfiguration
+    // for on-screen canvases. This is only for backward compatibility with
+    // legacy applications.
+    boolean allowNullGraphicsConfig = false;
+
     // The global shading language being used. Using a ShaderProgram
     // with a shading language other than the one specified by
     // globalShadingLanguage will cause a ShaderError to be generated,
@@ -368,7 +360,7 @@ class MasterControl {
     static boolean cgLibraryAvailable = false;
     static boolean glslLibraryAvailable = false;
 
-    
+
     // REQUESTCLEANUP messages argument
     static Integer REMOVEALLCTXS_CLEANUP = new Integer(1);
     static Integer REMOVECTX_CLEANUP     = new Integer(2);
@@ -397,11 +389,16 @@ class MasterControl {
     // or drawpixel clear the background
     boolean isBackgroundTexture = true;
     
+    // Flag that indicates the pre-1.5 behavior of enforcing power-of-two
+    // textures. If set, then any non-power-of-two textures will throw an
+    // exception.
+    boolean enforcePowerOfTwo = false;
+    
     // Flag that indicates whether the framebuffer is sharing the
     // Z-buffer with both the left and right eyes when in stereo mode.
     // If this is true, we need to clear the Z-buffer between rendering
     // to the left and right eyes.
-    boolean sharedStereoZBuffer;
+    boolean sharedStereoZBuffer = true;
 
     // True to disable all underlying multisampling API so it uses
     // the setting in the driver. 
@@ -413,8 +410,8 @@ class MasterControl {
     // False to disable rescale normal if OGL support
     boolean isForceNormalized = false;
 
-    // True to allow simulated (multi-pass) multi-texture
-    boolean allowSimulatedMultiTexture = false;
+    // Simulated (multi-pass) multi-texture is no longer allowed
+    static final boolean allowSimulatedMultiTexture = false;
 
     // Hashtable that maps a GraphicsDevice to its associated
     // Screen3D--this is only used for on-screen Canvas3Ds
@@ -435,7 +432,7 @@ class MasterControl {
     // Root ThreadGroup for creating Java 3D threads
     private static ThreadGroup rootThreadGroup;
 
-    // Thread priority for all Java3D threads
+    // Thread priority for all Java 3D threads
     private static int threadPriority;
 
     static private Object mcThreadLock = new Object();
@@ -443,40 +440,11 @@ class MasterControl {
     private ArrayList timestampUpdateList = new ArrayList(3);
 
     private UnorderList freeMessageList = new UnorderList(8);
-    
-    // System properties containing the native library search PATH
-    // The order listed is the order in which they will be searched
-    private static final String[] systemPathProps = {
-        "sun.boot.library.path",
-        "java.library.path"
-    };
 
+    // Native AWT object
     long awt;
-    private native long getAWT();
 
-    // Method to initialize the native J3D library
-    private native boolean initializeJ3D(boolean disableXinerama);
-
-    // Method to verify whether the native Cg library is available
-    private static native boolean loadNativeCgLibrary(String[] libpath);
-
-    // Method to get number of procesor
-    private native int getNumberOfProcessor();
-
-    // Methods to set/get system thread concurrency
-    private native void setThreadConcurrency(int newLevel);
-    private native int getThreadConcurrency();
-
-    // Native method to get the high-resolution timer value.
-    // This method is only called by the J3dClock.getHiResTimerValue.
-    // It is defined as a MasterControl method for convenience, so we don't
-    // have to have yet another class with native methods.
-    //
-    // NOTE: once we drop support for JDK 1.4.2, this method will go away.
-    static native long getNativeTimerValue();
-
-    // Maximum lights supported by the native API 
-    private native int getMaximumLights();
+    // Maximum number of lights
     int maxLights;
 
     // This is used for D3D only
@@ -509,15 +477,9 @@ class MasterControl {
      */
     MasterControl() {
         assert librariesLoaded;
-        
-	// Get AWT handle
-	awt = getAWT();
 
-	// Get native API information
-	nativeAPIInfo = new NativeAPIInfo();
-	renderingAPI = nativeAPIInfo.getRenderingAPI();
-	isD3DAPI = (renderingAPI == RENDER_DIRECT3D);
-        isWin32 = isD3DAPI || (renderingAPI == RENDER_OPENGL_WIN32);
+	// Get AWT handle
+	awt = Pipeline.getPipeline().getAWT();
 
         // Initialize the start time upon which alpha's and behaviors
         // are synchronized to (if it isn't already set).
@@ -532,7 +494,7 @@ class MasterControl {
 	}
 
 	// Check to see whether shared contexts are allowed
-	if (getRenderingAPI() != RENDER_DIRECT3D) {
+	if (!isD3D()) {
 	    isSharedCtx =
 		getBooleanProperty("j3d.sharedctx", isSharedCtx, "shared contexts");
 	}
@@ -591,16 +553,8 @@ class MasterControl {
 			       isForceNormalized,
 			       "force normalized");
 
-        allowSimulatedMultiTexture =
-	    getBooleanProperty("j3d.simulatedMultiTexture",
-			       allowSimulatedMultiTexture,
-			       "simulated multi-texture");
-
-	if (allowSimulatedMultiTexture) {
-	    System.err.println("************************************************************************");
-	    System.err.println(J3dI18N.getString("MasterControl2"));
-	    System.err.println(J3dI18N.getString("MasterControl3"));
-	    System.err.println("************************************************************************");
+	if (getProperty("j3d.simulatedMultiTexture") != null) {
+	    System.err.println("j3d.simulatedMultiTexture : property ignored");
 	}
 
         boolean j3dOptimizeSpace =
@@ -631,8 +585,23 @@ class MasterControl {
 	isJ3dG2dDrawPixel = getBooleanProperty("j3d.g2ddrawpixel",
 					       isJ3dG2dDrawPixel,
 					       "Graphics2D DrawPixel");
+        
+        // Check to see whether we enforce power-of-two textures
+        enforcePowerOfTwo = getBooleanProperty("j3d.textureEnforcePowerOfTwo",
+					       enforcePowerOfTwo,
+					       "checking power-of-two textures");
 
-	// Check to see whether BackgroundRetained uses texturemapping
+        // Issue 249 - check to see whether the soleUser optimization is permitted
+        allowSoleUser = getBooleanProperty("j3d.allowSoleUser",
+					   allowSoleUser,
+					   "sole-user mode");
+
+        // Issue 266 - check to see whether null graphics configs are allowed
+        allowNullGraphicsConfig = getBooleanProperty("j3d.allowNullGraphicsConfig",
+						     allowNullGraphicsConfig,
+						     "null graphics configs");
+
+        // Check to see whether BackgroundRetained uses texturemapping
 	// or drawpixel clear the background
 	if (!isD3D()) {
 	    isBackgroundTexture =
@@ -646,15 +615,13 @@ class MasterControl {
 	}
 
         // Check to see if stereo mode is sharing the Z-buffer for both eyes.
-	boolean defaultSharedStereoZBuffer =
-	    getRenderingAPI() != RENDER_OPENGL_SOLARIS;
 	sharedStereoZBuffer = 
 	    getBooleanProperty("j3d.sharedstereozbuffer",
-			       defaultSharedStereoZBuffer,
+			       sharedStereoZBuffer,
 			       "shared stereo Z buffer");
 
 	// Get the maximum number of concurrent threads (CPUs)
-	final int defaultThreadLimit = getNumberOfProcessor()+1;
+	final int defaultThreadLimit = Pipeline.getPipeline().getNumberOfProcessor()+1;
 	Integer threadLimit =
 	    (Integer) java.security.AccessController.doPrivileged(
 	    new java.security.PrivilegedAction() {
@@ -671,22 +638,6 @@ class MasterControl {
 	if (J3dDebug.debug || cpuLimit != defaultThreadLimit) {
 	    System.err.println("Java 3D: concurrent threadLimit = " +
 			       cpuLimit);
-	}
-
-	// Ensure that there are at least enough system threads to
-	// support all of Java 3D's threads running in parallel
-	int threadConcurrency = getThreadConcurrency();
-	if (J3dDebug.debug) {
-	    System.err.println("System threadConcurrency = " +
-			       threadConcurrency);
-	}
-	if (threadConcurrency != -1 && threadConcurrency < (cpuLimit + 1)) {
-	    threadConcurrency = cpuLimit + 1;
-	    if (J3dDebug.debug) {
-		System.err.println("Setting system threadConcurrency to " +
-				   threadConcurrency);
-	    }
-	    setThreadConcurrency(threadConcurrency);
 	}
 
 	// Get the input device scheduler sampling time
@@ -712,10 +663,7 @@ class MasterControl {
 	}
 
 	// Initialize the native J3D library
-	if (!initializeJ3D(disableXinerama)) {
-	    if (isGreenThreadUsed()) {
-	        System.err.print(J3dI18N.getString("MasterControl1"));
-	    }
+	if (!Pipeline.getPipeline().initializeJ3D(disableXinerama)) {
 	    throw new RuntimeException(J3dI18N.getString("MasterControl0"));
 	}
 
@@ -729,7 +677,7 @@ class MasterControl {
 	}
 
 	// Get the maximum Lights
-	maxLights = getMaximumLights();
+	maxLights = Pipeline.getPipeline().getMaximumLights();
 
 	// create the freelists
 	FreeListManager.createFreeLists();
@@ -777,144 +725,91 @@ class MasterControl {
 				  (msg + " disabled"));
     }
 
-    // Java 3D only supports native threads
-    boolean isGreenThreadUsed() {
-	return false;
-    }
-
-
     /**
-     * Method to load the native libraries needed by Java 3D. This is
+     * Method to create and initialize the rendering Pipeline object,
+     * and to load the native libraries needed by Java 3D. This is
      * called by the static initializer in VirtualUniverse <i>before</i>
      * the MasterControl object is created.
      */
     static void loadLibraries() {
         assert !librariesLoaded;
 
-        // This works around a native load library bug
-       	try {
-            java.awt.Toolkit toolkit = java.awt.Toolkit.getDefaultToolkit();
-            toolkit = null;   // just making sure GC collects this
-       	} catch (java.awt.AWTError e) {
-       	}
+        // Set global flags indicating whether we are running on Windows or MacOS
+        String osName = getProperty("os.name");
+        isWindowsOs = osName != null && osName.startsWith("Windows");
+        isMacOs = osName != null && osName.startsWith("Mac");
 
-	// Load the JAWT native library
-	java.security.AccessController.doPrivileged(
-	    new java.security.PrivilegedAction() {
-	    public Object run() {
-		System.loadLibrary("jawt");
-		return null;
-	    }
-	});
+//KCR:        System.err.println("MasterControl.loadLibraries()");
+//KCR:        System.err.println("    osName = \"" + osName + "\"" +
+//KCR:                ", isWindowsOs = " + isWindowsOs +
+//KCR:                ", isMacOs = " + isMacOs);
 
-	// Load the native J3D library
-        final String oglLibraryName = "j3dcore-ogl";
-        final String d3dLibraryName = "j3dcore-d3d";
-        final String libraryName = (String)
-        java.security.AccessController.doPrivileged(new
-	    java.security.PrivilegedAction() {
-		public Object run() {
-		    String libName = oglLibraryName;
+        // Initialize the Pipeline object associated with the
+        // renderer specified by the "j3d.rend" system property.
+        //
+        // XXXX : We should consider adding support for a more flexible,
+        // dynamic selection scheme via an API call.
 
-		    // If it is a Windows OS, we want to support dynamic native library selection (ogl, d3d)
-		    String osName = System.getProperty("os.name");
-		    if (osName != null && osName.startsWith("Windows")) {
-			// XXXX : Should eventually support a more flexible dynamic 
-			// selection scheme via an API call.
-			String str = System.getProperty("j3d.rend");
-			if (str != null && str.equals("d3d")) {
-			    libName = d3dLibraryName;
-			}
-		    }
+        // Default rendering pipeline is the JOGL pipeline on MacOS and the
+        // native OpenGL pipeline on all other platforms.
+        Pipeline.Type rendererType =
+                isMacOs ? Pipeline.Type.JOGL : Pipeline.Type.NATIVE_OGL;
 
-                    System.loadLibrary(libName);
-		    return libName;
-		}
-	    });
+        String rendStr = getProperty("j3d.rend");
+        if (rendStr == null) {
+            // Use default pipeline
+        } else if (rendStr.equals("ogl") && !isMacOs) {
+            rendererType = Pipeline.Type.NATIVE_OGL;
+        } else if (rendStr.equals("d3d") && isWindowsOs) {
+            rendererType = Pipeline.Type.NATIVE_D3D;
+        } else if (rendStr.equals("jogl")) {
+            rendererType = Pipeline.Type.JOGL;
+        } else {
+            System.err.println("Java 3D: Unrecognized renderer: " + rendStr);
+            // Use default pipeline
+        }
 
-        // Get the global j3d.shadingLanguage property
-	final String slStr = getProperty("j3d.shadingLanguage");
-	if (slStr != null) {
-	    boolean found = false;
-	    if (slStr.equals("GLSL")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
-		found = true;
-	    }
-	    else if (slStr.equals("Cg")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
-		found = true;
-	    }
+//KCR:        System.err.println("    using " + rendererType + " pipeline");
 
-	    if (found) {
-		System.err.println("Java 3D: Setting global shading language to " + slStr);
-	    }
-	    else {
-		System.err.println("Java 3D: Unrecognized shading language: " + slStr);
-	    }
-	}
+        // Construct the singleton Pipeline instance
+        Pipeline.createPipeline(rendererType);
+
+        // Get the global j3d.shadingLanguage system property
+        final String slStr = getProperty("j3d.shadingLanguage");
+        if (slStr != null) {
+            boolean found = false;
+            if (slStr.equals("GLSL")) {
+                globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+                found = true;
+            } else if (slStr.equals("Cg")) {
+                globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
+                found = true;
+            }
+
+            if (found) {
+                System.err.println("Java 3D: Setting global shading language to " + slStr);
+            } else {
+                System.err.println("Java 3D: Unrecognized shading language: " + slStr);
+            }
+        }
+
+        // Load all required libraries
+        Pipeline.getPipeline().loadLibraries(globalShadingLanguage);
 
         // Check whether the Cg library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
-            String cgLibraryName = libraryName + "-cg";
-            String[] libpath = setupLibPath(systemPathProps, cgLibraryName);
-            if (loadNativeCgLibrary(libpath)) {
-                cgLibraryAvailable = true;
-            }
+            cgLibraryAvailable = Pipeline.getPipeline().isCgLibraryAvailable();
         }
-        
+
         // Check whether the GLSL library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_GLSL) {
-            if (libraryName == oglLibraryName) {
-                // No need to verify that GLSL is available, since GLSL is part
-                // of OpenGL as an extension (or part of core in 2.0)
-                glslLibraryAvailable = true;
-            }
+            glslLibraryAvailable = Pipeline.getPipeline().isGLSLLibraryAvailable();
         }
 
         assert !(glslLibraryAvailable && cgLibraryAvailable) :
             "ERROR: cannot support both GLSL and CG at the same time";
 
         librariesLoaded = true;
-    }
-
-
-    /**
-     * Parse the specified System properties containing a PATH and return an
-     * array of Strings, where each element is an absolute filename consisting of
-     * the individual component of the path concatenated with the (relative)
-     * library file name. Only those absolute filenames that exist are included.
-     * If no absolute filename is found, we will try the relative library name.
-     */
-    private static String[] setupLibPath(String[] props, String libName) {
-        ArrayList pathList = new ArrayList();
-
-        String filename = System.mapLibraryName(libName);
-        for (int n = 0; n < props.length; n++) {
-            String pathString = getProperty(props[n]);
-            boolean done = false;
-            int posStart = 0;
-            while (!done) {
-                int posEnd = pathString.indexOf(File.pathSeparator, posStart);
-                if (posEnd == -1) {
-                    posEnd = pathString.length();
-                    done = true;
-                }
-                String pathDir = pathString.substring(posStart, posEnd);
-                File pathFile = new File(pathDir, filename);
-                if (pathFile.exists()) {
-                    pathList.add(pathFile.getAbsolutePath());
-                }
-
-                posStart = posEnd + 1;
-            }
-        }
-
-        // If no absolute path names exist, add in the relative library name
-        if (pathList.size() == 0) {
-            pathList.add(filename);
-        }
-
-        return (String[])pathList.toArray(new String[0]);
     }
 
 
@@ -1270,14 +1165,19 @@ class MasterControl {
     }
 
     /**
-     * Returns the native rendering layer we are using
+     * Returns whether we are using D3D.
+     * TODO: most code that cares about this should move into the pipeline
      */
-    final int getRenderingAPI() {
-	return renderingAPI;
-    }
-    
     final boolean isD3D() {
-	return isD3DAPI;
+	return Pipeline.getPipeline().getRendererType() == Pipeline.Type.NATIVE_D3D;
+    }
+
+    /**
+     * Returns whether we are running on Windows
+     * TODO: most code that cares about this should move into the pipeline
+     */
+    final boolean isWindows() {
+	return isWindowsOs;
     }
 
     /**
@@ -3652,23 +3552,6 @@ class MasterControl {
 
     // Static initializer
     static {
-	/*
-        // Determine whether the JVM is version JDK1.5 or later.
-        // XXXX: replace this with code that checks for the existence
-	// of a class or method that is defined in 1.5, but not in 1.4
-        String versionString =
-            (String) java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction() {
-                public Object run() {
-                    return System.getProperty("java.version");
-                }
-            });
-        jvm15OrBetter = !(versionString.startsWith("1.4") ||
-			  versionString.startsWith("1.3") ||
-			  versionString.startsWith("1.2") ||
-			  versionString.startsWith("1.1"));
-	*/
-
 	// create ThreadGroup
 	java.security.AccessController.doPrivileged(
   	    new java.security.PrivilegedAction() {

@@ -183,22 +183,16 @@ class SpotLightRetained extends PointLightRetained {
      * transformed position, spread angle, concentration,
      * and its transformed position.
      */
-    native void updateLight(long ctx,
-			    int lightSlot, float red, float green,
-			    float blue, float ax, float ay, float az,
-			    float px, float py, float pz, float spreadAngle,
-			    float concentration, float dx, float dy,
-			    float dz);
-
     void update(long ctx, int lightSlot, double scale) {
 	validateAttenuationInEc(scale);
-	updateLight(ctx, lightSlot, color.x, color.y, color.z,
-		    attenuation.x, linearAttenuationInEc,
-		    quadraticAttenuationInEc,
-		    xformPosition.x, xformPosition.y,
-		    xformPosition.z, spreadAngle, concentration,
-		    xformDirection.x, xformDirection.y, 
-		    xformDirection.z);
+        Pipeline.getPipeline().updateSpotLight(ctx,
+                lightSlot, color.x, color.y, color.z,
+                attenuation.x, linearAttenuationInEc,
+                quadraticAttenuationInEc,
+                xformPosition.x, xformPosition.y,
+                xformPosition.z, spreadAngle, concentration,
+                xformDirection.x, xformDirection.y,
+                xformDirection.z);
     }
 
 
@@ -262,40 +256,6 @@ class SpotLightRetained extends PointLightRetained {
 	// call the parent's mirror object update routine
 	super.updateMirrorObject(objs);
     }
-
-
-    /*
-    // This update function, and its native counterpart,
-    // updates a spot light.  This includes its color, attenuation,
-    // transformed position, spread angle, concentration,
-    // and its transformed position.
-    native void updateLight(int lightSlot, float red, float green,
-			    float blue, float ax, float ay, float az,
-			    float px, float py, float pz, float spreadAngle,
-			    float concentration, float dx, float dy,
-			    float dz);
-    void update(int lightSlot, double scale) {
-	updateLight(lightSlot, color.x, color.y, color.z,
-		    attenuation.x, linearAttenuationInEc,
-		    quadraticAttenuationInEc,
-		    xformPosition.x, xformPosition.y,
-		    xformPosition.z, spreadAngle, concentration,
-		    xformDirection.x, xformDirection.y, 
-		    xformDirection.z);
-    }
-
-    synchronized void update(LightRetained l, boolean clear) {
-	SpotLightRetained sl = (SpotLightRetained)l;
-	super.update(sl, clear);
-
-	l.sgLight.getLocalToVworld(trans, l.key);
-	trans.transform(direction, sl.xformDirection);
-	sl.xformDirection.normalize();
-	trans.transform(position, sl.xformPosition);
-        sl.spreadAngle = spreadAngle;
-        sl.concentration = concentration;
-    }
-    */
 
 
     // Clones only the retained side, internal use only
