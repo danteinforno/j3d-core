@@ -29,14 +29,13 @@ class DisplayListRenderMethod implements RenderMethod {
      */
     int[] buffer = new int[bufferSize];
 
-    native void callDisplayLists(int size, int[] buffer);
-
     /**
      * The actual rendering code for this RenderMethod
      */
     public boolean render(RenderMolecule rm, Canvas3D cv, int pass,
 			  RenderAtomListInfo ra,
 			  int dirtyBits) {
+        assert pass < 0;
 	
         if (rm.doInfinite || 
 	    !VirtualUniverse.mc.viewFrustumCulling ||
@@ -190,7 +189,7 @@ class DisplayListRenderMethod implements RenderMethod {
     }
 
     void buildIndividualDisplayList(RenderAtomListInfo ra, Canvas3D cv, 
-					long ctx) {
+					Context ctx) {
 	GeometryArrayRetained geo;
 
 	geo = (GeometryArrayRetained)ra.geometry();

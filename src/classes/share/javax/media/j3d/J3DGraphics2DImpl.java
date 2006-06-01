@@ -45,7 +45,7 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
     private Point2D.Float ptDst2 = new Point2D.Float();
     private Color xOrModeColor = null;
     private volatile boolean initCtx = false;
-    private boolean threadWaiting = false;
+    private volatile boolean threadWaiting = false;
     static final Color blackTransparent = new Color(0,0,0,0);
     private boolean useDrawPixel = VirtualUniverse.mc.isJ3dG2dDrawPixel;
     int objectId = -1;
@@ -55,7 +55,7 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
 	canvas3d = c;
 	
 	synchronized (VirtualUniverse.mc.contextCreationLock) {
-	    if (c.ctx == 0) {
+	    if (c.ctx == null) {
 		// create a dummy bufferImage
 		width = 1;
 		height = 1;
@@ -163,7 +163,7 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
     // copy the data into a byte buffer that will be passed to opengl
     void doFlush() {
 	// clip to offscreen buffer size
-	if (canvas3d.ctx == 0) {
+	if (canvas3d.ctx == null) {
 	    canvas3d.getGraphicsContext3D().doClear();
 	}
 
@@ -867,11 +867,14 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
 	offScreenGraphics2D.fillRect(x, y, width, height);
     }
 
+    // Issue 121 : Stop using finalize() to clean up state
+    // Explore release native resources during clearlive without using finalize.
     public void finalize() {
 	if (objectId >= 0) {
 	    VirtualUniverse.mc.freeTexture2DId(objectId);
 	}
-	offScreenGraphics2D.finalize();
+        // This should have call disposal() instead of finalize().
+        offScreenGraphics2D.finalize();
     }
 
     public void drawAndFlushImage(BufferedImage img, int x, int y,
@@ -904,7 +907,7 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
  	int imgHeight = img.getHeight(observer);
 	int px, py, x1, y1, x2, y2;
 
-	if (canvas3d.ctx == 0) {
+	if (canvas3d.ctx == null) {
 	    canvas3d.getGraphicsContext3D().doClear();
 	}
 
@@ -1043,7 +1046,8 @@ final class J3DGraphics2DImpl extends J3DGraphics2D {
      */
     synchronized void runMonitor(int action) {
         if (action == J3dThread.WAIT) {
-	    if (threadWaiting) {
+            // Issue 279 - loop until ready
+	    while (threadWaiting) {
 		try {
 		    wait();
 		} catch (InterruptedException e){}
