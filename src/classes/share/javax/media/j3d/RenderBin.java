@@ -713,7 +713,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		        // If the context is null, then the extension
 		        // will be evaluated during context creation in
 		        // the renderer
-		        if (canvases[j].ctx != 0) {
+		        if (canvases[j].ctx != null) {
 			    nc.evaluateExtensions(canvases[j].extensionsSupported);
 		        }
 		    }
@@ -746,7 +746,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
                         // If the context is null, then the extension
                         // will be evaluated during context creation in
                         // the renderer
-                        if (canvases[j].ctx != 0) {
+                        if (canvases[j].ctx != null) {
                             nc.evaluateExtensions(
 					canvases[j].extensionsSupported);
                         }
@@ -1089,7 +1089,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    ra = arr[i];
 		    GeometryArrayRetained geo = (GeometryArrayRetained) ra.geometry();
 
-		    if ((cv.ctx != 0) &&
+		    if ((cv.ctx != null) &&
 			((geo.resourceCreationMask & cv.canvasBit) == 0) || 
 			(geo.getDlistTimeStamp(cv.canvasBit) != 
 			 cv.ctxTimeStamp)) {
@@ -1107,7 +1107,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 
 		    // add this geometry's dlist to be freed
 		    if (geo.isDlistUserSetEmpty(this)) {
-			if (cv.ctx != 0) {
+			if (cv.ctx != null) {
 			    canvases[j].displayListResourceFreeList.add(geo.dlistObj);
 			}
 			geo.resourceCreationMask &= ~canvases[j].canvasBit;
@@ -3223,7 +3223,8 @@ System.out.println("......tb.soleUser= " +
 				 ArrayList rmList, ArrayList dlistPerRinfoList,
 				 ArrayList raList, boolean useSharedCtx ) {
 	int size, i, bitMask;
-	long ctx, timeStamp;
+	Context ctx;
+	long timeStamp;
 
 	if (useSharedCtx) {
 	    ctx = cv.screen.renderer.sharedCtx;
@@ -3285,10 +3286,11 @@ System.out.println("......tb.soleUser= " +
     }
 
     void removeRenderMolecule(RenderMolecule rm) {
-	renderMoleculeFreelist.add(rm);
+        if (VirtualUniverse.mc.useFreeLists)
+            renderMoleculeFreelist.add(rm);
 
-	if ((rm.primaryMoleculeType &(RenderMolecule.DLIST_MOLECULE|RenderMolecule.SEPARATE_DLIST_PER_RINFO_MOLECULE)) != 0)
-	    renderMoleculeList.remove(rm);
+        if ((rm.primaryMoleculeType &(RenderMolecule.DLIST_MOLECULE|RenderMolecule.SEPARATE_DLIST_PER_RINFO_MOLECULE)) != 0)
+            renderMoleculeList.remove(rm);
     }
 
     void updateAllRenderMolecule(Canvas3D cv) {
@@ -5197,7 +5199,8 @@ System.out.println("......tb.soleUser= " +
 	    // gotten from the freelist from one frame to another
 	    canvases[i].lightBin = null;
 	}
-	lightBinFreelist.add(lbin);
+        if (VirtualUniverse.mc.useFreeLists)
+            lightBinFreelist.add(lbin);
 	lbin.prev = null;
 	lbin.next = null;
     }
@@ -6142,7 +6145,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		tb.parentTInfo = null;
 	    }
 	    else {
@@ -6168,7 +6172,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		tb.parentTInfo = null;
 	    }
 
@@ -6202,7 +6207,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		nElements--;
 		r.parentTInfo[i] = null;
 	    }
@@ -6370,7 +6376,8 @@ System.out.println("......tb.soleUser= " +
 
 	    for (i = 0; i < size; i++) {
 		TextureBin tb = (TextureBin)allTransparentObjects.get(i);
-		transparentInfoFreeList.add(tb.parentTInfo);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(tb.parentTInfo);
 		tb.parentTInfo = null;
 		RenderMolecule r = tb.transparentRMList;
 		// For each renderMolecule
@@ -6429,7 +6436,8 @@ System.out.println("......tb.soleUser= " +
 		    if (r.parentTInfo[j] == null)
 			continue;
 
-		    transparentInfoFreeList.add(r.parentTInfo[j]);
+                    if (VirtualUniverse.mc.useFreeLists)
+                        transparentInfoFreeList.add(r.parentTInfo[j]);
 		    r.parentTInfo[j] = null;		    
 		}
 		if (r.renderMolecule.textureBin.parentTInfo == null) {

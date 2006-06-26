@@ -218,17 +218,16 @@ const unsigned int screen_door[17][32] = {
 };
 
 
-	
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_LinearFogRetained_update(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateLinearFog(
 	JNIEnv *env,
-	jobject fog,
+	jobject obj,
 	jlong ctxInfo,
 	jfloat red,
 	jfloat green,
 	jfloat blue,
 	jdouble fdist,
-	jdouble bdist) 
+	jdouble bdist)
 {
     
     float color[3];
@@ -248,9 +247,9 @@ void JNICALL Java_javax_media_j3d_LinearFogRetained_update(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_ExponentialFogRetained_update(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateExponentialFog(
 	JNIEnv *env, 
-	jobject fog,
+	jobject obj,
 	jlong   ctxInfo,
 	jfloat red,
 	jfloat green,
@@ -274,9 +273,9 @@ void JNICALL Java_javax_media_j3d_ExponentialFogRetained_update(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_ModelClipRetained_update(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateModelClip(
 	JNIEnv *env, 
-	jobject modelClip,
+	jobject obj,
 	jlong ctxInfo,
 	jint planeNum,
 	jboolean enableFlag,
@@ -308,7 +307,7 @@ void JNICALL Java_javax_media_j3d_ModelClipRetained_update(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setModelViewMatrix(
+void JNICALL Java_javax_media_j3d_NativePipeline_setModelViewMatrix(
     JNIEnv * env, 
     jobject obj,
     jlong ctxInfo,
@@ -327,11 +326,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setModelViewMatrix(
 
 
     glMatrixMode(GL_MODELVIEW);
-    
 
-    if (ctxProperties->arb_transpose_matrix) {
-        ctxProperties->glLoadTransposeMatrixdARB(vmatrix_pointer);
-        ctxProperties->glMultTransposeMatrixdARB(mmatrix_pointer);
+    if (ctxProperties->gl13) {
+        ctxProperties->glLoadTransposeMatrixd(vmatrix_pointer);
+        ctxProperties->glMultTransposeMatrixd(mmatrix_pointer);
     } else {
         double v[16];
         double m[16];
@@ -364,7 +362,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setModelViewMatrix(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setProjectionMatrix(
+void JNICALL Java_javax_media_j3d_NativePipeline_setProjectionMatrix(
     JNIEnv * env,
     jobject obj,
     jlong ctxInfo,
@@ -379,7 +377,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setProjectionMatrix(
 
     glMatrixMode(GL_PROJECTION);
 
-    if (ctxProperties->arb_transpose_matrix) {
+    if (ctxProperties->gl13) {
 	/*
 	 * Invert the Z value in clipping coordinates because OpenGL uses
 	 * left-handed clipping coordinates, while Java3D defines right-handed
@@ -389,7 +387,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setProjectionMatrix(
 	matrix_pointer[9] *= -1.0;
 	matrix_pointer[10] *= -1.0;
 	matrix_pointer[11] *= -1.0;
-	ctxProperties->glLoadTransposeMatrixdARB(matrix_pointer);
+	ctxProperties->glLoadTransposeMatrixd(matrix_pointer);
 	matrix_pointer[8] *= -1.0;
 	matrix_pointer[9] *= -1.0;
 	matrix_pointer[10] *= -1.0;
@@ -427,7 +425,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setProjectionMatrix(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setViewport(
+void JNICALL Java_javax_media_j3d_NativePipeline_setViewport(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,
@@ -445,7 +443,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setViewport(
 #endif
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setSceneAmbient(
+void JNICALL Java_javax_media_j3d_NativePipeline_setSceneAmbient(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo,
@@ -463,7 +461,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setSceneAmbient(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setLightEnables(
+void JNICALL Java_javax_media_j3d_NativePipeline_setLightEnables(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo,
@@ -489,7 +487,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setLightEnables(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setLightingEnable(
+void JNICALL Java_javax_media_j3d_NativePipeline_setLightingEnable(
     JNIEnv *env,
     jobject cv,
     jlong ctxInfo,
@@ -509,7 +507,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setLightingEnable(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_disableFog(
+void JNICALL Java_javax_media_j3d_NativePipeline_disableFog(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -521,7 +519,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_disableFog(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_disableModelClip(
+void JNICALL Java_javax_media_j3d_NativePipeline_disableModelClip(
         JNIEnv *env,
         jobject cv,
 	jlong ctxInfo)
@@ -540,7 +538,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_disableModelClip(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetRenderingAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetRenderingAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo,    
@@ -618,9 +616,9 @@ GLenum getStencilOpValue(jint op) {
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateRenderingAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,    
     jboolean db_write_enable_override,
     jboolean db_enable_override,
@@ -750,7 +748,7 @@ void JNICALL Java_javax_media_j3d_RenderingAttributesRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetPolygonAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetPolygonAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -769,9 +767,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetPolygonAttributes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_PolygonAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updatePolygonAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jint polygonMode,
     jint cullFace,
@@ -834,7 +832,7 @@ void JNICALL Java_javax_media_j3d_PolygonAttributesRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetLineAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetLineAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -852,9 +850,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetLineAttributes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_LineAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateLineAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jfloat lineWidth,
     jint linePattern,
@@ -888,7 +886,7 @@ void JNICALL Java_javax_media_j3d_LineAttributesRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetPointAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetPointAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -900,9 +898,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetPointAttributes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_PointAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updatePointAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jfloat pointSize,
     jboolean pointAntialiasing)
@@ -918,7 +916,7 @@ void JNICALL Java_javax_media_j3d_PointAttributesRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetTexCoordGeneration(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetTexCoordGeneration(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -930,9 +928,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetTexCoordGeneration(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TexCoordGenerationRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexCoordGeneration(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jboolean enable,
     jint genMode,
@@ -1016,8 +1014,8 @@ void JNICALL Java_javax_media_j3d_TexCoordGenerationRetained_updateNative(
     		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 
-                if (ctxProperties->arb_transpose_matrix) {
-                    ctxProperties->glLoadTransposeMatrixdARB(mat);
+                if (ctxProperties->gl13) {
+                    ctxProperties->glLoadTransposeMatrixd(mat);
                 } else {
                     jdouble v[16];
                     COPY_TRANSPOSE(mat, v);
@@ -1084,7 +1082,7 @@ void JNICALL Java_javax_media_j3d_TexCoordGenerationRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetTextureAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetTextureAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo)
@@ -1110,9 +1108,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetTextureAttributes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jdoubleArray transform,
     jboolean isIdentity,
@@ -1144,8 +1142,8 @@ void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateNative(
 							      NULL);
     if (isIdentity) {
 	glLoadIdentity();
-    } else if (ctxProperties->arb_transpose_matrix) {
-        ctxProperties->glLoadTransposeMatrixdARB(mx_ptr);
+    } else if (ctxProperties->gl13) {
+        ctxProperties->glLoadTransposeMatrixd(mx_ptr);
     } else {
         double mx[16];
         COPY_TRANSPOSE(mx_ptr, mx);
@@ -1215,9 +1213,9 @@ GLenum getCombinerArg(jint arg, GLenum textureUnit, GLenum combUnit) {
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateNativeRegisterCombiners(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateRegisterCombiners(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jdoubleArray transform,
     jboolean isIdentity,
@@ -1262,8 +1260,8 @@ void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateNativeRegister
 							      NULL);
     if (isIdentity) {
 	glLoadIdentity();
-    } else if (ctxProperties->arb_transpose_matrix) {
-        ctxProperties->glLoadTransposeMatrixdARB(mx_ptr);
+    } else if (ctxProperties->gl13) {
+        ctxProperties->glLoadTransposeMatrixd(mx_ptr);
     } else {
         double mx[16];
         COPY_TRANSPOSE(mx_ptr, mx);
@@ -1564,9 +1562,9 @@ jint _gl_combineFcn[] = {
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateCombinerNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateCombiner(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxProperties,
     jint combineRgbMode,
     jint combineAlphaMode,
@@ -1642,9 +1640,9 @@ void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateCombinerNative
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateTextureColorTableNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureColorTable(
 	JNIEnv *env, 
-	jobject cv,
+	jobject obj,
 	jlong ctxInfo,
 	jint numComponents,
 	jint colorTableSize,
@@ -1672,9 +1670,9 @@ void JNICALL Java_javax_media_j3d_TextureAttributesRetained_updateTextureColorTa
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_updateMaterial(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateMaterialColor(
 	JNIEnv *env, 
-	jobject cv,
+	jobject obj,
 	jlong ctxInfo,	
 	jfloat colorRed,
 	jfloat colorGreen,
@@ -1692,9 +1690,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_updateMaterial(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_MaterialRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateMaterial(
 	JNIEnv *env, 
-	jobject cv,
+	jobject obj,
 	jlong ctxInfo,	
 	jfloat colorRed,
 	jfloat colorGreen,
@@ -1762,7 +1760,7 @@ void JNICALL Java_javax_media_j3d_MaterialRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetTransparency(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetTransparency(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo,
@@ -1787,7 +1785,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetTransparency(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TransparencyAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTransparencyAttributes(
     JNIEnv *env, 
     jobject tr,
     jlong ctxInfo,    
@@ -1826,7 +1824,7 @@ void JNICALL Java_javax_media_j3d_TransparencyAttributesRetained_updateNative(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetColoringAttributes(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetColoringAttributes(
     JNIEnv *env, 
     jobject cv,
     jlong ctxInfo,    
@@ -1849,9 +1847,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_resetColoringAttributes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_ColoringAttributesRetained_updateNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateColoringAttributes(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jfloat dRed,
     jfloat dGreen,
@@ -1883,32 +1881,25 @@ void JNICALL Java_javax_media_j3d_ColoringAttributesRetained_updateNative(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_resetTextureNative(
+void JNICALL Java_javax_media_j3d_NativePipeline_resetTextureNative(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint texUnitIndex)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if(ctxProperties->arb_multitexture) {
-
-      if (texUnitIndex >= 0) {
-	    ctxProperties->glActiveTextureARB(texUnitIndex + GL_TEXTURE0_ARB);
-	    ctxProperties->glClientActiveTextureARB(texUnitIndex + GL_TEXTURE0_ARB);
-      }
+    if(ctxProperties->gl13) {
+        if (texUnitIndex >= 0) {
+            ctxProperties->glActiveTexture(texUnitIndex + GL_TEXTURE0);
+            ctxProperties->glClientActiveTexture(texUnitIndex + GL_TEXTURE0);
+        }
     }
 
     glDisable(GL_TEXTURE_1D);
     glDisable(GL_TEXTURE_2D);
-    
-    if(ctxProperties->texture3DAvailable)  {
-	glDisable(ctxProperties->texture_3D_ext_enum);
-    }
-
-    if(ctxProperties->textureCubeMapAvailable) {
-	glDisable(ctxProperties->texture_cube_map_ext_enum);
-    }
+    glDisable(GL_TEXTURE_3D);
+    glDisable(GL_TEXTURE_CUBE_MAP);
 }
 
 
@@ -2048,7 +2039,7 @@ void updateTextureBoundary(
 	    break;
         case javax_media_j3d_Texture_CLAMP_TO_EDGE:
 	    glTexParameteri(target, GL_TEXTURE_WRAP_S, 
-				ctxProperties->texture_clamp_to_edge_enum);
+				GL_CLAMP_TO_EDGE);
 	    break;
         case javax_media_j3d_Texture_CLAMP_TO_BOUNDARY:
 	    glTexParameteri(target, GL_TEXTURE_WRAP_S, 
@@ -2065,7 +2056,7 @@ void updateTextureBoundary(
 	    break;
         case javax_media_j3d_Texture_CLAMP_TO_EDGE:
 	    glTexParameteri(target, GL_TEXTURE_WRAP_T, 
-				ctxProperties->texture_clamp_to_edge_enum);
+				GL_CLAMP_TO_EDGE);
 	    break;
         case javax_media_j3d_Texture_CLAMP_TO_BOUNDARY:
 	    glTexParameteri(target, GL_TEXTURE_WRAP_T, 
@@ -2078,21 +2069,21 @@ void updateTextureBoundary(
         switch (boundaryModeR) {
             case javax_media_j3d_Texture_WRAP:
             glTexParameteri(target,
-                            ctxProperties->texture_wrap_r_ext_enum, GL_REPEAT);
+                            GL_TEXTURE_WRAP_R, GL_REPEAT);
             break;
 
             case javax_media_j3d_Texture_CLAMP:
             glTexParameteri(target,
-                            ctxProperties->texture_wrap_r_ext_enum, GL_CLAMP);
+                            GL_TEXTURE_WRAP_R, GL_CLAMP);
             break;
             case javax_media_j3d_Texture_CLAMP_TO_EDGE:
 	    glTexParameteri(target, 
-                            ctxProperties->texture_wrap_r_ext_enum, 
-				ctxProperties->texture_clamp_to_edge_enum);
+                            GL_TEXTURE_WRAP_R, 
+				GL_CLAMP_TO_EDGE);
 	    break;
             case javax_media_j3d_Texture_CLAMP_TO_BOUNDARY:
 	    glTexParameteri(target, 
-                            ctxProperties->texture_wrap_r_ext_enum,
+                            GL_TEXTURE_WRAP_R,
 				ctxProperties->texture_clamp_to_border_enum);
 	    break;
         }
@@ -2181,6 +2172,21 @@ void updateTextureAnisotropicFilter(
 			degree);
 }
 
+static int
+isPowerOfTwo(int size) 
+{
+    int i;
+    if (size == 0) {
+	return 1;
+    } else {
+	for (i = 0; i < 32; i++) {
+	    if (size == (1 << i)) {
+		return 1;
+	    }
+	}
+	return 0;
+    }
+}
 
 /*
  * common function to define 2D texture image for different target
@@ -2239,9 +2245,7 @@ void updateTexture2DImage(
 	    break;
 	    
         case FORMAT_BYTE_BGR:         
-	    if (ctxProperties->bgr_ext) { /* If its zero, should never come here! */
-		oglFormat = ctxProperties->bgr_ext_enum;
-	    }
+            oglFormat = GL_BGR;
 	    break;
 
         case FORMAT_BYTE_LA: 
@@ -2292,6 +2296,12 @@ void updateTexture2DImage(
     else {
 	byteData = NULL;
 	shortData = NULL;
+    }
+    /* check if we are trying to draw NPOT on a system that doesn't support it */
+    if ((!ctxProperties->textureNonPowerOfTwoAvailable) &&
+        (!isPowerOfTwo(width) || !isPowerOfTwo(height))) {
+        /* disable texture by setting width and height to 0 */
+	width = height = 0;
     }
     if (format != FORMAT_USHORT_GRAY) {
 	glTexImage2D(target, level, oglInternalFormat, 
@@ -2385,10 +2395,8 @@ void updateTexture2DSubImage(
 	    }
 	    break;
         case FORMAT_BYTE_BGR:         
-	    if (ctxProperties->bgr_ext) { /* If its zero, should never come here! */
-		oglFormat = ctxProperties->bgr_ext_enum;
-		numBytes = 3;
-	    }
+            oglFormat = GL_BGR;
+            numBytes = 3;
 	    break;
 
         case FORMAT_BYTE_LA: 
@@ -2428,6 +2436,19 @@ void updateTexture2DSubImage(
 	pixelStore = JNI_TRUE;
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, tilew);
     }
+    /* if NPOT textures are not supported, check if h=w=0, if so we have been 
+     * disabled due to a NPOT texture being sent to a context that doesn't
+     * support it: disable the glTexSubImage as well
+     */
+    if (!ctxProperties->textureNonPowerOfTwoAvailable) {
+	int texWidth, texHeight;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texWidth);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+	if ((texWidth == 0) && (texHeight == 0)) {
+	    /* disable the sub-image by setting it's width and height to 0 */
+	    width = height = 0;
+	}
+    }
 	
     if (format != FORMAT_USHORT_GRAY) {
 	int off = 0;
@@ -2462,25 +2483,20 @@ printf("tmpByte: %x %x %x %x\n", *(tmpByte), *(tmpByte+1),
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_bindTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_bindTexture2D(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint objectId,
     jboolean enable) 
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-	glDisable(ctxProperties->texture_cube_map_ext_enum);
-    }
-    if (ctxProperties->texture3DAvailable) {
-	glDisable(ctxProperties->texture_3D_ext_enum);	
-    }
+    glDisable(GL_TEXTURE_CUBE_MAP);
+    glDisable(GL_TEXTURE_3D);	
     
     if (enable == JNI_FALSE) {
         glDisable(GL_TEXTURE_2D);
-
     } else {
         glBindTexture(GL_TEXTURE_2D, objectId);
         glEnable(GL_TEXTURE_2D);
@@ -2488,9 +2504,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_bindTexture(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureFilterModes(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DFilterModes(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint minFilter,
     jint magFilter)
@@ -2502,16 +2518,15 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureFilterModes(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureLodRange(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DLodRange(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint baseLevel, 
     jint maximumLevel,
     jfloat minimumLOD,
     jfloat maximumLOD) 
 {
-
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
     updateTextureLodRange(ctxProperties, GL_TEXTURE_2D, 
@@ -2519,10 +2534,11 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureLodRange(
 			minimumLOD, maximumLOD);
 }
 
+
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureLodOffset(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DLodOffset(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jfloat lodOffsetS,
     jfloat lodOffsetT,
@@ -2536,9 +2552,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureLodOffset(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureBoundary(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DBoundary(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint boundaryModeS, 
     jint boundaryModeT, 
@@ -2556,9 +2572,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureBoundary(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureSharpenFunc(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DSharpenFunc(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numPts,
     jfloatArray pts)
@@ -2569,9 +2585,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureSharpenFunc(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureFilter4Func(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DFilter4Func(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numPts,
     jfloatArray pts)
@@ -2582,9 +2598,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureFilter4Func(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureAnisotropicFilter(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DAnisotropicFilter(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jfloat degree)
 {
@@ -2594,9 +2610,9 @@ void JNICALL Java_javax_media_j3d_TextureRetained_updateTextureAnisotropicFilter
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture2DRetained_updateTextureSubImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DSubImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint level,
     jint xoffset,
@@ -2620,9 +2636,9 @@ void JNICALL Java_javax_media_j3d_Texture2DRetained_updateTextureSubImage(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture2DRetained_updateTextureImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture2DImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numLevels,
     jint level,
@@ -2641,9 +2657,9 @@ void JNICALL Java_javax_media_j3d_Texture2DRetained_updateTextureImage(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture2DRetained_updateDetailTextureParameters(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateDetailTextureParameters(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint mode,
     jint level,
@@ -2682,9 +2698,9 @@ void JNICALL Java_javax_media_j3d_Texture2DRetained_updateDetailTextureParameter
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_DetailTextureImage_bindTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_bindDetailTexture(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint objectId)
 {
@@ -2696,38 +2712,9 @@ void JNICALL Java_javax_media_j3d_DetailTextureImage_bindTexture(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_DetailTextureImage_updateTextureSubImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateDetailTextureImage(
     JNIEnv *env, 
-    jobject texture,
-    jlong ctxInfo,
-    jint level,
-    jint xoffset,
-    jint yoffset,
-    jint internalFormat, 
-    jint format,
-    jint imgXOffset,
-    jint imgYOffset,
-    jint tilew,
-    jint width, 
-    jint height,
-    jbyteArray image) {
- 
-    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
-
-    if (ctxProperties->textureDetailAvailable) {
-        updateTexture2DSubImage(env, ctxProperties, 
-				ctxProperties->texture_detail_ext_enum,
-				level, xoffset, yoffset,
-				internalFormat, format,
-				imgXOffset, imgYOffset, tilew, width, height,
-				image);
-    }
-}
-
-JNIEXPORT
-void JNICALL Java_javax_media_j3d_DetailTextureImage_updateTextureImage(
-    JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numLevels,
     jint level,
@@ -2749,38 +2736,31 @@ void JNICALL Java_javax_media_j3d_DetailTextureImage_updateTextureImage(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_bindTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_bindTexture3D(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint objectId,
     jboolean enable) 
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
  
-    if (ctxProperties->textureCubeMapAvailable) {
-	/* textureCubeMap will take precedure over 3D Texture */
-	glDisable(ctxProperties->texture_cube_map_ext_enum);
-    }
+    /* textureCubeMap will take precedure over 3D Texture */
+    glDisable(GL_TEXTURE_CUBE_MAP);
     
     if (enable == JNI_FALSE) {
-	if(ctxProperties->texture3DAvailable)  {
-	    glDisable(ctxProperties->texture_3D_ext_enum);
-	}
-	
+        glDisable(GL_TEXTURE_3D);
     } else {
-	if(ctxProperties->texture3DAvailable){
-	    glBindTexture(ctxProperties->texture_3D_ext_enum, objectId);
-	    glEnable(ctxProperties->texture_3D_ext_enum);
-	}
+        glBindTexture(GL_TEXTURE_3D, objectId);
+        glEnable(GL_TEXTURE_3D);
     }
 }
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureFilterModes(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DFilterModes(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint minFilter,
     jint magFilter)
@@ -2794,9 +2774,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureFilterModes(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureLodRange(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DLodRange(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint baseLevel, 
     jint maximumLevel,
@@ -2812,9 +2792,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureLodRange(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureLodOffset(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DLodOffset(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jfloat lodOffsetS,
     jfloat lodOffsetT,
@@ -2828,9 +2808,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureLodOffset(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureBoundary(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DBoundary(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint boundaryModeS,
     jint boundaryModeT,
@@ -2849,9 +2829,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureBoundary(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureSharpenFunc(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DSharpenFunc(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint numPts,
     jfloatArray pts)
@@ -2862,9 +2842,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureSharpenFunc(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureFilter4Func(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DFilter4Func(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numPts,
     jfloatArray pts)
@@ -2875,9 +2855,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureFilter4Func(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureAnisotropicFilter(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DAnisotropicFilter(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jfloat degree)
 {
@@ -2888,9 +2868,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureAnisotropicFilt
 
 								       
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint numLevels,
     jint level,
@@ -2904,14 +2884,12 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureImage(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if(ctxProperties->texture3DAvailable) {
+    GLenum oglFormat = 0, oglInternalFormat=0;
+    JNIEnv table = *env;
+    jbyte *byteData;
+    jshort *shortData;
 
-	GLenum oglFormat = 0, oglInternalFormat=0;
-	JNIEnv table = *env;
-	jbyte *byteData;
-	jshort *shortData;
-
-	switch (internalFormat) {
+    switch (internalFormat) {
         case INTENSITY:
 	    oglInternalFormat = GL_INTENSITY;
 	    break;
@@ -2930,9 +2908,9 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureImage(
         case J3D_RGBA:
 	    oglInternalFormat = GL_RGBA;
 	    break;
-	}
+    }
 
-	switch (format) {
+    switch (format) {
         case FORMAT_BYTE_RGBA:         
 	    /* all RGB types are stored as RGBA */
 	    oglFormat = GL_RGBA;
@@ -2947,9 +2925,7 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureImage(
 	    }
 	    break;
         case FORMAT_BYTE_BGR:         
-	    if (ctxProperties->bgr_ext) { /* If its zero, should never come here! */
-		oglFormat = ctxProperties->bgr_ext_enum;
-	    }
+            oglFormat = GL_BGR;
 	    break;
         case FORMAT_BYTE_LA: 
 	    /* all LA types are stored as LA8 */
@@ -2963,65 +2939,63 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureImage(
 	        oglFormat = GL_LUMINANCE;
 	    }
             break;
-	}
-
-	/*
-	  fprintf(stderr,"internalFormat = %x\n",internalFormat);
-	  fprintf(stderr,"format = %x\n",format);
-	  fprintf(stderr,"oglFormat = %x\n",oglFormat);
-	  fprintf(stderr,"oglInternalFormat = %x\n",oglInternalFormat);
-	  */
-	if (imageYup != NULL) {
-	    if (format != FORMAT_USHORT_GRAY) {
-		byteData = (jbyte *)(*(table->GetPrimitiveArrayCritical))(env,
-									  imageYup, 
-									  NULL);
-	    }
-	    else { /* unsigned short */
-		shortData = (jshort *)(*(table->GetPrimitiveArrayCritical))(env,
-									    imageYup, 
-									    NULL);
-	
-	    }
-	} else {
-	    byteData = NULL;
-	    shortData = NULL;
-	}
-
-	if (format != FORMAT_USHORT_GRAY) {
-
-	    ctxProperties->glTexImage3DEXT(ctxProperties->texture_3D_ext_enum, 
-			level, oglInternalFormat, 
-			width, height, depth, boundaryWidth, 
-			oglFormat, GL_UNSIGNED_BYTE, 
-			(GLvoid *)byteData);
-	}
-	else {
-	    ctxProperties->glTexImage3DEXT(ctxProperties->texture_3D_ext_enum, 
-			level, oglInternalFormat, 
-			width, height, depth, boundaryWidth, 
-			oglFormat, GL_UNSIGNED_SHORT, 
-			(GLvoid *)shortData);
-	}
-	if (imageYup != NULL) {
-	    if (format != FORMAT_USHORT_GRAY) {
-		(*(table->ReleasePrimitiveArrayCritical))(env, imageYup, byteData, 0);
-	    } else { /* unsigned short */
-		(*(table->ReleasePrimitiveArrayCritical))(env, imageYup, shortData, 0);
-	    
-	    }
-	}
-    
-	/* No idea why we need following call. */
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
+    /*
+      fprintf(stderr,"internalFormat = %x\n",internalFormat);
+      fprintf(stderr,"format = %x\n",format);
+      fprintf(stderr,"oglFormat = %x\n",oglFormat);
+      fprintf(stderr,"oglInternalFormat = %x\n",oglInternalFormat);
+      */
+    if (imageYup != NULL) {
+        if (format != FORMAT_USHORT_GRAY) {
+            byteData = (jbyte *)(*(table->GetPrimitiveArrayCritical))(env,
+                                                                      imageYup, 
+                                                                      NULL);
+        }
+        else { /* unsigned short */
+            shortData = (jshort *)(*(table->GetPrimitiveArrayCritical))(env,
+                                                                        imageYup, 
+                                                                        NULL);
+
+        }
+    } else {
+        byteData = NULL;
+        shortData = NULL;
+    }
+
+    if (format != FORMAT_USHORT_GRAY) {
+
+        ctxProperties->glTexImage3DEXT(GL_TEXTURE_3D, 
+                    level, oglInternalFormat, 
+                    width, height, depth, boundaryWidth, 
+                    oglFormat, GL_UNSIGNED_BYTE, 
+                    (GLvoid *)byteData);
+    }
+    else {
+        ctxProperties->glTexImage3DEXT(GL_TEXTURE_3D, 
+                    level, oglInternalFormat, 
+                    width, height, depth, boundaryWidth, 
+                    oglFormat, GL_UNSIGNED_SHORT, 
+                    (GLvoid *)shortData);
+    }
+    if (imageYup != NULL) {
+        if (format != FORMAT_USHORT_GRAY) {
+            (*(table->ReleasePrimitiveArrayCritical))(env, imageYup, byteData, 0);
+        } else { /* unsigned short */
+            (*(table->ReleasePrimitiveArrayCritical))(env, imageYup, shortData, 0);
+
+        }
+    }
+
+    /* No idea why we need following call. */
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureSubImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexture3DSubImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint level,
     jint xoffset,
@@ -3040,136 +3014,133 @@ void JNICALL Java_javax_media_j3d_Texture3DRetained_updateTextureSubImage(
     jbyteArray image) {
  
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
- 
-    if (ctxProperties->texture3DAvailable) {
-        GLenum oglFormat = 0, oglInternalFormat=0;
-        JNIEnv table = *env;
-        jbyte *byteData, *tmpByte;
-        jshort *shortData, *tmpShort;
-        jint numBytes = 0;
-        jboolean pixelStore = JNI_FALSE;
 
-        switch (internalFormat) {
-            case INTENSITY:
-	        oglInternalFormat = GL_INTENSITY;
-	        break;
-            case LUMINANCE:
-	        oglInternalFormat = GL_LUMINANCE;
-	        break;
-            case ALPHA:
-	        oglInternalFormat = GL_ALPHA;
-	        break;
-            case LUMINANCE_ALPHA:
-	        oglInternalFormat = GL_LUMINANCE_ALPHA;
-	        break;
-            case J3D_RGB: 
-	        oglInternalFormat = GL_RGB;
-	        break;
-            case J3D_RGBA:
-	        oglInternalFormat = GL_RGBA;
-	        break;
-        }
-    
-        switch (format) {
-            case FORMAT_BYTE_RGBA:         
-	        /* all RGB types are stored as RGBA */
-	        oglFormat = GL_RGBA;
-	        numBytes = 4;
-	        break;
-            case FORMAT_BYTE_RGB:         
-	        oglFormat = GL_RGB;
-	        numBytes = 3;
-	        break;
-    
-            case FORMAT_BYTE_ABGR:         
-	        if (ctxProperties->abgr_ext) { /* If its zero, should never come here! */
-		    oglFormat = GL_ABGR_EXT;
-		    numBytes = 4;
-	        }
-	        break;
-            case FORMAT_BYTE_BGR:         
-	        if (ctxProperties->bgr_ext) { /* If its zero, should never come here! */
-		    oglFormat = ctxProperties->bgr_ext_enum;
-		    numBytes = 3;
-	        }
-	        break;
-    
-            case FORMAT_BYTE_LA: 
-	        /* all LA types are stored as LA8 */
-	        oglFormat = GL_LUMINANCE_ALPHA;
-	        numBytes = 2;
-	        break;
-            case FORMAT_BYTE_GRAY:
-                if (oglInternalFormat == GL_ALPHA) {
-	            oglFormat = GL_ALPHA;
-                } else  {
-	            oglFormat = GL_LUMINANCE;
-	        }
-	        numBytes = 1;
-            case FORMAT_USHORT_GRAY:	    
-               if (oglInternalFormat == GL_ALPHA) {
-	            oglFormat = GL_ALPHA;
-                } else  {
-	            oglFormat = GL_LUMINANCE;
-	        }
-	        numBytes = 2;
-                break;
-        }
-        /*
-        fprintf(stderr,"format = %x\n",format);
-        fprintf(stderr,"oglFormat = %x\n",oglFormat);
-        fprintf(stderr, "imgXOffset = %d\n",imgXOffset);
-        fprintf(stderr, "imgYOffset = %d\n",imgYOffset);
-        fprintf(stderr, "imgZOffset = %d\n",imgZOffset);
-        fprintf(stderr, "xoffset = %d\n",xoffset);
-        fprintf(stderr, "yoffset = %d\n",yoffset);
-        fprintf(stderr, "zoffset = %d\n",zoffset);
-        fprintf(stderr, "tilew = %d\n",tilew);
-        fprintf(stderr, "tileh = %d\n",tilew);
-        fprintf(stderr, "numBytes = %d\n",numBytes);
-        fprintf(stderr, "width = %d\n",width);
-        fprintf(stderr, "height = %d\n",height);
-        fprintf(stderr, "depth = %d\n",depth);
-        */
-        if (imgXOffset > 0 || (width < tilew)) {
-	    pixelStore = JNI_TRUE;
-	    glPixelStorei(GL_UNPACK_ROW_LENGTH, tilew);
-        }
-    	
-        if (format != FORMAT_USHORT_GRAY) {
-	    byteData = (jbyte *)(*(table->GetPrimitiveArrayCritical))(env,
-				    image, NULL);
-    
-            tmpByte = byteData +
-                           (tilew * tileh * imgZOffset +
-                            tilew * imgYOffset + imgXOffset) * numBytes;
-    
-            ctxProperties->glTexSubImage3DEXT(
-                                    ctxProperties->texture_3D_ext_enum,
-                                    level, xoffset, yoffset, zoffset,
-                                    width, height, depth,
-                                    oglFormat, GL_UNSIGNED_BYTE,
-                                    (GLvoid *)tmpByte);
-    
-	    (*(table->ReleasePrimitiveArrayCritical))(env, image, byteData, 0);	
-        } else { /* unsigned short */
-	    shortData = (jshort *)(*(table->GetPrimitiveArrayCritical))(env,
-				    image, NULL);
-	    tmpShort = (jshort*)((jbyte*)shortData+
-			         (tilew * tileh * imgZOffset +
-			          tilew * imgYOffset + imgXOffset)*numBytes);
-    
-            ctxProperties->glTexSubImage3DEXT(
-                                    ctxProperties->texture_3D_ext_enum,
-                                    level, xoffset, yoffset, zoffset,
-                                    width, height, depth,
-                                    oglFormat, GL_UNSIGNED_SHORT,
-                                    (GLvoid *)tmpShort);
-	    (*(table->ReleasePrimitiveArrayCritical))(env, image, shortData, 0);
-        }
-        if (pixelStore) {
-	    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        }
+    GLenum oglFormat = 0, oglInternalFormat=0;
+    JNIEnv table = *env;
+    jbyte *byteData, *tmpByte;
+    jshort *shortData, *tmpShort;
+    jint numBytes = 0;
+    jboolean pixelStore = JNI_FALSE;
+
+    switch (internalFormat) {
+        case INTENSITY:
+            oglInternalFormat = GL_INTENSITY;
+            break;
+        case LUMINANCE:
+            oglInternalFormat = GL_LUMINANCE;
+            break;
+        case ALPHA:
+            oglInternalFormat = GL_ALPHA;
+            break;
+        case LUMINANCE_ALPHA:
+            oglInternalFormat = GL_LUMINANCE_ALPHA;
+            break;
+        case J3D_RGB: 
+            oglInternalFormat = GL_RGB;
+            break;
+        case J3D_RGBA:
+            oglInternalFormat = GL_RGBA;
+            break;
+    }
+
+    switch (format) {
+        case FORMAT_BYTE_RGBA:         
+            /* all RGB types are stored as RGBA */
+            oglFormat = GL_RGBA;
+            numBytes = 4;
+            break;
+        case FORMAT_BYTE_RGB:         
+            oglFormat = GL_RGB;
+            numBytes = 3;
+            break;
+
+        case FORMAT_BYTE_ABGR:         
+            if (ctxProperties->abgr_ext) { /* If its zero, should never come here! */
+                oglFormat = GL_ABGR_EXT;
+                numBytes = 4;
+            }
+            break;
+        case FORMAT_BYTE_BGR:         
+            oglFormat = GL_BGR;
+            numBytes = 3;
+            break;
+
+        case FORMAT_BYTE_LA: 
+            /* all LA types are stored as LA8 */
+            oglFormat = GL_LUMINANCE_ALPHA;
+            numBytes = 2;
+            break;
+        case FORMAT_BYTE_GRAY:
+            if (oglInternalFormat == GL_ALPHA) {
+                oglFormat = GL_ALPHA;
+            } else  {
+                oglFormat = GL_LUMINANCE;
+            }
+            numBytes = 1;
+        case FORMAT_USHORT_GRAY:	    
+           if (oglInternalFormat == GL_ALPHA) {
+                oglFormat = GL_ALPHA;
+            } else  {
+                oglFormat = GL_LUMINANCE;
+            }
+            numBytes = 2;
+            break;
+    }
+
+    /*
+    fprintf(stderr,"format = %x\n",format);
+    fprintf(stderr,"oglFormat = %x\n",oglFormat);
+    fprintf(stderr, "imgXOffset = %d\n",imgXOffset);
+    fprintf(stderr, "imgYOffset = %d\n",imgYOffset);
+    fprintf(stderr, "imgZOffset = %d\n",imgZOffset);
+    fprintf(stderr, "xoffset = %d\n",xoffset);
+    fprintf(stderr, "yoffset = %d\n",yoffset);
+    fprintf(stderr, "zoffset = %d\n",zoffset);
+    fprintf(stderr, "tilew = %d\n",tilew);
+    fprintf(stderr, "tileh = %d\n",tilew);
+    fprintf(stderr, "numBytes = %d\n",numBytes);
+    fprintf(stderr, "width = %d\n",width);
+    fprintf(stderr, "height = %d\n",height);
+    fprintf(stderr, "depth = %d\n",depth);
+    */
+    if (imgXOffset > 0 || (width < tilew)) {
+        pixelStore = JNI_TRUE;
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, tilew);
+    }
+
+    if (format != FORMAT_USHORT_GRAY) {
+        byteData = (jbyte *)(*(table->GetPrimitiveArrayCritical))(env,
+                                image, NULL);
+
+        tmpByte = byteData +
+                       (tilew * tileh * imgZOffset +
+                        tilew * imgYOffset + imgXOffset) * numBytes;
+
+        ctxProperties->glTexSubImage3DEXT(
+                                GL_TEXTURE_3D,
+                                level, xoffset, yoffset, zoffset,
+                                width, height, depth,
+                                oglFormat, GL_UNSIGNED_BYTE,
+                                (GLvoid *)tmpByte);
+
+        (*(table->ReleasePrimitiveArrayCritical))(env, image, byteData, 0);	
+    } else { /* unsigned short */
+        shortData = (jshort *)(*(table->GetPrimitiveArrayCritical))(env,
+                                image, NULL);
+        tmpShort = (jshort*)((jbyte*)shortData+
+                             (tilew * tileh * imgZOffset +
+                              tilew * imgYOffset + imgXOffset)*numBytes);
+
+        ctxProperties->glTexSubImage3DEXT(
+                                GL_TEXTURE_3D,
+                                level, xoffset, yoffset, zoffset,
+                                width, height, depth,
+                                oglFormat, GL_UNSIGNED_SHORT,
+                                (GLvoid *)tmpShort);
+        (*(table->ReleasePrimitiveArrayCritical))(env, image, shortData, 0);
+    }
+    if (pixelStore) {
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     }
 }
     
@@ -3189,9 +3160,9 @@ jint _gl_textureCubeMapFace[] = {
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_bindTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_bindTextureCubeMap(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint objectId,
     jboolean enable) 
@@ -3202,39 +3173,33 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_bindTexture(
      * TextureCubeMap will take precedure over 3D Texture so
      * there is no need to disable 3D Texture here.
      */
-    if (ctxProperties->textureCubeMapAvailable) {
-        if (enable == JNI_FALSE) {
-	  glDisable(ctxProperties->texture_cube_map_ext_enum);
-        } else {
-	    glBindTexture(ctxProperties->texture_cube_map_ext_enum, objectId);
-	    glEnable(ctxProperties->texture_cube_map_ext_enum);
-	}
+    if (enable == JNI_FALSE) {
+        glDisable(GL_TEXTURE_CUBE_MAP);
+    } else {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, objectId);
+        glEnable(GL_TEXTURE_CUBE_MAP);
     }
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureFilterModes(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapFilterModes(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint minFilter,
     jint magFilter)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-        updateTextureFilterModes(ctxProperties, 
-				ctxProperties->texture_cube_map_ext_enum,
-                                minFilter, magFilter);
-    }
+    updateTextureFilterModes(ctxProperties, 
+                            GL_TEXTURE_CUBE_MAP,
+                            minFilter, magFilter);
 }
 
-
-
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureLodRange(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapLodRange(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint baseLevel, 
     jint maximumLevel,
@@ -3245,15 +3210,15 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureLodRange(
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
     updateTextureLodRange(ctxProperties, 
-			ctxProperties->texture_cube_map_ext_enum,
+			GL_TEXTURE_CUBE_MAP,
 			baseLevel, maximumLevel,
 			minimumLOD, maximumLOD);
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureLodOffset(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapLodOffset(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jfloat lodOffsetS,
     jfloat lodOffsetT,
@@ -3262,15 +3227,15 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureLodOffset(
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
     updateTextureLodOffset(ctxProperties, 
-			ctxProperties->texture_cube_map_ext_enum,
+			GL_TEXTURE_CUBE_MAP,
 			lodOffsetS, lodOffsetT, lodOffsetR);
 }
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureBoundary(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapBoundary(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint boundaryModeS, 
     jint boundaryModeT, 
@@ -3281,70 +3246,62 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureBoundary(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-	updateTextureBoundary(ctxProperties, 
-				ctxProperties->texture_cube_map_ext_enum,
-				boundaryModeS, boundaryModeT, -1,
-				boundaryRed, boundaryGreen,
-				boundaryBlue, boundaryAlpha);
-    }
+    updateTextureBoundary(ctxProperties, 
+                            GL_TEXTURE_CUBE_MAP,
+                            boundaryModeS, boundaryModeT, -1,
+                            boundaryRed, boundaryGreen,
+                            boundaryBlue, boundaryAlpha);
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureSharpenFunc(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapSharpenFunc(
     JNIEnv *env,
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint numPts,
     jfloatArray pts)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-        updateTextureSharpenFunc(env, ctxProperties, 
-				ctxProperties->texture_cube_map_ext_enum, 
-				numPts, pts);
-    }
+    updateTextureSharpenFunc(env, ctxProperties, 
+                            GL_TEXTURE_CUBE_MAP, 
+                            numPts, pts);
 }
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureFilter4Func(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapFilter4Func(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint numPts,
     jfloatArray pts)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-        updateTextureFilter4Func(env, ctxProperties, 
-				ctxProperties->texture_cube_map_ext_enum, 
-				numPts, pts);
-    }
+    updateTextureFilter4Func(env, ctxProperties, 
+                            GL_TEXTURE_CUBE_MAP, 
+                            numPts, pts);
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureAnisotropicFilter(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapAnisotropicFilter(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jfloat degree)
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if (ctxProperties->textureCubeMapAvailable) {
-        updateTextureAnisotropicFilter(env, ctxProperties, 
-				ctxProperties->texture_cube_map_ext_enum, 
-				degree);
-    }
+    updateTextureAnisotropicFilter(env, ctxProperties, 
+                            GL_TEXTURE_CUBE_MAP, 
+                            degree);
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureSubImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapSubImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,
     jint face,
     jint level,
@@ -3369,9 +3326,9 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureSubImage(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureImage(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureCubeMapImage(
     JNIEnv *env, 
-    jobject texture,
+    jobject obj,
     jlong ctxInfo,    
     jint face,
     jint numLevels,
@@ -3391,7 +3348,7 @@ void JNICALL Java_javax_media_j3d_TextureCubeMapRetained_updateTextureImage(
 
 
 JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_decal1stChildSetup(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_decal1stChildSetup(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo)
@@ -3408,7 +3365,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_decal1stChildSetup(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_decalNthChildSetup(
+void JNICALL Java_javax_media_j3d_NativePipeline_decalNthChildSetup(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo)
@@ -3419,7 +3376,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_decalNthChildSetup(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_decalReset(
+void JNICALL Java_javax_media_j3d_NativePipeline_decalReset(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,    
@@ -3431,7 +3388,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_decalReset(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_ctxUpdateEyeLightingEnable(
+void JNICALL Java_javax_media_j3d_NativePipeline_ctxUpdateEyeLightingEnable(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,    
@@ -3445,69 +3402,50 @@ void JNICALL Java_javax_media_j3d_Canvas3D_ctxUpdateEyeLightingEnable(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_updateSeparateSpecularColorEnable(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateSeparateSpecularColorEnable(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,    
     jboolean enable)
 {
-    /*
-     * This method will not be called if the rendering layer does not support
-     * separate specular color control. The checking of the availability
-     * of the functionality is done in Renderer at rendering time
-     */
-
-    /*  1.2 feature only */
-    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
-    
-    if(ctxProperties->seperate_specular_color) {
-	if (enable == JNI_TRUE) {
-	    glLightModeli(ctxProperties->light_model_color_control_enum, 
-			  ctxProperties->seperate_specular_color_enum);
-	} else {
-	    glLightModeli(ctxProperties->light_model_color_control_enum, ctxProperties->single_color_enum);
-	}
+    if (enable) {
+        glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+    } else {
+        glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
     }
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_TextureUnitStateRetained_updateTextureUnitState(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTextureUnitState(
     JNIEnv *env, 
-    jobject cv,
+    jobject obj,
     jlong ctxInfo,
     jint index,
     jboolean enable)
 {
 
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
-    
-    if(ctxProperties->arb_multitexture) {
-	if (index >= 0) {
-	    ctxProperties->glActiveTextureARB(index + GL_TEXTURE0_ARB);
-	    ctxProperties->glClientActiveTextureARB(GL_TEXTURE0_ARB + index);
-	    if (ctxProperties->textureRegisterCombinersAvailable) {
-	        ctxProperties->currentTextureUnit = index + GL_TEXTURE0_ARB;
-	        ctxProperties->currentCombinerUnit = index + GL_COMBINER0_NV;
-		if (ctxProperties->glCombinerParameteriNV!=NULL)
-	            ctxProperties->glCombinerParameteriNV(
-	                         GL_NUM_GENERAL_COMBINERS_NV, index + 1);
 
-	    }
-	}
-    } /* GL_ARB_multitexture */
+    if (ctxProperties->gl13 && index >= 0) {
+        ctxProperties->glActiveTexture(index + GL_TEXTURE0);
+        ctxProperties->glClientActiveTexture(GL_TEXTURE0 + index);
+        if (ctxProperties->textureRegisterCombinersAvailable) {
+            ctxProperties->currentTextureUnit = index + GL_TEXTURE0;
+            ctxProperties->currentCombinerUnit = index + GL_COMBINER0_NV;
+            if (ctxProperties->glCombinerParameteriNV != NULL)
+                ctxProperties->glCombinerParameteriNV(
+                             GL_NUM_GENERAL_COMBINERS_NV, index + 1);
+        }
+    }
 
     if (enable == JNI_FALSE) {
         /* if not enabled, then don't enable any tex mapping */
 
         glDisable(GL_TEXTURE_1D);
         glDisable(GL_TEXTURE_2D);
-
-	if(ctxProperties->texture3DAvailable) 
-	    glDisable(ctxProperties->texture_3D_ext_enum);
-
-	if(ctxProperties->textureCubeMapAvailable) 
-	    glDisable(ctxProperties->texture_cube_map_ext_enum);
-    } 
+        glDisable(GL_TEXTURE_3D);
+        glDisable(GL_TEXTURE_CUBE_MAP);
+    }
 
     /*
      * if it is enabled, the enable flag will be taken care of
@@ -3517,7 +3455,7 @@ void JNICALL Java_javax_media_j3d_TextureUnitStateRetained_updateTextureUnitStat
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setBlendColor(
+void JNICALL Java_javax_media_j3d_NativePipeline_setBlendColor(
     JNIEnv *env, 
     jobject obj,
     jlong ctxInfo,    
@@ -3541,7 +3479,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setBlendColor(
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setBlendFunc(
+void JNICALL Java_javax_media_j3d_NativePipeline_setBlendFunc(
     JNIEnv * env, 
     jobject obj,
     jlong ctxInfo,    
@@ -3555,7 +3493,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setBlendFunc(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setFogEnableFlag(
+void JNICALL Java_javax_media_j3d_NativePipeline_setFogEnableFlag(
     JNIEnv * env, 
     jobject obj,
     jlong ctxInfo,
@@ -3568,7 +3506,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setFogEnableFlag(
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_activeTextureUnit(
+void JNICALL Java_javax_media_j3d_NativePipeline_activeTextureUnit(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,
@@ -3576,15 +3514,14 @@ void JNICALL Java_javax_media_j3d_Canvas3D_activeTextureUnit(
 {
     GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
 
-    if(ctxProperties->arb_multitexture){
-	ctxProperties->glActiveTextureARB(GL_TEXTURE0_ARB + index);
-	ctxProperties->glClientActiveTextureARB(GL_TEXTURE0_ARB + index);
-	/* GL_ARB_multitexture  */
+    if (ctxProperties->gl13) {
+	ctxProperties->glActiveTexture(GL_TEXTURE0 + index);
+	ctxProperties->glClientActiveTexture(GL_TEXTURE0 + index);
     }
 }
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_updateTexUnitStateMap(
+void JNICALL Java_javax_media_j3d_NativePipeline_updateTexUnitStateMap(
     JNIEnv *env,
     jobject obj,
     jlong ctxInfo,

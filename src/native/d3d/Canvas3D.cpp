@@ -14,7 +14,7 @@
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setDrawActive(
+void JNICALL Java_javax_media_j3d_NativePipeline_setDrawActive(
     JNIEnv *env,
     jobject obj,
     jint fd)
@@ -24,7 +24,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setDrawActive(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_widSync(
+void JNICALL Java_javax_media_j3d_NativePipeline_widSync(
     JNIEnv *env,
     jobject obj,
     jint fd,
@@ -36,7 +36,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_widSync(
 
 
 extern "C" JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_useSharedCtx(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_useSharedCtx(
     JNIEnv *env, 
     jobject obj)
 {
@@ -46,12 +46,12 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_useSharedCtx(
 
 
 extern "C" JNIEXPORT
-jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
+jlong JNICALL Java_javax_media_j3d_NativePipeline_createNewContext(
     JNIEnv  *env,
     jobject  obj,
+    jobject  cv,
     jlong    display,
-    jint     window, 
-    jint     vid,    
+    jint     window,
     jlong    fbConfigListPtr,
     jlong    sharedCtx,
     jboolean isSharedCtx,
@@ -62,7 +62,8 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
     HWND hwnd = WindowFromDC(reinterpret_cast<HDC>(jlong(window)));
 
     lock();
-    D3dCtx* ctx = new D3dCtx(env, obj, hwnd, offScreen, vid);
+    int vid = 0; // TODO: get needed info from fbConfigListPtr
+    D3dCtx* ctx = new D3dCtx(env, cv, hwnd, offScreen, vid);
     if (ctx == NULL) {
 	printf("%s", getErrorMessage(OUTOFMEMORY));
 	unlock();
@@ -71,11 +72,11 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 
     if (offScreen) 
 	{
-	  jclass cls = (jclass) env->GetObjectClass(obj);
+	  jclass cls = (jclass) env->GetObjectClass(cv);
 	  jfieldID fieldId = env->GetFieldID(cls,
 					   "offScreenCanvasSize", 
 					   "Ljava/awt/Dimension;");
-	  jobject dimObj = env->GetObjectField(obj, fieldId);
+	  jobject dimObj = env->GetObjectField(cv, fieldId);
 	  if (dimObj == NULL) 
 	   {
 	     // user invoke queryProperties()
@@ -92,7 +93,7 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 	   }
     }
 
-    if (!ctx->initialize(env, obj)) 
+    if (!ctx->initialize(env, cv)) 
 	{
 	 delete ctx;
 	 unlock();
@@ -106,12 +107,12 @@ jlong JNICALL Java_javax_media_j3d_Canvas3D_createNewContext(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
+void JNICALL Java_javax_media_j3d_NativePipeline_createQueryContext(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong display,
     jint window,
-    jint vid,
     jlong fbConfigListPtr,
     jboolean offScreen,
     jint width,
@@ -128,7 +129,8 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     // instead of current window width/height to create
     // context.
 
-    D3dCtx* ctx = new D3dCtx(env, obj, hwnd, true, vid);
+    int vid = 0; // TODO: get needed info from fbConfigListPtr
+    D3dCtx* ctx = new D3dCtx(env, cv, hwnd, true, vid);
     if (ctx == NULL) {
 	printf("%s", getErrorMessage(OUTOFMEMORY));
 	unlock();
@@ -138,15 +140,15 @@ void JNICALL Java_javax_media_j3d_Canvas3D_createQueryContext(
     ctx->offScreenWidth = width;
     ctx->offScreenHeight = height;
 
-    ctx->initialize(env, obj);
+    ctx->initialize(env, cv);
     delete ctx;
     unlock();
 }
 
 extern "C" JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_useCtx(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_useCtx(
     JNIEnv *env, 
-    jclass cl, 
+    jobject obj, 
     jlong ctx, 
     jlong display, 
     jint window)
@@ -157,7 +159,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_useCtx(
 
 
 extern "C" JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_getNumCtxLights(
+jint JNICALL Java_javax_media_j3d_NativePipeline_getNumCtxLights(
     JNIEnv *env, 
     jobject obj,
     jlong ctx)
@@ -175,7 +177,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_getNumCtxLights(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_composite(
+void JNICALL Java_javax_media_j3d_NativePipeline_composite(
     JNIEnv *env,
     jobject obj,
     jlong ctx,
@@ -209,7 +211,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_composite(
 }
 
 extern "C" JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_initTexturemapping(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_initTexturemapping(
     JNIEnv *env,
     jobject texture,
     jlong ctx,
@@ -225,16 +227,16 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_initTexturemapping(
 	(d3dCtx->textureTable[objectId] != NULL)) {
 	// delete the previous texture reference
 	// when canvas resize
-	 Java_javax_media_j3d_Canvas3D_freeTexture(env,
+	 Java_javax_media_j3d_NativePipeline_freeTexture(env,
 						   NULL,
 						   ctx,
 						   objectId);
     }
 
-    Java_javax_media_j3d_TextureRetained_bindTexture(
+    Java_javax_media_j3d_NativePipeline_bindTexture2D(
 	 env, texture, ctx, objectId, TRUE);
 
-     Java_javax_media_j3d_TextureRetained_updateTextureImage(
+     Java_javax_media_j3d_NativePipeline_updateTexture2DImage(
          env, texture, ctx, 1, 0, J3D_RGBA, 0, texWidth, texHeight, 0, NULL);
      
      return (d3dCtx->textureTable[objectId] != NULL);
@@ -242,7 +244,7 @@ jboolean JNICALL Java_javax_media_j3d_Canvas3D_initTexturemapping(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
+void JNICALL Java_javax_media_j3d_NativePipeline_texturemapping(
     JNIEnv *env,
     jobject texture,
     jlong ctx,
@@ -263,11 +265,11 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
 {
     GetDevice();
 
-    Java_javax_media_j3d_TextureRetained_bindTexture(
+    Java_javax_media_j3d_NativePipeline_bindTexture2D(
 	 env, texture, ctx, objectId, TRUE);
 
 
-    Java_javax_media_j3d_Texture2DRetained_updateTextureSubImage(
+    Java_javax_media_j3d_NativePipeline_updateTexture2DSubImage(
          env, texture, ctx, 0, minX, minY, J3D_RGBA, format,
 	 minX, minY, rasWidth, maxX-minX, maxY-minY, imageYdown);
 
@@ -312,7 +314,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
 		    minX, minY, maxX, maxY,
 		    maxX - minX, maxY - minY, false); 
 
-    Java_javax_media_j3d_TextureRetained_bindTexture(
+    Java_javax_media_j3d_NativePipeline_bindTexture2D(
 	 env, texture, ctx, objectId, FALSE);
 
     device->SetRenderState(D3DRS_ALPHABLENDENABLE, blendEnable);
@@ -325,7 +327,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_texturemapping(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_clear(
+void JNICALL Java_javax_media_j3d_NativePipeline_clear(
     JNIEnv *env,
     jobject obj,
     jlong ctx,
@@ -541,7 +543,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clear(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setRenderMode(
+void JNICALL Java_javax_media_j3d_NativePipeline_setRenderMode(
     JNIEnv *env, 
     jobject obj, 
     jlong ctx,
@@ -554,7 +556,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setRenderMode(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_clearAccum(
+void JNICALL Java_javax_media_j3d_NativePipeline_clearAccum(
     JNIEnv *env, 
     jobject obj,
     jlong ctx)
@@ -566,7 +568,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_clearAccum(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_accum(
+void JNICALL Java_javax_media_j3d_NativePipeline_accum(
     JNIEnv *env, 
     jobject obj, 
     jlong ctx,
@@ -577,7 +579,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_accum(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_accumReturn(
+void JNICALL Java_javax_media_j3d_NativePipeline_accumReturn(
     JNIEnv *env, 
     jobject obj,
     jlong ctx) 
@@ -587,7 +589,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_accumReturn(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setDepthBufferWriteEnable(
+void JNICALL Java_javax_media_j3d_NativePipeline_setDepthBufferWriteEnable(
     JNIEnv *env, 
     jobject obj, 
     jlong ctx,
@@ -632,12 +634,13 @@ VOID freePointerList()
 
 
 extern "C" JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
+jint JNICALL Java_javax_media_j3d_NativePipeline_swapBuffers(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx,
     jlong display,
-    jint win)
+    jint window)
 {
     GetDevice2();
 
@@ -655,7 +658,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
 		printf("Buffer swap error %s, try Reset() the surface... \n",
 		       DXGetErrorString9(hr));	    
 	    }
-	    retCode = d3dCtx->resetSurface(env, obj);
+	    retCode = d3dCtx->resetSurface(env, cv);
 	    GetDevice2();
 	    hr = device->Present(NULL, NULL, NULL, NULL);
 	    if (FAILED(hr)) {
@@ -674,7 +677,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_swapBuffers(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_syncRender(
+void JNICALL Java_javax_media_j3d_NativePipeline_syncRender(
       JNIEnv *env, 
       jobject obj, 
       jlong ctx,
@@ -685,7 +688,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_syncRender(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_newDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_newDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctx,
@@ -737,7 +740,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_newDisplayList(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_endDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_endDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctx)
@@ -748,7 +751,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_endDisplayList(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_callDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_callDisplayList(
     JNIEnv *env,
     jobject obj,
     jlong ctx,
@@ -785,9 +788,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_callDisplayList(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_freeDisplayList(
+void JNICALL Java_javax_media_j3d_NativePipeline_freeDisplayList(
     JNIEnv *env,
-    jclass cl,
+    jobject obj,
     jlong ctx,
     jint id)
 {
@@ -810,9 +813,9 @@ void JNICALL Java_javax_media_j3d_Canvas3D_freeDisplayList(
    has been deleted by java garbage collector.
  */
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_freeTexture(
+void JNICALL Java_javax_media_j3d_NativePipeline_freeTexture(
     JNIEnv *env,
-    jclass cls,
+    jobject obj,
     jlong ctx,
     jint id)
 {
@@ -839,28 +842,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_freeTexture(
 
 
 extern "C" JNIEXPORT 
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_isTexture3DAvailable(
-    JNIEnv *env,
-    jobject obj,
-    jlong ctx)
-{
-    return JNI_FALSE;
-}
-
-
-extern "C" JNIEXPORT 
-jint JNICALL Java_javax_media_j3d_Canvas3D_getTextureColorTableSize(
-    JNIEnv *env,
-    jobject obj,
-    jlong ctx)
-{
-    // Not support by D3D
-    return 0;
-}
-
-
-extern "C" JNIEXPORT 
-jint JNICALL Java_javax_media_j3d_Canvas3D_getTextureUnitCount(
+jint JNICALL Java_javax_media_j3d_NativePipeline_getTextureUnitCount(
     JNIEnv *env,
     jobject obj,
     jlong ctx)
@@ -871,12 +853,12 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_getTextureUnitCount(
 
 
 extern "C" JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
+jint JNICALL Java_javax_media_j3d_NativePipeline_createOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx,
     jlong display,
-    jint window,
     jlong fbConfigListPtr,
     jint width,
     jint height)
@@ -890,16 +872,16 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_createOffScreenBuffer(
 	GetCtx2();
 	d3dCtx->d3dPresent.BackBufferWidth = width;
 	d3dCtx->d3dPresent.BackBufferHeight = height;
-	return SUCCEEDED(d3dCtx->resetSurface(env, obj));
+	return SUCCEEDED(d3dCtx->resetSurface(env, cv));
     }
 }
 
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_destroyContext(
+void JNICALL Java_javax_media_j3d_NativePipeline_destroyContext(
     JNIEnv *env,
-    jclass cl,
+    jobject obj,
     jlong display,
     jint window,
     jlong ctx)
@@ -911,13 +893,14 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyContext(
     delete d3dCtx;
     unlock();
 
-    Java_javax_media_j3d_Renderer_D3DCleanUp(env, cl);
+    Java_javax_media_j3d_NativePipeline_cleanupRenderer(env, obj);
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
+void JNICALL Java_javax_media_j3d_NativePipeline_destroyOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx,
     jlong display,
     jlong fbConfigListPtr,
@@ -925,13 +908,17 @@ void JNICALL Java_javax_media_j3d_Canvas3D_destroyOffScreenBuffer(
 {
     // do nothing, since the old buffer will destory 
     // in createOffScreenBuffer
+
+    // TODO : this means that we will hold onto the last off-screen buffer;
+    // we should clean this up at some point
 }
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
+void JNICALL Java_javax_media_j3d_NativePipeline_readOffScreenBuffer(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx,
     jint format,
     jint width,
@@ -954,10 +941,10 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
 	}
     }
 
-    jclass cv_class =  env->GetObjectClass(obj);
+    jclass cv_class =  env->GetObjectClass(cv);
 
     jfieldID byteData_field = env->GetFieldID(cv_class, "byteBuffer", "[B");
-    jbyteArray byteData_array = (jbyteArray) env->GetObjectField(obj, byteData_field);
+    jbyteArray byteData_array = (jbyteArray) env->GetObjectField(cv, byteData_field);
     jbyte *byteData = (jbyte *) env->GetPrimitiveArrayCritical(
 					       byteData_array, NULL);
 
@@ -970,16 +957,17 @@ void JNICALL Java_javax_media_j3d_Canvas3D_readOffScreenBuffer(
 
 
 extern "C" JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_resizeD3DCanvas(
+jint JNICALL Java_javax_media_j3d_NativePipeline_resizeD3DCanvas(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx)
 {
     int status;
 
     GetCtx2();
     lock();
-    status = d3dCtx->resize(env, obj);
+    status = d3dCtx->resize(env, cv);
     unlock();
 
     return status;
@@ -987,16 +975,17 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_resizeD3DCanvas(
 
 
 extern "C" JNIEXPORT
-jint JNICALL Java_javax_media_j3d_Canvas3D_toggleFullScreenMode(
+jint JNICALL Java_javax_media_j3d_NativePipeline_toggleFullScreenMode(
     JNIEnv *env,
     jobject obj,
+    jobject cv,
     jlong ctx)
 {
     int status;
 
     GetCtx2();
     lock();
-    status = d3dCtx->toggleMode(!d3dCtx->bFullScreen, env, obj);
+    status = d3dCtx->toggleMode(!d3dCtx->bFullScreen, env, cv);
     unlock();  
     if (status == RECREATEDFAIL) {
 	return RECREATEDDRAW;
@@ -1005,7 +994,7 @@ jint JNICALL Java_javax_media_j3d_Canvas3D_toggleFullScreenMode(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing(
+void JNICALL Java_javax_media_j3d_NativePipeline_setFullSceneAntialiasing(
     JNIEnv *env, 
     jobject obj, 
     jlong ctx,
@@ -1019,7 +1008,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_setFullSceneAntialiasing(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Renderer_D3DCleanUp(
+void JNICALL Java_javax_media_j3d_NativePipeline_cleanupRenderer(
     JNIEnv *env,
     jobject obj)
 {
@@ -1035,13 +1024,13 @@ void JNICALL Java_javax_media_j3d_Renderer_D3DCleanUp(
 }
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_ImageComponent2DRetained_freeD3DSurface(
+void JNICALL Java_javax_media_j3d_NativePipeline_freeD3DSurface(
     JNIEnv *env,
+    jobject obj,
     jobject image,
     jint hashCode)
 
 {
-
     lockImage();
     D3dImageComponent::remove(&RasterList, hashCode);
     unlockImage();
@@ -1052,7 +1041,7 @@ void JNICALL Java_javax_media_j3d_ImageComponent2DRetained_freeD3DSurface(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_beginScene(
+void JNICALL Java_javax_media_j3d_NativePipeline_beginScene(
        JNIEnv *env,
        jobject obj, 
        jlong ctx)
@@ -1063,7 +1052,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_beginScene(
 
 
 extern "C" JNIEXPORT
-void JNICALL Java_javax_media_j3d_Canvas3D_endScene(
+void JNICALL Java_javax_media_j3d_NativePipeline_endScene(
        JNIEnv *env,
        jobject obj, 
        jlong ctx)
@@ -1074,7 +1063,7 @@ void JNICALL Java_javax_media_j3d_Canvas3D_endScene(
 
 
 extern "C" JNIEXPORT
-jboolean JNICALL Java_javax_media_j3d_Canvas3D_validGraphicsMode(
+jboolean JNICALL Java_javax_media_j3d_NativePipeline_validGraphicsMode(
        JNIEnv *env,
        jobject obj) 
 {

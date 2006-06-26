@@ -255,23 +255,23 @@ public class VirtualUniverse extends Object {
 	// Print out debugging information for debug builds
 	if(VersionInfo.isDebug) {
 	    System.err.println("Java 3D system initialized");
-	    System.err.print("    graphics library = ");
-	    switch (mc.getRenderingAPI()) {
-	    case MasterControl.RENDER_OPENGL_SOLARIS:
-		System.err.println("Solaris OpenGL");
-		break;
-	    case MasterControl.RENDER_OPENGL_LINUX:
-		System.err.println("Linux OpenGL");
-		break;
-	    case MasterControl.RENDER_OPENGL_WIN32:
-		System.err.print("Windows OpenGL");
-		break;
-	    case MasterControl.RENDER_DIRECT3D:
-		System.err.println("Windows Direct3D");
-		break;
-	    default:
-		System.err.println("UNKNOWN");
-		break;
+	    System.err.print("    rendering library = ");
+	    switch (Pipeline.getPipeline().getRendererType()) {
+            case NATIVE_OGL:
+                System.err.println("ogl");
+                break;
+            case NATIVE_D3D:
+                System.err.println("d3d");
+                break;
+            case JOGL:
+                System.err.println("jogl");
+                break;
+            case NOOP:
+                System.err.println("noop");
+                break;
+            default:
+                System.err.println("UNKNOWN");
+                assert false; // should not get here
 	    }
 	    System.err.println();
 	}
@@ -1072,6 +1072,11 @@ public class VirtualUniverse extends Object {
                     System.err.println("Exception occurred in GraphStructureChangeListener:");
                     e.printStackTrace();
                 }
+                catch (Error e) {
+                    // Issue 264 - catch Error
+                    System.err.println("Error occurred in GraphStructureChangeListener:");
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1094,6 +1099,11 @@ public class VirtualUniverse extends Object {
                 }
                 catch (RuntimeException e) {
                     System.err.println("Exception occurred in GraphStructureChangeListener:");
+                    e.printStackTrace();
+                }
+                catch (Error e) {
+                    // Issue 264 - catch Error
+                    System.err.println("Error occurred in GraphStructureChangeListener:");
                     e.printStackTrace();
                 }
             }
@@ -1173,15 +1183,20 @@ public class VirtualUniverse extends Object {
                         System.err.println("Exception occurred in ShaderErrorListener:");
                         e.printStackTrace();
                     }
+                    catch (Error e) {
+                        // Issue 264 - catch Error
+                        System.err.println("Error occurred in ShaderErrorListener:");
+                        e.printStackTrace();
+                    }
                     errorReported = true;
                 }
             }
         }
 
-	// Notify the default error listener if the set is null or empty
-	if (!errorReported) {
-	    defaultShaderErrorListener.errorOccurred(error);
-	}
+        // Notify the default error listener if the set is null or empty
+        if (!errorReported) {
+            defaultShaderErrorListener.errorOccurred(error);
+        }
     }
 
 }

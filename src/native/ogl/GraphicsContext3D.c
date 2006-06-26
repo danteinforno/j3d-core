@@ -19,19 +19,18 @@ extern void throwAssert(JNIEnv *env, char *str);
 
 
 JNIEXPORT
-void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
-    JNIEnv *env, jobject obj, jlong ctxInfo,
+void JNICALL Java_javax_media_j3d_NativePipeline_readRasterNative(
+    JNIEnv *env, jobject obj, jlong ctx,
     jint type, jint xOffset, jint yOffset, 
     jint wRaster, jint hRaster, jint hCanvas,
-    jint format, jobject image, jobject depth, jobject ctx)
-{ 
+    jint format, jobject image, jobject depth, jobject gc)
+{
     JNIEnv table;
     int yAdjusted;
-    jclass ctx_class;
+    jclass gc_class;
     GLenum gltype;
 
-    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctxInfo;
-    jlong d3dctx = ctxProperties->context;
+    GraphicsContextPropertiesInfo *ctxProperties = (GraphicsContextPropertiesInfo *)ctx;
 
     table = *env;
 
@@ -39,7 +38,7 @@ void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
     glPixelStorei(GL_PACK_ALIGNMENT, 1); 
     yAdjusted = hCanvas - hRaster - yOffset;
 
-    ctx_class = (jclass) (*(table->GetObjectClass))(env, ctx);
+    gc_class = (jclass) (*(table->GetObjectClass))(env, gc);
 
     if ((type & javax_media_j3d_Raster_RASTER_COLOR) != 0) {
 
@@ -50,8 +49,8 @@ void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
         jbyte *byteData;
 
         byteData_field = (jfieldID)(*(table->GetFieldID))(env,
-                ctx_class, "byteBuffer","[B");
-        byteData_array = (jarray)(*(table->GetObjectField))(env, ctx,
+                gc_class, "byteBuffer","[B");
+        byteData_array = (jarray)(*(table->GetObjectField))(env, gc,
                 byteData_field);
 
         image_class = (jclass) (*(table->GetObjectClass))(env, image);
@@ -75,9 +74,7 @@ void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
 	    break;
 	    
         case FORMAT_BYTE_BGR:         
-	    if (ctxProperties->bgr_ext) { /* If its zero, should never come here! */
-		gltype = ctxProperties->bgr_ext_enum;
-	    }
+            gltype = GL_BGR;
 	    break;
         case FORMAT_BYTE_LA:
             gltype = GL_LUMINANCE_ALPHA;
@@ -139,8 +136,8 @@ void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
             jint *intData;
 
             intData_field = (jfieldID)(*(table->GetFieldID))(env,
-                ctx_class, "intBuffer","[I");
-            intData_array = (jarray)(*(table->GetObjectField))(env, ctx,
+                gc_class, "intBuffer","[I");
+            intData_array = (jarray)(*(table->GetObjectField))(env, gc,
                 intData_field);
 
 	    intData = (jint *)(*(table->GetPrimitiveArrayCritical))(env,
@@ -158,8 +155,8 @@ void JNICALL Java_javax_media_j3d_GraphicsContext3D_readRasterNative(
             jfloat *floatData;
 
             floatData_field = (jfieldID)(*(table->GetFieldID))(env,
-                ctx_class, "floatBuffer","[F");
-            floatData_array = (jarray)(*(table->GetObjectField))(env, ctx,
+                gc_class, "floatBuffer","[F");
+            floatData_array = (jarray)(*(table->GetObjectField))(env, gc,
                 floatData_field);
             floatData = (jfloat *)(*(table->GetPrimitiveArrayCritical))(env,
                 floatData_array, NULL);
