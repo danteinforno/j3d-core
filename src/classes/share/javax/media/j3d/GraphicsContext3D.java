@@ -296,11 +296,9 @@ public class GraphicsContext3D extends Object   {
     private static final int BUFFER_MODE	= 0x1;
     private int dirtyMask = 0;
 
-
     // multi-texture
     private int numActiveTexUnit = 0;
     private int lastActiveTexUnitIndex = 0;
-    private boolean toSimulateMultiTex = false;
 
     // for read raster
     private volatile boolean readRasterReady = false;
@@ -341,7 +339,12 @@ public class GraphicsContext3D extends Object   {
      * If the Appearance object is null, default values will be used 
      * for all appearance attributes - it is as if an
      * Appearance node were created using the default constructor.
+     *
      * @param appearance the new Appearance object
+     *
+     * @exception IllegalSharingException if the specified appearance refers
+     * to an ImageComponent2D that is being used by a Canvas3D as
+     * an off-screen buffer.
      */
     public void setAppearance(Appearance appearance) {
 	
@@ -351,7 +354,11 @@ public class GraphicsContext3D extends Object   {
 	    }
 	    appearance = defaultAppearance;
 	}
-	     
+
+        // TODO Chien : check whether any ImageComponent2D referred to by
+        // the new appearance is being used as an off-screen buffer and throw
+        // IllegalSharingException if it is.
+
         uAppearance = appearance;
         if ((canvas3d.view == null) || 
 	    (canvas3d.view.universe == null) ||
@@ -591,11 +598,19 @@ public class GraphicsContext3D extends Object   {
      * the canvas prior to rendering a new frame. The Background 
      * node's application region is ignored for immediate-mode 
      * rendering.
+     *
      * @param background the new Background object
+     *
      * @exception IllegalSharingException if the Background node
      * is part of or is subsequently made part of a live scene graph.
+     *
+     * @exception IllegalSharingException if the specified background node
+     * refers to an ImageComponent2D that is being used by a Canvas3D as
+     * an off-screen buffer.
      */
     public void setBackground(Background background) {
+        // TODO Chien : off-screen illegal sharing check
+
         if (background.isLive()) {
            throw new IllegalSharingException(J3dI18N.getString("GraphicsContext3D11"));
         }
@@ -1648,7 +1663,7 @@ public class GraphicsContext3D extends Object   {
 			synchronized (VirtualUniverse.mc.contextCreationLock) {
 			    canvas3d.screen.renderer.sharedCtx = canvas3d.createNewContext(
 					canvas3d.screen.display,
-					canvas3d.window, canvas3d.vid, 0, true,
+					canvas3d.window, 0, true,
 					canvas3d.offScreen);
 			    canvas3d.screen.renderer.sharedCtxTimeStamp = 
 				VirtualUniverse.mc.getContextTimeStamp();
@@ -1658,18 +1673,17 @@ public class GraphicsContext3D extends Object   {
 		}
 		*/
 		
-		if (canvas3d.ctx == 0) {
+		if (canvas3d.ctx == null) {
 		    synchronized (VirtualUniverse.mc.contextCreationLock) {
-			canvas3d.ctx = canvas3d.createNewContext(0, false);
-			if (canvas3d.ctx == 0) {
+			canvas3d.ctx = canvas3d.createNewContext(null, false);
+			if (canvas3d.ctx == null) {
 			    canvas3d.drawingSurfaceObject.unLock();
 			    return;
 			}
 
 			canvas3d.ctxTimeStamp =
 			    VirtualUniverse.mc.getContextTimeStamp();
-                        canvas3d.screen.renderer.listOfCtxs.add(
-                                new Long(canvas3d.ctx));
+                        canvas3d.screen.renderer.listOfCtxs.add(canvas3d.ctx);
 			canvas3d.screen.renderer.listOfCanvases.add(canvas3d);
 
 			canvas3d.beginScene();
@@ -1695,7 +1709,7 @@ public class GraphicsContext3D extends Object   {
 
 		    canvas3d.drawingSurfaceObject.contextValidated();
 		    canvas3d.screen.renderer.currentCtx = canvas3d.ctx;
-                    canvas3d.screen.renderer.currentWindow = canvas3d.window;
+                    canvas3d.screen.renderer.currentDrawable = canvas3d.drawable;
 		    initializeState();
 		    canvas3d.ctxChanged = true;
 		    canvas3d.canvasDirty = 0xffff;
@@ -1732,44 +1746,26 @@ public class GraphicsContext3D extends Object   {
 		int winHeight = size.height;
 		
 		if (back.image != null && back.image.isByReference()) {
-		back.image.geomLock.getLock();
-		back.image.evaluateExtensions(canvas3d.extensionsSupported);
-		if (!VirtualUniverse.mc.isBackgroundTexture) {
-		    canvas3d.clear(canvas3d.ctx,
-				   back.color.x, back.color.y, 
-				   back.color.z,  winWidth, winHeight, back.image,
-				   back.imageScaleMode,
-				   back.image != null?back.image.imageYdown[0]:null);
-		}
-		else {
-
-		    // this is if the background image resizes with the canvas
+                    back.image.geomLock.getLock();
+                    back.image.evaluateExtensions(canvas3d.extensionsSupported);
+                    // this is if the background image resizes with the canvas
 // 		    Dimension size = null;
 // 		    canvas3d.getSize(size);
 // 		    int xmax = size.width;
 // 		    int ymax = size.height;
-		    if (objectId == -1) {
-			objectId = VirtualUniverse.mc.getTexture2DId();
-		    }
+                        if (objectId == -1) {
+                            objectId = VirtualUniverse.mc.getTexture2DId();
+                        }
+                        
+                        canvas3d.textureclear(canvas3d.ctx,
+                                back.xmax, back.ymax,
+                                back.color.x, back.color.y,
+                                back.color.z, winWidth, winHeight,
+                                objectId, back.imageScaleMode, back.texImage, true);
 
-		    canvas3d.textureclear(canvas3d.ctx,
-					  back.xmax, back.ymax,
-					  back.color.x, back.color.y,
-					  back.color.z, winWidth, winHeight,
-					  objectId, back.imageScaleMode, back.texImage, true);
-		}
-		back.image.geomLock.unLock();
+                    back.image.geomLock.unLock();
 	    }
 	    else {
-		if (!VirtualUniverse.mc.isBackgroundTexture) {
-		    canvas3d.clear(canvas3d.ctx,
-				   back.color.x, back.color.y, 
-				   back.color.z, winWidth, winHeight, back.image,
-				   back.imageScaleMode,
-				   back.image != null?back.image.imageYdown[0]:null);
-		}
-		else {
-
 		    // this is if the background image resizes with the canvas
 // 		    Dimension size = null;
 // 		    canvas3d.getSize(size);
@@ -1785,7 +1781,7 @@ public class GraphicsContext3D extends Object   {
 					  back.color.z,
 					  winWidth, winHeight,
 					  objectId, back.imageScaleMode, back.texImage, true);
-		}
+
 	    }
 
 	    // Set the viewport and view matrices
@@ -1892,14 +1888,14 @@ public class GraphicsContext3D extends Object   {
 	LightRetained light;
 	boolean lightingOn = true;
 
-	if (canvas3d.ctx == 0) {
+	if (canvas3d.ctx == null) {
 	    // Force an initial clear if one has not yet been done
 	    doClear();
 	}
 
 
         if (J3dDebug.devPhase && J3dDebug.debug) {
-            J3dDebug.doAssert(canvas3d.ctx != 0, "canvas3d.ctx != 0");
+            J3dDebug.doAssert(canvas3d.ctx != null, "canvas3d.ctx != null");
         }
 
         // We need to catch NullPointerException when the dsi 
@@ -2069,68 +2065,13 @@ public class GraphicsContext3D extends Object   {
 		drawGeo = (GeometryRetained)geometry.retained;
 	    }
 
-            if (!toSimulateMultiTex) {
 		drawGeo.execute(canvas3d, null, isNonUniformScale,
 				false, alpha, 
 				((canvas3d.view.getScreens()).length > 1), 
 				canvas3d.screen.screen,
 				ignoreVertexColors, 
-				-1);
-	    } else {
-		// NOTE: we really should leverage the code in textureBin
-		boolean startToSimulate = false;
+				TextureBin.USE_VERTEXARRAY);
 
-		    // simulate multiple texture units
-                    AppearanceRetained app =
-                            (AppearanceRetained)appearance.retained;
-
-                    assert VirtualUniverse.mc.allowSimulatedMultiTexture;
-                    assert numActiveTexUnit > 1;
-                    assert app.texUnitState != null;
-                    assert app.texUnitState.length > 1;
-
-                    // first turn off fog
-		    if (fog != null)
-			canvas3d.setFogEnableFlag(canvas3d.ctx, false);
-
-		    for (i = 0; i < app.texUnitState.length; i++) {
-			 if (app.texUnitState[i] != null &&
-				app.texUnitState[i].isTextureEnabled()) {
-			 
-			     // turn on fog for the last pass 
-			     if (i == lastActiveTexUnitIndex)
-				 canvas3d.setFogEnableFlag(canvas3d.ctx, true);
-
-			     app.texUnitState[i].updateNative(-1, canvas3d,
-				false, startToSimulate);
-
-			     startToSimulate = true;
-		    	     drawGeo.execute(canvas3d, null, 
-				isNonUniformScale, false, alpha, 
-				((canvas3d.view.getScreens()).length > 1), 
-				canvas3d.screen.screen,
-				ignoreVertexColors, 
-				i);
-			 }
-		    }
-
-		    // adjust the depth test back to what it was
-		    // and adjust the blend func to what it it was
-                    if (startToSimulate) {
-                        if (app.transparencyAttributes != null) {
-                            app.transparencyAttributes.updateNative(
-                                    canvas3d.ctx, alpha, geometryType,
-                                    polygonMode, lineAA, pointAA);
-                        } else {
-                            canvas3d.resetTransparency(canvas3d.ctx, geometryType,
-                                    polygonMode, lineAA, pointAA);
-                        }
-                    }
-
-		    if (fog != null) {
-			canvas3d.setFogEnableFlag(canvas3d.ctx, true);
-		    }
-	    }
 	    if (geoRetained != null)
 	        geoRetained.geomLock.unLock();
 
@@ -2170,10 +2111,16 @@ public class GraphicsContext3D extends Object   {
      * setAppearance(Appearance) and draw(Geometry) methods
      * passing the appearance and geometry component objects of
      * the specified shape node as arguments.
+     *
      * @param shape the Shape3D node containing the Appearance component
      * object to set and Geometry component object to draw
+     *
      * @exception IllegalSharingException if the Shape3D node
      * is part of or is subsequently made part of a live scene graph.
+     *
+     * @exception IllegalSharingException if the Shape3D node's Appearance
+     * refers to an ImageComponent2D that is being used by a
+     * Canvas3D as an off-screen buffer.
      */
     public void draw(Shape3D shape) {
 	if (shape.isLive()) {
@@ -2183,16 +2130,6 @@ public class GraphicsContext3D extends Object   {
 	setAppearance(shape.getAppearance());
 	draw(shape.getGeometry());
     }
-
-    /**
-     * Native method for readRaster
-     */  
-    native void readRasterNative(long d3dctx,
-				 int type, int xSrcOffset, int ySrcOffset,
-				 int width, int height, int hCanvas, int format,
-				 ImageComponentRetained image, 
-				 DepthComponentRetained depth, 
-				 GraphicsContext3D ctx);
 
     /**
      * Read an image from the frame buffer and copy it into the
@@ -2208,18 +2145,37 @@ public class GraphicsContext3D extends Object   {
      * @param raster the Raster object used to read the
      * contents of the frame buffer
      *
-     * @exception IllegalArgumentException if the Raster's
-     * ImageComponent2D is in by-reference mode and its RenderedImage
-     * is not an instance of a BufferedImage.
+     * @exception IllegalArgumentException if the image class of the specified
+     * Raster's ImageComponent2D is <i>not</i> ImageClass.BUFFERED_IMAGE.
      *
-     * @exception IllegalSharingException if the Raster object
-     * is part of a live scene graph.
+     * @exception IllegalArgumentException if the specified Raster's
+     * ImageComponent2D is in by-reference mode and its
+     * RenderedImage is null.
+     *
+     * @exception IllegalArgumentException if the the Raster's
+     * ImageComponent2D format
+     * is <i>not</i> a 3-component format (e.g., FORMAT_RGB)
+     * or a 4-component format (e.g., FORMAT_RGBA).
+     *
+     * @exception IllegalSharingException if the Raster object is
+     * part of a live scene graph, or if the Raster's ImageComponent2D is
+     * part of a live scene graph.
+     *
+     * @exception IllegalSharingException if the Raster's ImageComponent2D is
+     * being used by an immediate mode context, or by a Canvas3D as
+     * an off-screen buffer.
      *
      * @see #flush
      * @see ImageComponent
      * @see DepthComponent
      */
     public void readRaster(Raster raster) {
+        // TODO Chien : illegal sharing checks; throw IllegalSharingException if:
+        //
+        // 1) the Raster or its ImageComponent2D is live
+        // 2) the Raster's ImageComponent2D is being used by an immediate mode context
+        // 3) the Raster's ImageComponent2D is being used as an off-screen buffer
+
         if ((canvas3d.view == null) || (canvas3d.view.universe == null) ||
 		(!canvas3d.view.active)) {
             return;
@@ -2270,13 +2226,13 @@ public class GraphicsContext3D extends Object   {
 	}
 	*/
 
-	if (canvas3d.ctx == 0) {
+	if (canvas3d.ctx == null) {
 	    // Force an initial clear if one has not yet been done
 	    doClear();
 	}
 
         if (J3dDebug.devPhase && J3dDebug.debug) {
-            J3dDebug.doAssert(canvas3d.ctx != 0, "canvas3d.ctx != 0");
+            J3dDebug.doAssert(canvas3d.ctx != null, "canvas3d.ctx != null");
         }
 
 
@@ -2327,7 +2283,7 @@ public class GraphicsContext3D extends Object   {
 	    // Make the context current and read the raster information
 	    canvas3d.makeCtxCurrent();
 	    canvas3d.syncRender(canvas3d.ctx, true);
-            readRasterNative(canvas3d.ctx,
+            Pipeline.getPipeline().readRasterNative(canvas3d.ctx,
 			     ras.type, ras.xSrcOffset, ras.ySrcOffset,
 			     ras.width, ras.height, canvasSize.height, format,
 			     ras.image, ras.depthComponent, this);
@@ -2514,7 +2470,6 @@ public class GraphicsContext3D extends Object   {
     boolean updateState(RenderBin rb, int geometryType) {
 
 	boolean useAlpha = false;
-	toSimulateMultiTex = false;
         numActiveTexUnit = 0;
 	lastActiveTexUnitIndex = 0;
 
@@ -2623,24 +2578,8 @@ public class GraphicsContext3D extends Object   {
                     // set the number active texture unit in Canvas3D
                     canvas3d.setNumActiveTexUnit(numActiveTexUnit);
 
-		} else if (!useShaders && VirtualUniverse.mc.allowSimulatedMultiTexture) {
-                    // Simulated (multi-pass) multi-texture rendering
-                    
-                    toSimulateMultiTex = true;
-
-                    // will fall back to the multi-pass case;
-                    // reset all the texture units first
-                    for (int i = 0; i < prevNumActiveTexUnit; i++) {
-                        canvas3d.resetTexture(canvas3d.ctx, i);
-                    }
-
-                    // set the number active texture unit in Canvas3D
-                    canvas3d.setNumActiveTexUnit(1);
-                }
-                else {
-                // Exceeded limit, and not using simulated multi-texture
-
-                    // disable all the texture units
+		} else {
+                    // Exceeded limit, disable all the texture units
                     for (int i = 0; i < prevNumActiveTexUnit; i++) {
                         canvas3d.resetTexture(canvas3d.ctx, i);
                     }

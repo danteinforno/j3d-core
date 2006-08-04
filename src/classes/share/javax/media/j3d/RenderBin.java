@@ -306,12 +306,10 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
     ArrayList dirtyReferenceGeomList = new ArrayList(5);
 
 
-    /**
-     * used by geometry execute routines to determine if the
-     * alpha values can be zapped
-     */
-    boolean multiScreen = false;
-    
+    // Issue 113 - this variable is no longer needed.
+    // TODO: it should be removed from the Pipeline interface
+    static final boolean multiScreen = false;
+
     // list of all Oriented RenderAtoms
     ArrayList orientedRAs = new ArrayList(5);
 
@@ -411,7 +409,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	TextureRetained tex;
 	Integer texIdObj;
 	int size;
-	DetailTextureImage dtex;
 	
 	//	System.out.println("dirtyRenderMoleculeList.size = "+dirtyRenderMoleculeList.size());
 	//	System.out.println("reEvaluateBg = "+reEvaluateBg);
@@ -713,7 +710,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		        // If the context is null, then the extension
 		        // will be evaluated during context creation in
 		        // the renderer
-		        if (canvases[j].ctx != 0) {
+		        if (canvases[j].ctx != null) {
 			    nc.evaluateExtensions(canvases[j].extensionsSupported);
 		        }
 		    }
@@ -746,7 +743,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
                         // If the context is null, then the extension
                         // will be evaluated during context creation in
                         // the renderer
-                        if (canvases[j].ctx != 0) {
+                        if (canvases[j].ctx != null) {
                             nc.evaluateExtensions(
 					canvases[j].extensionsSupported);
                         }
@@ -768,8 +765,9 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	    }
 	    view.vDirtyMask |= View.CLIP_DIRTY;
 	}
-	
-	multiScreen = ((view.getScreens()).length > 1);
+
+        // Issue 113 - multiScreen no longer used
+//	multiScreen = ((view.getScreens()).length > 1);
 	
 	// renderBin is ready now, so send the offScreen message
 	size = offScreenMessage.size(); 
@@ -1089,7 +1087,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    ra = arr[i];
 		    GeometryArrayRetained geo = (GeometryArrayRetained) ra.geometry();
 
-		    if ((cv.ctx != 0) &&
+		    if ((cv.ctx != null) &&
 			((geo.resourceCreationMask & cv.canvasBit) == 0) || 
 			(geo.getDlistTimeStamp(cv.canvasBit) != 
 			 cv.ctxTimeStamp)) {
@@ -1107,7 +1105,7 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 
 		    // add this geometry's dlist to be freed
 		    if (geo.isDlistUserSetEmpty(this)) {
-			if (cv.ctx != 0) {
+			if (cv.ctx != null) {
 			    canvases[j].displayListResourceFreeList.add(geo.dlistObj);
 			}
 			geo.resourceCreationMask &= ~canvases[j].canvasBit;
@@ -1174,7 +1172,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	RenderMolecule rm;
 	TextureRetained tex;
 	Integer texIdObj;
-	DetailTextureImage dtex;
 
 	if (rdr == null) 
 	    return;
@@ -1235,25 +1232,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    rdr.textureIdResourceFreeList.add(texIdObj);
 		    tex.resourceCreationMask &= ~rdr.rendererBit;
 		}
-		if (tex instanceof Texture2DRetained) {
-		    dtex = ((Texture2DRetained) tex).detailTexture;
-		    if ((dtex != null) &&
-			((dtex.resourceCreationMask[tex.format] & rdr.rendererBit) != 0)) {
-			id = dtex.objectIds[tex.format];
-			if ((id >= rdr.textureIDResourceTable.size()) || 
-			    (rdr.textureIDResourceTable.get(id) != dtex)) {
-			    id = rdr.textureIDResourceTable.indexOf(dtex);
-			    if (id <= 0) {
-				continue;
-			    }
-			}
-			texIdObj = new Integer(id);
-			if (!rdr.textureIdResourceFreeList.contains(texIdObj)) {
-			    rdr.textureIdResourceFreeList.add(texIdObj);
-			    dtex.resourceCreationMask[tex.format] &= ~rdr.rendererBit;
-			}
-		    }
-		}
 	    }
 	}
 
@@ -1282,7 +1260,6 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 	RenderMolecule rm;
 	TextureRetained tex;
 	Integer texIdObj;
-	DetailTextureImage dtex;
 
 	// update dirtyRenderMoleculeList for each canvas
 	for (i = 0; i < canvases.length; i++) {
@@ -1330,34 +1307,10 @@ class RenderBin extends J3dStructure  implements ObjectUpdate {
 		    }
 		}
 
-
 		if ((tex.resourceCreationMask & cv.canvasBit) != 0) {
 		    texIdObj = new Integer(id);
 		    cv.textureIdResourceFreeList.add(texIdObj);
 		    tex.resourceCreationMask &= ~cv.canvasBit;
-		}
-		if (tex instanceof Texture2DRetained) {
-		    dtex = ((Texture2DRetained) tex).detailTexture;
-		    if ((dtex != null) &&
-			((dtex.resourceCreationMask[tex.format] & cv.canvasBit) != 0)) {
-			id = dtex.objectIds[tex.format];
-			if ((id >= cv.textureIDResourceTable.size()) || 
-			    (cv.textureIDResourceTable.get(id) != dtex)) {
-			    id = cv.textureIDResourceTable.indexOf(dtex);
-			    if (id <= 0) {
-				continue;
-			    }
-			}			
-			texIdObj = new Integer(id);
-                        // XXXX: The following code seems wrong -- why add it to
-                        // the list if it is already there? Maybe one is for the
-                        // texture and the other (idential value) is for the
-                        // detail texture?
-			if (cv.textureIdResourceFreeList.contains(texIdObj)) {
-			    cv.textureIdResourceFreeList.add(texIdObj);
-			    dtex.resourceCreationMask[tex.format] &= ~cv.canvasBit;
-			}
-		    }		
 		}
 	    }
 	    // Take care of display list that should be freed
@@ -3223,7 +3176,8 @@ System.out.println("......tb.soleUser= " +
 				 ArrayList rmList, ArrayList dlistPerRinfoList,
 				 ArrayList raList, boolean useSharedCtx ) {
 	int size, i, bitMask;
-	long ctx, timeStamp;
+	Context ctx;
+	long timeStamp;
 
 	if (useSharedCtx) {
 	    ctx = cv.screen.renderer.sharedCtx;
@@ -3285,10 +3239,11 @@ System.out.println("......tb.soleUser= " +
     }
 
     void removeRenderMolecule(RenderMolecule rm) {
-	renderMoleculeFreelist.add(rm);
+        if (VirtualUniverse.mc.useFreeLists)
+            renderMoleculeFreelist.add(rm);
 
-	if ((rm.primaryMoleculeType &(RenderMolecule.DLIST_MOLECULE|RenderMolecule.SEPARATE_DLIST_PER_RINFO_MOLECULE)) != 0)
-	    renderMoleculeList.remove(rm);
+        if ((rm.primaryMoleculeType &(RenderMolecule.DLIST_MOLECULE|RenderMolecule.SEPARATE_DLIST_PER_RINFO_MOLECULE)) != 0)
+            renderMoleculeList.remove(rm);
     }
 
     void updateAllRenderMolecule(Canvas3D cv) {
@@ -5197,7 +5152,8 @@ System.out.println("......tb.soleUser= " +
 	    // gotten from the freelist from one frame to another
 	    canvases[i].lightBin = null;
 	}
-	lightBinFreelist.add(lbin);
+        if (VirtualUniverse.mc.useFreeLists)
+            lightBinFreelist.add(lbin);
 	lbin.prev = null;
 	lbin.next = null;
     }
@@ -6142,7 +6098,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		tb.parentTInfo = null;
 	    }
 	    else {
@@ -6168,7 +6125,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		tb.parentTInfo = null;
 	    }
 
@@ -6202,7 +6160,8 @@ System.out.println("......tb.soleUser= " +
 		}
 		t.prev = null;
 		t.next = null;
-		transparentInfoFreeList.add(t);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(t);
 		nElements--;
 		r.parentTInfo[i] = null;
 	    }
@@ -6370,7 +6329,8 @@ System.out.println("......tb.soleUser= " +
 
 	    for (i = 0; i < size; i++) {
 		TextureBin tb = (TextureBin)allTransparentObjects.get(i);
-		transparentInfoFreeList.add(tb.parentTInfo);
+                if (VirtualUniverse.mc.useFreeLists)
+                    transparentInfoFreeList.add(tb.parentTInfo);
 		tb.parentTInfo = null;
 		RenderMolecule r = tb.transparentRMList;
 		// For each renderMolecule
@@ -6429,7 +6389,8 @@ System.out.println("......tb.soleUser= " +
 		    if (r.parentTInfo[j] == null)
 			continue;
 
-		    transparentInfoFreeList.add(r.parentTInfo[j]);
+                    if (VirtualUniverse.mc.useFreeLists)
+                        transparentInfoFreeList.add(r.parentTInfo[j]);
 		    r.parentTInfo[j] = null;		    
 		}
 		if (r.renderMolecule.textureBin.parentTInfo == null) {

@@ -20,8 +20,6 @@ package javax.media.j3d;
 
 import java.util.*;
 import java.awt.*;
-import java.io.File;
-
 
 class MasterControl {
 
@@ -32,24 +30,15 @@ class MasterControl {
     static final int SET_WORK       = 1;
     static final int RUN_THREADS    = 2;
     static final int THREAD_DONE    = 3;
-    static final int WAIT_FOR_ALL   = 4;
     static final int SET_WORK_FOR_REQUEST_RENDERER   = 5;
     static final int RUN_RENDERER_CLEANUP            = 6;    
-    static final int SLEEP                           = 7;    
 
     // The thread states for MC
     static final int SLEEPING            = 0;
     static final int RUNNING             = 1;
-    static final int WAITING_FOR_THREAD  = 2;
     static final int WAITING_FOR_THREADS = 3;
     static final int WAITING_FOR_CPU     = 4;
     static final int WAITING_FOR_RENDERER_CLEANUP = 5;
-
-    // The Rendering API's that we currently know about
-    static final int RENDER_OPENGL_SOLARIS = 0;
-    static final int RENDER_OPENGL_WIN32   = 1;
-    static final int RENDER_DIRECT3D       = 2;
-    static final int RENDER_OPENGL_LINUX   = 3;
 
     // Constants used in renderer thread argument
     static final Integer REQUESTRENDER = new Integer(Renderer.REQUESTRENDER);
@@ -295,15 +284,11 @@ class MasterControl {
      */
     static long systemStartTime = 0L;
 
-    // The rendering API we are using
-    private int renderingAPI = RENDER_OPENGL_SOLARIS;
-    static boolean isD3DAPI = false;
-   
-    // Are we on a Win32 system
-    static boolean isWin32 = false;
- 
-    // The class that describes the low level rendering code
-    private NativeAPIInfo nativeAPIInfo = null;
+    // Flag indicating that we are on a Windows OS
+    private static boolean isWindowsOs = false;
+    
+    // Flag indicating we are on MacOS
+    private static boolean isMacOs = false;
 
     // This is a counter for texture id's, valid id starts from 1
     private int textureIdCount = 0;
@@ -321,14 +306,6 @@ class MasterControl {
 
     // This is a counter for rendererBit
     private int rendererCount = 0;
-
-    /*
-    // Flag that indicates whether the JVM is version JDK1.5 or later.
-    // If so, then the jvm15OrBetter flag is set to true, indicating that
-    // 1.5 functionality can be used.
-    // We don't use any JDK 1.5 features yet, so this is a placeholder.
-    static boolean jvm15OrBetter = false;
-    */
 
     // Flag that indicates whether to shared display context or not
     boolean isSharedCtx = false;
@@ -356,6 +333,19 @@ class MasterControl {
     // be in display list.
     boolean vertexAttrsInDisplayList = false;
 
+    // Issue 249 - flag that indicates whether the soleUser optimization is permitted
+    boolean allowSoleUser = false;
+
+    // Issue 266 - Flag indicating whether null graphics configs are allowed
+    // Set by -Dj3d.allowNullGraphicsConfig property
+    // Setting this flag causes Canvas3D to allow a null GraphicsConfiguration
+    // for on-screen canvases. This is only for backward compatibility with
+    // legacy applications.
+    boolean allowNullGraphicsConfig = false;
+    
+    // Issue 288 & 123 - flag indicating if freelists should be used
+    boolean useFreeLists = false;
+
     // The global shading language being used. Using a ShaderProgram
     // with a shading language other than the one specified by
     // globalShadingLanguage will cause a ShaderError to be generated,
@@ -368,7 +358,7 @@ class MasterControl {
     static boolean cgLibraryAvailable = false;
     static boolean glslLibraryAvailable = false;
 
-    
+
     // REQUESTCLEANUP messages argument
     static Integer REMOVEALLCTXS_CLEANUP = new Integer(1);
     static Integer REMOVECTX_CLEANUP     = new Integer(2);
@@ -388,20 +378,17 @@ class MasterControl {
     
     // Flag that indicates whether to lock the DSI while rendering
     boolean doDsiRenderLock = false;
-
-    // Flag that indicates whether J3DGraphics2D uses texturemapping
-    // instead of drawpixel for composite the buffers
-    boolean isJ3dG2dDrawPixel = false;
-
-    // flag that indicates whether BackgroundRetained uses texturemapping
-    // or drawpixel clear the background
-    boolean isBackgroundTexture = true;
+    
+    // Flag that indicates the pre-1.5 behavior of enforcing power-of-two
+    // textures. If set, then any non-power-of-two textures will throw an
+    // exception.
+    boolean enforcePowerOfTwo = false;
     
     // Flag that indicates whether the framebuffer is sharing the
     // Z-buffer with both the left and right eyes when in stereo mode.
     // If this is true, we need to clear the Z-buffer between rendering
     // to the left and right eyes.
-    boolean sharedStereoZBuffer;
+    boolean sharedStereoZBuffer = true;
 
     // True to disable all underlying multisampling API so it uses
     // the setting in the driver. 
@@ -410,11 +397,11 @@ class MasterControl {
     // False to disable compiled vertex array extensions if support
     boolean isCompiledVertexArray = true;
 
-    // False to disable rescale normal if OGL support
-    boolean isForceNormalized = false;
-
-    // True to allow simulated (multi-pass) multi-texture
-    boolean allowSimulatedMultiTexture = false;
+    // Number of reserved vertex attribute locations for GLSL (must be at
+    // least 1).
+    // Issue 269 - need to reserve up to 6 vertex attribtue locations to ensure
+    // that we don't collide with a predefined gl_* attribute on nVidia cards.
+    int glslVertexAttrOffset = 6;
 
     // Hashtable that maps a GraphicsDevice to its associated
     // Screen3D--this is only used for on-screen Canvas3Ds
@@ -435,7 +422,7 @@ class MasterControl {
     // Root ThreadGroup for creating Java 3D threads
     private static ThreadGroup rootThreadGroup;
 
-    // Thread priority for all Java3D threads
+    // Thread priority for all Java 3D threads
     private static int threadPriority;
 
     static private Object mcThreadLock = new Object();
@@ -443,40 +430,11 @@ class MasterControl {
     private ArrayList timestampUpdateList = new ArrayList(3);
 
     private UnorderList freeMessageList = new UnorderList(8);
-    
-    // System properties containing the native library search PATH
-    // The order listed is the order in which they will be searched
-    private static final String[] systemPathProps = {
-        "sun.boot.library.path",
-        "java.library.path"
-    };
 
+    // Native AWT object
     long awt;
-    private native long getAWT();
 
-    // Method to initialize the native J3D library
-    private native boolean initializeJ3D(boolean disableXinerama);
-
-    // Method to verify whether the native Cg library is available
-    private static native boolean loadNativeCgLibrary(String[] libpath);
-
-    // Method to get number of procesor
-    private native int getNumberOfProcessor();
-
-    // Methods to set/get system thread concurrency
-    private native void setThreadConcurrency(int newLevel);
-    private native int getThreadConcurrency();
-
-    // Native method to get the high-resolution timer value.
-    // This method is only called by the J3dClock.getHiResTimerValue.
-    // It is defined as a MasterControl method for convenience, so we don't
-    // have to have yet another class with native methods.
-    //
-    // NOTE: once we drop support for JDK 1.4.2, this method will go away.
-    static native long getNativeTimerValue();
-
-    // Maximum lights supported by the native API 
-    private native int getMaximumLights();
+    // Maximum number of lights
     int maxLights;
 
     // This is used for D3D only
@@ -509,15 +467,9 @@ class MasterControl {
      */
     MasterControl() {
         assert librariesLoaded;
-        
-	// Get AWT handle
-	awt = getAWT();
 
-	// Get native API information
-	nativeAPIInfo = new NativeAPIInfo();
-	renderingAPI = nativeAPIInfo.getRenderingAPI();
-	isD3DAPI = (renderingAPI == RENDER_DIRECT3D);
-        isWin32 = isD3DAPI || (renderingAPI == RENDER_OPENGL_WIN32);
+	// Get AWT handle
+	awt = Pipeline.getPipeline().getAWT();
 
         // Initialize the start time upon which alpha's and behaviors
         // are synchronized to (if it isn't already set).
@@ -532,7 +484,7 @@ class MasterControl {
 	}
 
 	// Check to see whether shared contexts are allowed
-	if (getRenderingAPI() != RENDER_DIRECT3D) {
+	if (!isD3D()) {
 	    isSharedCtx =
 		getBooleanProperty("j3d.sharedctx", isSharedCtx, "shared contexts");
 	}
@@ -586,23 +538,6 @@ class MasterControl {
 			       isCompiledVertexArray,
 			       "compiled vertex array");
 
-	isForceNormalized =
-	    getBooleanProperty("j3d.forceNormalized",
-			       isForceNormalized,
-			       "force normalized");
-
-        allowSimulatedMultiTexture =
-	    getBooleanProperty("j3d.simulatedMultiTexture",
-			       allowSimulatedMultiTexture,
-			       "simulated multi-texture");
-
-	if (allowSimulatedMultiTexture) {
-	    System.err.println("************************************************************************");
-	    System.err.println(J3dI18N.getString("MasterControl2"));
-	    System.err.println(J3dI18N.getString("MasterControl3"));
-	    System.err.println("************************************************************************");
-	}
-
         boolean j3dOptimizeSpace =
 	    getBooleanProperty("j3d.optimizeForSpace", true,
 			       "optimize for space");
@@ -625,36 +560,35 @@ class MasterControl {
 	doDsiRenderLock = getBooleanProperty("j3d.renderLock",
 					     doDsiRenderLock,
 					     "render lock");
+        
+        // Check to see whether we enforce power-of-two textures
+        enforcePowerOfTwo = getBooleanProperty("j3d.textureEnforcePowerOfTwo",
+					       enforcePowerOfTwo,
+					       "checking power-of-two textures");
 
-	// Check to see whether J3DGraphics2D uses texturemapping
-	// or drawpixel to composite the buffers
-	isJ3dG2dDrawPixel = getBooleanProperty("j3d.g2ddrawpixel",
-					       isJ3dG2dDrawPixel,
-					       "Graphics2D DrawPixel");
+        // Issue 249 - check to see whether the soleUser optimization is permitted
+        allowSoleUser = getBooleanProperty("j3d.allowSoleUser",
+					   allowSoleUser,
+					   "sole-user mode");
 
-	// Check to see whether BackgroundRetained uses texturemapping
-	// or drawpixel clear the background
-	if (!isD3D()) {
-	    isBackgroundTexture =
-		getBooleanProperty("j3d.backgroundtexture",
-				   isBackgroundTexture,
-				   "background texture");
-	} else {
-	    // D3D always uses background texture and uses
-	    // canvas.clear() instead of canvas.textureclear() in Renderer
-	    isBackgroundTexture = false;
-	}
+        // Issue 266 - check to see whether null graphics configs are allowed
+        allowNullGraphicsConfig = getBooleanProperty("j3d.allowNullGraphicsConfig",
+						     allowNullGraphicsConfig,
+						     "null graphics configs");
+
+        // Issue 288 & 123 - check to see if free lists should be used
+        useFreeLists = getBooleanProperty("j3d.useFreeLists",
+						     useFreeLists,
+						     "Use Free Lists");
 
         // Check to see if stereo mode is sharing the Z-buffer for both eyes.
-	boolean defaultSharedStereoZBuffer =
-	    getRenderingAPI() != RENDER_OPENGL_SOLARIS;
 	sharedStereoZBuffer = 
 	    getBooleanProperty("j3d.sharedstereozbuffer",
-			       defaultSharedStereoZBuffer,
+			       sharedStereoZBuffer,
 			       "shared stereo Z buffer");
 
 	// Get the maximum number of concurrent threads (CPUs)
-	final int defaultThreadLimit = getNumberOfProcessor()+1;
+	final int defaultThreadLimit = getNumberOfProcessors() + 1;
 	Integer threadLimit =
 	    (Integer) java.security.AccessController.doPrivileged(
 	    new java.security.PrivilegedAction() {
@@ -664,29 +598,12 @@ class MasterControl {
 		}
 	    });
 
-
 	cpuLimit = threadLimit.intValue();
 	if (cpuLimit < 1)
 	    cpuLimit = 1;
 	if (J3dDebug.debug || cpuLimit != defaultThreadLimit) {
 	    System.err.println("Java 3D: concurrent threadLimit = " +
 			       cpuLimit);
-	}
-
-	// Ensure that there are at least enough system threads to
-	// support all of Java 3D's threads running in parallel
-	int threadConcurrency = getThreadConcurrency();
-	if (J3dDebug.debug) {
-	    System.err.println("System threadConcurrency = " +
-			       threadConcurrency);
-	}
-	if (threadConcurrency != -1 && threadConcurrency < (cpuLimit + 1)) {
-	    threadConcurrency = cpuLimit + 1;
-	    if (J3dDebug.debug) {
-		System.err.println("Setting system threadConcurrency to " +
-				   threadConcurrency);
-	    }
-	    setThreadConcurrency(threadConcurrency);
 	}
 
 	// Get the input device scheduler sampling time
@@ -705,17 +622,34 @@ class MasterControl {
 			       + samplingTime + " ms");
 	}
 
-	// See if Xinerama should be disabled for better performance.
+	// Get the glslVertexAttrOffset
+	final int defaultGLSLVertexAttrOffset = glslVertexAttrOffset;
+	Integer vattrOffset =
+	    (Integer) java.security.AccessController.doPrivileged(
+	    new java.security.PrivilegedAction() {
+		public Object run() {
+		    return Integer.getInteger("j3d.glslVertexAttrOffset",
+					      defaultGLSLVertexAttrOffset);
+		}
+	    });
+
+	glslVertexAttrOffset = vattrOffset.intValue();
+        if (glslVertexAttrOffset < 1) {
+            glslVertexAttrOffset = 1;
+        }
+	if (J3dDebug.debug || glslVertexAttrOffset != defaultGLSLVertexAttrOffset) {
+	    System.err.println("Java 3D: glslVertexAttrOffset = " +
+			       glslVertexAttrOffset);
+	}
+
+        // See if Xinerama should be disabled for better performance.
 	boolean disableXinerama = false;
 	if (getProperty("j3d.disableXinerama") != null) {
 	    disableXinerama = true;
 	}
 
 	// Initialize the native J3D library
-	if (!initializeJ3D(disableXinerama)) {
-	    if (isGreenThreadUsed()) {
-	        System.err.print(J3dI18N.getString("MasterControl1"));
-	    }
+	if (!Pipeline.getPipeline().initializeJ3D(disableXinerama)) {
 	    throw new RuntimeException(J3dI18N.getString("MasterControl0"));
 	}
 
@@ -728,11 +662,24 @@ class MasterControl {
 	    System.err.println("Java 3D: could not disable Xinerama");
 	}
 
+        // Check for obsolete properties
+        String[] obsoleteProps = {
+            "j3d.simulatedMultiTexture",
+            "j3d.forceNormalized",
+            "j3d.backgroundtexture",
+            "j3d.g2ddrawpixel",
+        };
+        for (int i = 0; i < obsoleteProps.length; i++) {
+            if (getProperty(obsoleteProps[i]) != null) {
+                System.err.println(obsoleteProps[i] + " : property ignored");
+            }
+        }
+
 	// Get the maximum Lights
-	maxLights = getMaximumLights();
+	maxLights = Pipeline.getPipeline().getMaximumLights();
 
 	// create the freelists
-	FreeListManager.createFreeLists();
+	FreeListManager.createFreeLists(useFreeLists);
 
 	// create an array canvas use registers
 	// The 32 limit can be lifted once the
@@ -777,144 +724,93 @@ class MasterControl {
 				  (msg + " disabled"));
     }
 
-    // Java 3D only supports native threads
-    boolean isGreenThreadUsed() {
-	return false;
-    }
-
-
     /**
-     * Method to load the native libraries needed by Java 3D. This is
+     * Method to create and initialize the rendering Pipeline object,
+     * and to load the native libraries needed by Java 3D. This is
      * called by the static initializer in VirtualUniverse <i>before</i>
      * the MasterControl object is created.
      */
     static void loadLibraries() {
         assert !librariesLoaded;
 
-        // This works around a native load library bug
-       	try {
-            java.awt.Toolkit toolkit = java.awt.Toolkit.getDefaultToolkit();
-            toolkit = null;   // just making sure GC collects this
-       	} catch (java.awt.AWTError e) {
-       	}
+        // Set global flags indicating whether we are running on Windows or MacOS
+        String osName = getProperty("os.name");
+        isWindowsOs = osName != null && osName.startsWith("Windows");
+        isMacOs = osName != null && osName.startsWith("Mac");
 
-	// Load the JAWT native library
-	java.security.AccessController.doPrivileged(
-	    new java.security.PrivilegedAction() {
-	    public Object run() {
-		System.loadLibrary("jawt");
-		return null;
-	    }
-	});
+//KCR:        System.err.println("MasterControl.loadLibraries()");
+//KCR:        System.err.println("    osName = \"" + osName + "\"" +
+//KCR:                ", isWindowsOs = " + isWindowsOs +
+//KCR:                ", isMacOs = " + isMacOs);
 
-	// Load the native J3D library
-        final String oglLibraryName = "j3dcore-ogl";
-        final String d3dLibraryName = "j3dcore-d3d";
-        final String libraryName = (String)
-        java.security.AccessController.doPrivileged(new
-	    java.security.PrivilegedAction() {
-		public Object run() {
-		    String libName = oglLibraryName;
+        // Initialize the Pipeline object associated with the
+        // renderer specified by the "j3d.rend" system property.
+        //
+        // XXXX : We should consider adding support for a more flexible,
+        // dynamic selection scheme via an API call.
 
-		    // If it is a Windows OS, we want to support dynamic native library selection (ogl, d3d)
-		    String osName = System.getProperty("os.name");
-		    if (osName != null && osName.startsWith("Windows")) {
-			// XXXX : Should eventually support a more flexible dynamic 
-			// selection scheme via an API call.
-			String str = System.getProperty("j3d.rend");
-			if (str != null && str.equals("d3d")) {
-			    libName = d3dLibraryName;
-			}
-		    }
+        // Default rendering pipeline is the JOGL pipeline on MacOS and the
+        // native OpenGL pipeline on all other platforms.
+        Pipeline.Type rendererType =
+                isMacOs ? Pipeline.Type.JOGL : Pipeline.Type.NATIVE_OGL;
 
-                    System.loadLibrary(libName);
-		    return libName;
-		}
-	    });
+        String rendStr = getProperty("j3d.rend");
+        if (rendStr == null) {
+            // Use default pipeline
+        } else if (rendStr.equals("ogl") && !isMacOs) {
+            rendererType = Pipeline.Type.NATIVE_OGL;
+        } else if (rendStr.equals("d3d") && isWindowsOs) {
+            rendererType = Pipeline.Type.NATIVE_D3D;
+        } else if (rendStr.equals("jogl")) {
+            rendererType = Pipeline.Type.JOGL;
+        } else if (rendStr.equals("noop")) {
+            rendererType = Pipeline.Type.NOOP;
+        } else {
+            System.err.println("Java 3D: Unrecognized renderer: " + rendStr);
+            // Use default pipeline
+        }
 
-        // Get the global j3d.shadingLanguage property
-	final String slStr = getProperty("j3d.shadingLanguage");
-	if (slStr != null) {
-	    boolean found = false;
-	    if (slStr.equals("GLSL")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
-		found = true;
-	    }
-	    else if (slStr.equals("Cg")) {
-		globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
-		found = true;
-	    }
+//KCR:        System.err.println("    using " + rendererType + " pipeline");
 
-	    if (found) {
-		System.err.println("Java 3D: Setting global shading language to " + slStr);
-	    }
-	    else {
-		System.err.println("Java 3D: Unrecognized shading language: " + slStr);
-	    }
-	}
+        // Construct the singleton Pipeline instance
+        Pipeline.createPipeline(rendererType);
+
+        // Get the global j3d.shadingLanguage system property
+        final String slStr = getProperty("j3d.shadingLanguage");
+        if (slStr != null) {
+            boolean found = false;
+            if (slStr.equals("GLSL")) {
+                globalShadingLanguage = Shader.SHADING_LANGUAGE_GLSL;
+                found = true;
+            } else if (slStr.equals("Cg")) {
+                globalShadingLanguage = Shader.SHADING_LANGUAGE_CG;
+                found = true;
+            }
+
+            if (found) {
+                System.err.println("Java 3D: Setting global shading language to " + slStr);
+            } else {
+                System.err.println("Java 3D: Unrecognized shading language: " + slStr);
+            }
+        }
+
+        // Load all required libraries
+        Pipeline.getPipeline().loadLibraries(globalShadingLanguage);
 
         // Check whether the Cg library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_CG) {
-            String cgLibraryName = libraryName + "-cg";
-            String[] libpath = setupLibPath(systemPathProps, cgLibraryName);
-            if (loadNativeCgLibrary(libpath)) {
-                cgLibraryAvailable = true;
-            }
+            cgLibraryAvailable = Pipeline.getPipeline().isCgLibraryAvailable();
         }
-        
+
         // Check whether the GLSL library is available
         if (globalShadingLanguage == Shader.SHADING_LANGUAGE_GLSL) {
-            if (libraryName == oglLibraryName) {
-                // No need to verify that GLSL is available, since GLSL is part
-                // of OpenGL as an extension (or part of core in 2.0)
-                glslLibraryAvailable = true;
-            }
+            glslLibraryAvailable = Pipeline.getPipeline().isGLSLLibraryAvailable();
         }
 
         assert !(glslLibraryAvailable && cgLibraryAvailable) :
             "ERROR: cannot support both GLSL and CG at the same time";
 
         librariesLoaded = true;
-    }
-
-
-    /**
-     * Parse the specified System properties containing a PATH and return an
-     * array of Strings, where each element is an absolute filename consisting of
-     * the individual component of the path concatenated with the (relative)
-     * library file name. Only those absolute filenames that exist are included.
-     * If no absolute filename is found, we will try the relative library name.
-     */
-    private static String[] setupLibPath(String[] props, String libName) {
-        ArrayList pathList = new ArrayList();
-
-        String filename = System.mapLibraryName(libName);
-        for (int n = 0; n < props.length; n++) {
-            String pathString = getProperty(props[n]);
-            boolean done = false;
-            int posStart = 0;
-            while (!done) {
-                int posEnd = pathString.indexOf(File.pathSeparator, posStart);
-                if (posEnd == -1) {
-                    posEnd = pathString.length();
-                    done = true;
-                }
-                String pathDir = pathString.substring(posStart, posEnd);
-                File pathFile = new File(pathDir, filename);
-                if (pathFile.exists()) {
-                    pathList.add(pathFile.getAbsolutePath());
-                }
-
-                posStart = posEnd + 1;
-            }
-        }
-
-        // If no absolute path names exist, add in the relative library name
-        if (pathList.size() == 0) {
-            pathList.add(filename);
-        }
-
-        return (String[])pathList.toArray(new String[0]);
     }
 
 
@@ -997,8 +893,7 @@ class MasterControl {
      * This returns the a unused displayListId
      */
     Integer getDisplayListId() {
-	return (Integer)
-	    FreeListManager.getObject(FreeListManager.DISPLAYLIST);
+        return (Integer) FreeListManager.getObject(FreeListManager.DISPLAYLIST);
     }
 
     void freeDisplayListId(Integer id) {
@@ -1079,17 +974,25 @@ class MasterControl {
 	    }
 	}
     }
-    
+
+    // Fix to Issue 123
     Transform3D getTransform3D(Transform3D val) {
 	Transform3D t;
-	t = (Transform3D)
-	    FreeListManager.getObject(FreeListManager.TRANSFORM3D);
+        if (VirtualUniverse.mc.useFreeLists) {
+            t = (Transform3D) FreeListManager.getObject(FreeListManager.TRANSFORM3D);
+        }
+        else {
+            t = new Transform3D();
+        }
 	if (val != null) t.set(val);
 	return t;
     }
 
+    // Fix to Issue 123
     void addToTransformFreeList(Transform3D t) {
-	FreeListManager.freeObject(FreeListManager.TRANSFORM3D, t);
+        if (VirtualUniverse.mc.useFreeLists) {
+            FreeListManager.freeObject(FreeListManager.TRANSFORM3D, t);
+        }
     }
 
 
@@ -1270,14 +1173,19 @@ class MasterControl {
     }
 
     /**
-     * Returns the native rendering layer we are using
+     * Returns whether we are using D3D.
+     * TODO: most code that cares about this should move into the pipeline
      */
-    final int getRenderingAPI() {
-	return renderingAPI;
-    }
-    
     final boolean isD3D() {
-	return isD3DAPI;
+	return Pipeline.getPipeline().getRendererType() == Pipeline.Type.NATIVE_D3D;
+    }
+
+    /**
+     * Returns whether we are running on Windows
+     * TODO: most code that cares about this should move into the pipeline
+     */
+    final boolean isWindows() {
+	return isWindowsOs;
     }
 
     /**
@@ -1293,6 +1201,7 @@ class MasterControl {
     /** 
      * This adds a BHNode to one of the list of BHNodes
      */
+    // Fix to Issue 123
     void addBHNodeToFreelists(BHNode bH) {
 	bH.parent = null;
 	bH.mark = false;
@@ -1300,11 +1209,15 @@ class MasterControl {
 	if (bH.nodeType == BHNode.BH_TYPE_INTERNAL) {
 	    ((BHInternalNode)bH).lChild = null;
 	    ((BHInternalNode)bH).rChild = null;
-	    FreeListManager.freeObject(FreeListManager.BHINTERNAL, bH);
-	}
+            if (VirtualUniverse.mc.useFreeLists) {
+                FreeListManager.freeObject(FreeListManager.BHINTERNAL, bH);
+            }
+        }
 	else if (bH.nodeType == BHNode.BH_TYPE_LEAF) {
 	    ((BHLeafNode)(bH)).leafIF = null;
-	    FreeListManager.freeObject(FreeListManager.BHLEAF, bH);
+            if (VirtualUniverse.mc.useFreeLists) {
+                FreeListManager.freeObject(FreeListManager.BHLEAF, bH);
+            }
 	}
     }
     
@@ -1312,35 +1225,52 @@ class MasterControl {
      * This gets a message from the free list.  If there isn't any,
      * it creates one.
      */
+    // Fix to Issue 123
     BHNode getBHNode(int type) {
 	
 	if (type == BHNode.BH_TYPE_LEAF) {
-	    return (BHNode) FreeListManager.getObject(FreeListManager.BHLEAF);
+            if (VirtualUniverse.mc.useFreeLists) {
+                return (BHNode) FreeListManager.getObject(FreeListManager.BHLEAF);
+            }
+            else {
+                return (BHNode) new BHLeafNode();
+            }
 	} 
 
 	if (type == BHNode.BH_TYPE_INTERNAL) {
-	    return (BHNode)
-		FreeListManager.getObject(FreeListManager.BHINTERNAL);
+            if (VirtualUniverse.mc.useFreeLists) {
+                return (BHNode) FreeListManager.getObject(FreeListManager.BHINTERNAL);
+            }
+            else {
+                return (BHNode) new BHInternalNode();
+            }
 	}
 	return null;
     }
     
-    
     /** 
      * This adds a message to the list of messages
      */
+    // Fix to Issue 123
     final void addMessageToFreelists(J3dMessage m) {
-	FreeListManager.freeObject(FreeListManager.MESSAGE, m);
+        if (VirtualUniverse.mc.useFreeLists) {
+            FreeListManager.freeObject(FreeListManager.MESSAGE, m);
+        }
     }
 
     /**
      * This gets a message from the free list.  If there isn't any,
      * it creates one.
      */
+    // Fix to Issue 123
     final J3dMessage getMessage() {
-	return (J3dMessage) FreeListManager.getObject(FreeListManager.MESSAGE);
+        if (VirtualUniverse.mc.useFreeLists) {        
+            return (J3dMessage) FreeListManager.getObject(FreeListManager.MESSAGE);
+        }
+        else {
+            return new J3dMessage();
+        }
     }
-
   
     /** 
      * This takes a given message and parses it out to the structures and
@@ -1685,183 +1615,189 @@ class MasterControl {
     }
 
     /**
-     * This snapshots the time values to be used for this iteration
+     * This snapshots the time values to be used for this iteration.
+     * Note that this method is called without the timeLock held.
+     * We must synchronize on timeLock to prevent updating
+     * thread.lastUpdateTime from user thread in sendMessage()
+     * or sendRunMessage().
      */
     private void updateTimeValues() {
-	int i=0;
-	J3dThreadData lastThread=null;
-	J3dThreadData thread=null;
-	long lastTime = currentTime;
+        synchronized (timeLock) {
+            int i=0;
+            J3dThreadData lastThread=null;
+            J3dThreadData thread=null;
+            long lastTime = currentTime;
 
-	currentTime = getTime();
+            currentTime = getTime();
 
-	J3dThreadData threads[] = (J3dThreadData []) 
-	                        stateWorkThreads.toArray(false);
-	int size = stateWorkThreads.arraySize();
+            J3dThreadData threads[] = (J3dThreadData []) 
+                                    stateWorkThreads.toArray(false);
+            int size = stateWorkThreads.arraySize();
 
-	while (i<lastTransformStructureThread) {
-	    thread = threads[i++];
+            while (i<lastTransformStructureThread) {
+                thread = threads[i++];
 
-	    if ((thread.lastUpdateTime > thread.lastRunTime) && 
-		!thread.thread.userStop) {
-		lastThread = thread;
-		thread.needsRun = true;
-		thread.threadOpts = J3dThreadData.CONT_THREAD;
-		thread.lastRunTime =  currentTime;
-	    } else {
-		thread.needsRun = false;
-	    }
-	}
-	
-	if (lastThread != null) {
-	    lastThread.threadOpts =  J3dThreadData.WAIT_ALL_THREADS;
-	    lastThread = null;
-	}
-	
-	while (i<lastStructureUpdateThread) {
-	    thread = threads[i++];
-	    if ((thread.lastUpdateTime > thread.lastRunTime) &&
-		!thread.thread.userStop) {
-		lastThread = thread;
-		thread.needsRun = true;
-		thread.threadOpts = J3dThreadData.CONT_THREAD;
-		thread.lastRunTime = currentTime;
-	    } else {
-		thread.needsRun = false;
-	    }
-	}
-	if (lastThread != null) {
-	    lastThread.threadOpts = J3dThreadData.WAIT_ALL_THREADS;
-	    lastThread = null;
-	}
-	
-	while (i<size) {
-	    thread = threads[i++];
-	    if ((thread.lastUpdateTime > thread.lastRunTime) && 
-		!thread.thread.userStop) {
-		lastThread = thread;
-		thread.needsRun = true;
-		thread.threadOpts = J3dThreadData.CONT_THREAD;
-		thread.lastRunTime = currentTime;
-	    } else {
-		thread.needsRun = false;
-	    }
-	}
-	if (lastThread != null) {
-	    lastThread.threadOpts = J3dThreadData.WAIT_ALL_THREADS;
-	    lastThread = null;
-	}
-	
+                if ((thread.lastUpdateTime > thread.lastRunTime) && 
+                    !thread.thread.userStop) {
+                    lastThread = thread;
+                    thread.needsRun = true;
+                    thread.threadOpts = J3dThreadData.CONT_THREAD;
+                    thread.lastRunTime =  currentTime;
+                } else {
+                    thread.needsRun = false;
+                }
+            }
 
-	threads = (J3dThreadData []) renderWorkThreads.toArray(false);
-	size = renderWorkThreads.arraySize();
-	View v;
-	J3dThreadData lastRunThread = null;
-	waitTimestamp++;
-	sleepTime = 0L;
+            if (lastThread != null) {
+                lastThread.threadOpts =  J3dThreadData.WAIT_ALL_THREADS;
+                lastThread = null;
+            }
 
-	boolean threadToRun = false; // Not currently used
+            while (i<lastStructureUpdateThread) {
+                thread = threads[i++];
+                if ((thread.lastUpdateTime > thread.lastRunTime) &&
+                    !thread.thread.userStop) {
+                    lastThread = thread;
+                    thread.needsRun = true;
+                    thread.threadOpts = J3dThreadData.CONT_THREAD;
+                    thread.lastRunTime = currentTime;
+                } else {
+                    thread.needsRun = false;
+                }
+            }
+            if (lastThread != null) {
+                lastThread.threadOpts = J3dThreadData.WAIT_ALL_THREADS;
+                lastThread = null;
+            }
 
-	// Fix for Issue 12: loop through the list of threads, calling
-	// computeCycleTime() exactly once per view. This ensures that
-	// all threads for a given view see consistent values for
-	// isMinCycleTimeAchieve and sleepTime.
-	v = null;
-	for (i=0; i<size; i++) {
-	    thread = threads[i];
-	    if (thread.view != v) {
-		thread.view.computeCycleTime();
-		// Set sleepTime to the value needed to satify the
-		// minimum cycle time of the slowest view
-		if (thread.view.sleepTime > sleepTime) {
-		    sleepTime = thread.view.sleepTime;
-		}
-	    }
-	    v = thread.view;
-	}
-
-	v = null;
-	for (i=0; i<size; i++) {
-	    thread = threads[i];
-	    if (thread.canvas == null) { // Only for swap thread
-		((Object []) thread.threadArgs)[3] = null;
-	    }
-	    if ((thread.lastUpdateTime > thread.lastRunTime) &&
-		!thread.thread.userStop) {
-		
-		if (thread.thread.lastWaitTimestamp == waitTimestamp) {
-		    // This renderer thread is repeated. We must wait 
-		    // until all previous renderer threads done before
-		    // allowing this thread to continue. Note that
-		    // lastRunThread can't be null in this case.
-		    waitTimestamp++;
-		    if (thread.view != v) {
-			// A new View is start
-			v = thread.view;
-			threadToRun = true;
-			lastRunThread.threadOpts =
-			    (J3dThreadData.STOP_TIMER |
-			     J3dThreadData.WAIT_ALL_THREADS);
-			((Object []) lastRunThread.threadArgs)[3] = lastRunThread.view;
-			thread.threadOpts = (J3dThreadData.START_TIMER |
-					     J3dThreadData.CONT_THREAD);
-		    } else {
-			if ((lastRunThread.threadOpts &
-			     J3dThreadData.START_TIMER) != 0) {
-			    lastRunThread.threadOpts = 
-				(J3dThreadData.START_TIMER |
-				 J3dThreadData.WAIT_ALL_THREADS);
-			    
-			} else {
-			    lastRunThread.threadOpts =
-				J3dThreadData.WAIT_ALL_THREADS;
-			}
-			thread.threadOpts = J3dThreadData.CONT_THREAD;
-			
-		    }
-		} else {
-		    if (thread.view != v) {
-			v = thread.view;
-			threadToRun = true;
-			// Although the renderer thread is not
-			// repeated. We still need to wait all
-			// previous renderer threads if new View
-			// start.
-			if (lastRunThread != null) {
-			    lastRunThread.threadOpts =
-				(J3dThreadData.STOP_TIMER |
-				 J3dThreadData.WAIT_ALL_THREADS);
-			    ((Object []) lastRunThread.threadArgs)[3]
-				= lastRunThread.view;
-			}
-			thread.threadOpts = (J3dThreadData.START_TIMER |
-					     J3dThreadData.CONT_THREAD);
-		    } else {
-			thread.threadOpts = J3dThreadData.CONT_THREAD;
-		    }
-		}
-		thread.thread.lastWaitTimestamp = waitTimestamp;
-		thread.needsRun = true;
-		thread.lastRunTime = currentTime;
-		lastRunThread = thread;
-	    } else {
-		thread.needsRun = false;
-	    }
-	}
+            while (i<size) {
+                thread = threads[i++];
+                if ((thread.lastUpdateTime > thread.lastRunTime) && 
+                    !thread.thread.userStop) {
+                    lastThread = thread;
+                    thread.needsRun = true;
+                    thread.threadOpts = J3dThreadData.CONT_THREAD;
+                    thread.lastRunTime = currentTime;
+                } else {
+                    thread.needsRun = false;
+                }
+            }
+            if (lastThread != null) {
+                lastThread.threadOpts = J3dThreadData.WAIT_ALL_THREADS;
+                lastThread = null;
+            }
 
 
-	if (lastRunThread != null) {
-	    lastRunThread.threadOpts = 
-				(J3dThreadData.STOP_TIMER |
-				 J3dThreadData.WAIT_ALL_THREADS|
-				 J3dThreadData.LAST_STOP_TIMER);
-	    lockGeometry = true; 
-	    ((Object []) lastRunThread.threadArgs)[3] = lastRunThread.view;
-	}  else {
-	    lockGeometry = false;
-	}
-	    
+            threads = (J3dThreadData []) renderWorkThreads.toArray(false);
+            size = renderWorkThreads.arraySize();
+            View v;
+            J3dThreadData lastRunThread = null;
+            waitTimestamp++;
+            sleepTime = 0L;
 
+            boolean threadToRun = false; // Not currently used
+
+            // Fix for Issue 12: loop through the list of threads, calling
+            // computeCycleTime() exactly once per view. This ensures that
+            // all threads for a given view see consistent values for
+            // isMinCycleTimeAchieve and sleepTime.
+            v = null;
+            for (i=0; i<size; i++) {
+                thread = threads[i];
+                if (thread.view != v) {
+                    thread.view.computeCycleTime();
+                    // Set sleepTime to the value needed to satify the
+                    // minimum cycle time of the slowest view
+                    if (thread.view.sleepTime > sleepTime) {
+                        sleepTime = thread.view.sleepTime;
+                    }
+                }
+                v = thread.view;
+            }
+
+            v = null;
+            for (i=0; i<size; i++) {
+                thread = threads[i];
+                if (thread.canvas == null) { // Only for swap thread
+                    ((Object []) thread.threadArgs)[3] = null;
+                }
+                if ((thread.lastUpdateTime > thread.lastRunTime) &&
+                    !thread.thread.userStop) {
+
+                    if (thread.thread.lastWaitTimestamp == waitTimestamp) {
+                        // This renderer thread is repeated. We must wait 
+                        // until all previous renderer threads done before
+                        // allowing this thread to continue. Note that
+                        // lastRunThread can't be null in this case.
+                        waitTimestamp++;
+                        if (thread.view != v) {
+                            // A new View is start
+                            v = thread.view;
+                            threadToRun = true;
+                            lastRunThread.threadOpts =
+                                (J3dThreadData.STOP_TIMER |
+                                 J3dThreadData.WAIT_ALL_THREADS);
+                            ((Object []) lastRunThread.threadArgs)[3] = lastRunThread.view;
+                            thread.threadOpts = (J3dThreadData.START_TIMER |
+                                                 J3dThreadData.CONT_THREAD);
+                        } else {
+                            if ((lastRunThread.threadOpts &
+                                 J3dThreadData.START_TIMER) != 0) {
+                                lastRunThread.threadOpts = 
+                                    (J3dThreadData.START_TIMER |
+                                     J3dThreadData.WAIT_ALL_THREADS);
+
+                            } else {
+                                lastRunThread.threadOpts =
+                                    J3dThreadData.WAIT_ALL_THREADS;
+                            }
+                            thread.threadOpts = J3dThreadData.CONT_THREAD;
+
+                        }
+                    } else {
+                        if (thread.view != v) {
+                            v = thread.view;
+                            threadToRun = true;
+                            // Although the renderer thread is not
+                            // repeated. We still need to wait all
+                            // previous renderer threads if new View
+                            // start.
+                            if (lastRunThread != null) {
+                                lastRunThread.threadOpts =
+                                    (J3dThreadData.STOP_TIMER |
+                                     J3dThreadData.WAIT_ALL_THREADS);
+                                ((Object []) lastRunThread.threadArgs)[3]
+                                    = lastRunThread.view;
+                            }
+                            thread.threadOpts = (J3dThreadData.START_TIMER |
+                                                 J3dThreadData.CONT_THREAD);
+                        } else {
+                            thread.threadOpts = J3dThreadData.CONT_THREAD;
+                        }
+                    }
+                    thread.thread.lastWaitTimestamp = waitTimestamp;
+                    thread.needsRun = true;
+                    thread.lastRunTime = currentTime;
+                    lastRunThread = thread;
+                } else {
+                    thread.needsRun = false;
+                }
+            }
+
+
+            if (lastRunThread != null) {
+                lastRunThread.threadOpts = 
+                                    (J3dThreadData.STOP_TIMER |
+                                     J3dThreadData.WAIT_ALL_THREADS|
+                                     J3dThreadData.LAST_STOP_TIMER);
+                lockGeometry = true; 
+                ((Object []) lastRunThread.threadArgs)[3] = lastRunThread.view;
+            }  else {
+                lockGeometry = false;
+            }
+        }
+
+        // Issue 275 - go to sleep without holding timeLock
 	// Sleep for the amount of time needed to satisfy the minimum
 	// cycle time for all views.
 	if (sleepTime > 0) {
@@ -1873,7 +1809,6 @@ class MasterControl {
 	    }
 	    // System.err.println("MasterControl: done sleeping");
 	}
-
     }
 
     private void createUpdateThread(J3dStructure structure) {
@@ -2290,9 +2225,12 @@ class MasterControl {
 	    synchronized (VirtualUniverse.mc.deviceScreenMap) {
 		deviceScreenMap.clear();
 	    }
-	    FreeListManager.clearList(FreeListManager.MESSAGE);
-	    FreeListManager.clearList(FreeListManager.BHLEAF);
-	    FreeListManager.clearList(FreeListManager.BHINTERNAL);
+            if (VirtualUniverse.mc.useFreeLists) {
+                FreeListManager.clearList(FreeListManager.MESSAGE);
+                FreeListManager.clearList(FreeListManager.BHLEAF);
+                FreeListManager.clearList(FreeListManager.BHINTERNAL);
+                FreeListManager.clearList(FreeListManager.TRANSFORM3D);
+            }
 	    mirrorObjects.clear();
 	    // Note: We should not clear the DISPLAYLIST/TEXTURE
 	    // list here because other structure may release them
@@ -2306,7 +2244,6 @@ class MasterControl {
 	    renderOnceList.clear();
 	    timestampUpdateList.clear();
 
-	    FreeListManager.clearList(FreeListManager.TRANSFORM3D);
 	    defaultRenderMethod = null;
 	    text3DRenderMethod = null;
 	    vertexArrayRenderMethod = null;
@@ -3225,7 +3162,7 @@ class MasterControl {
 		} 
 		rendererRun = true;
             } else if (type == FREE_DRAWING_SURFACE) {
-		DrawingSurfaceObjectAWT.freeDrawingSurface(o);
+                Pipeline.getPipeline().freeDrawingSurfaceNative(o);
             } else if (type == GETBESTCONFIG) {
 		GraphicsConfiguration gc = ((GraphicsConfiguration [])
 			  ((GraphicsConfigTemplate3D) o).testCfg)[0];
@@ -3569,22 +3506,27 @@ class MasterControl {
 		}
 	    }
 	    break;
+
 	case THREAD_DONE:
 	    if (state != WAITING_FOR_RENDERER_CLEANUP) {
+
 		threadPending--;
-		if (nthread.type == J3dThread.RENDER_THREAD) {
+                assert threadPending >= 0 : ("threadPending = " + threadPending);
+                if (nthread.type == J3dThread.RENDER_THREAD) {
 		    View v = (View) nthread.args[3];
 		    if (v != null) { // STOP_TIMER
 			v.stopTime = J3dClock.currentTimeMillis();
 		    }
-		    
+
 		    if (--renderPending == 0) {
 			renderWaiting = false;
 		    }
+                    assert renderPending >= 0 : ("renderPending = " + renderPending);
 		} else {
 		    if (--statePending == 0) {
 			stateWaiting = false;
 		    }
+                    assert statePending >= 0 : ("statePending = " + statePending);
 		}
 		if (state == WAITING_FOR_CPU || state == WAITING_FOR_THREADS) {
 		    notify();
@@ -3594,19 +3536,12 @@ class MasterControl {
 		state = RUNNING;
 	    }
 	    break;
-	case WAIT_FOR_ALL:
-	    while (threadPending != 0) {
-		state = WAITING_FOR_THREADS;
-		try {
-                    wait();
-                } catch (InterruptedException e) {
-                    System.err.println(e);
-                }
-	    }
-	    break;
+
 	case CHECK_FOR_WORK:
 	    if (!workToDo) {
 		state = SLEEPING;
+                // NOTE: this could wakeup spuriously (see issue 279), but it
+                // will not cause any problems.
 		try {
 		    wait();
 		} catch (InterruptedException e) {
@@ -3616,12 +3551,14 @@ class MasterControl {
 	    }
 	    workToDo = false;
 	    break;
+
 	case SET_WORK:
 	    workToDo = true;
 	    if (state == SLEEPING) {
 		notify();
 	    }
 	    break;
+
         case SET_WORK_FOR_REQUEST_RENDERER:
 	    requestRenderWorkToDo = true;
 	    workToDo = true;
@@ -3630,45 +3567,29 @@ class MasterControl {
 		notify();
 	    }
 	    break;
+
 	case RUN_RENDERER_CLEANUP:
 	    nthread.runMonitor(J3dThread.RUN, currentTime,
 			       rendererCleanupArgs);
 	    state = WAITING_FOR_RENDERER_CLEANUP;
-	    try {
-		wait();
-	    } catch (InterruptedException e) {
-		System.err.println(e);
-	    }
+            // Issue 279 - loop until state is set to running
+            while (state != RUNNING) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    System.err.println(e);
+                }
+            }
 	    break;
-	case SLEEP:
-	    state = SLEEPING;
-	    try {
-		wait(sleepTime);
-	    } catch (InterruptedException e) {
-		System.err.println(e);
-	    }
+
+        default:
+            // Should never get here
+            assert false : "missing case in switch statement";
         }
     }
 
     // Static initializer
     static {
-	/*
-        // Determine whether the JVM is version JDK1.5 or later.
-        // XXXX: replace this with code that checks for the existence
-	// of a class or method that is defined in 1.5, but not in 1.4
-        String versionString =
-            (String) java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction() {
-                public Object run() {
-                    return System.getProperty("java.version");
-                }
-            });
-        jvm15OrBetter = !(versionString.startsWith("1.4") ||
-			  versionString.startsWith("1.3") ||
-			  versionString.startsWith("1.2") ||
-			  versionString.startsWith("1.1"));
-	*/
-
 	// create ThreadGroup
 	java.security.AccessController.doPrivileged(
   	    new java.security.PrivilegedAction() {
@@ -3827,5 +3748,10 @@ class MasterControl {
 	    // Do nothing, since we really don't care how long (or
 	    // even whether) we sleep
 	}
+    }
+
+    // Return the number of available processors
+    private int getNumberOfProcessors() {
+        return Runtime.getRuntime().availableProcessors();
     }
 }

@@ -41,6 +41,10 @@ import java.awt.image.RenderedImage;
  * ic.set(0, ri);<br>
  * </code>
  * </ul>
+ *
+ * <p>
+ * As of Java 3D 1.5, an ImageComponent3D accepts an array of NioImageBuffer
+ * objects as an alternative to an array of RenderedImage objects.
  */
 public class ImageComponent3D extends ImageComponent {
 
@@ -53,6 +57,7 @@ public class ImageComponent3D extends ImageComponent {
      * all other parameters.  The default values are as follows:
      * <ul>
      * array of images : null<br>
+     * imageClass : ImageClass.BUFFERED_IMAGE<br>
      * </ul>
      *
      * @param format the image component format, one of: FORMAT_RGB,
@@ -77,12 +82,15 @@ public class ImageComponent3D extends ImageComponent {
     /**
      * Constructs a 3D image component object using the specified format,
      * and the BufferedImage array.
+     * The image class is set to ImageClass.BUFFERED_IMAGE.
      * Default values are used for all other parameters.
+     *
      * @param format the image component format, one of: FORMAT_RGB,
      * FORMAT_RGBA etc.
      * @param images an array of BufferedImage objects.  The
      * first image in the array determines the width and height of this
      * ImageComponent3D.
+     *
      * @exception IllegalArgumentException if format is invalid, or if
      * the width or height of the first image are not positive.
      */
@@ -98,12 +106,15 @@ public class ImageComponent3D extends ImageComponent {
     /**
      * Constructs a 3D image component object using the specified format,
      * and the RenderedImage array.
+     * The image class is set to ImageClass.BUFFERED_IMAGE.
      * Default values are used for all other parameters.
+     *
      * @param format the image component format, one of: FORMAT_RGB,
      * FORMAT_RGBA etc.
      * @param images an array of RenderedImage objects.  The
      * first image in the array determines the width and height of this
      * ImageComponent3D.
+     *
      * @exception IllegalArgumentException if format is invalid, or if
      * the width or height of the first image are not positive.
      *
@@ -159,7 +170,8 @@ public class ImageComponent3D extends ImageComponent {
     /**
      * Constructs a 3D image component object using the specified format,
      * BufferedImage array, byReference flag, and yUp flag.
-     * Default values are used for all other parameters.
+     * The image class is set to ImageClass.BUFFERED_IMAGE.
+     *
      * @param format the image component format, one of: FORMAT_RGB,
      * FORMAT_RGBA etc.
      * @param images an array of BufferedImage objects.  The
@@ -171,6 +183,7 @@ public class ImageComponent3D extends ImageComponent {
      * component.  If yUp is set to true, the origin of the image is
      * the lower left; otherwise, the origin of the image is the upper
      * left.
+     *
      * @exception IllegalArgumentException if format is invalid, or if
      * the width or height of the first image are not positive.
      *
@@ -194,7 +207,11 @@ public class ImageComponent3D extends ImageComponent {
     /**
      * Constructs a 3D image component object using the specified format,
      * RenderedImage array, byReference flag, and yUp flag.
-     * Default values are used for all other parameters.
+     * The image class is set to ImageClass.RENDERED_IMAGE if the byReference
+     * flag is true and any of the specified RenderedImages is <i>not</i> an
+     * instance of BufferedImage. In all other cases, the image class is set to
+     * ImageClass.BUFFERED_IMAGE.
+     *
      * @param format the image component format, one of: FORMAT_RGB,
      * FORMAT_RGBA etc.
      * @param images an array of RenderedImage objects.  The
@@ -227,8 +244,45 @@ public class ImageComponent3D extends ImageComponent {
     }
 
     /**
+     * Constructs a 3D image component object using the specified format,
+     * NioImageBuffer array, byReference flag, and yUp flag.
+     * The image class is set to ImageClass.NIO_IMAGE_BUFFER.
+     *
+     * @param format the image component format, one of: FORMAT_RGB,
+     * FORMAT_RGBA etc.
+     * @param images an array of NioImageBuffer objects.  The
+     * first image in the array determines the width and height of this
+     * ImageComponent3D.
+     * @param byReference a flag that indicates whether the data is copied
+     * into this image component object or is accessed by reference.
+     * @param yUp a flag that indicates the y-orientation of this image
+     * component.  If yUp is set to true, the origin of the image is
+     * the lower left; otherwise, the origin of the image is the upper
+     * left.
+     *
+     * @exception IllegalArgumentException if format is invalid, or if
+     * the width or height of the first image are not positive.
+     *
+     * @exception IllegalArgumentException if the byReference flag is false.
+     *
+     * @exception IllegalArgumentException if the yUp flag is false.
+     *
+     * @since Java 3D 1.5
+     */
+    public ImageComponent3D(int format,
+			    NioImageBuffer[] images,
+			    boolean byReference,
+			    boolean yUp) {
+
+        // TODO: implement this
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
      * Retrieves the depth of this 3D image component object.
-     * @return the format of this 3D image component object
+     *
+     * @return the depth of this 3D image component object
+     *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      */
@@ -247,14 +301,23 @@ public class ImageComponent3D extends ImageComponent {
      * then a shallow copy of the array of references to the
      * BufferedImage objects is made, but the BufferedImage
      * data is not necessarily copied.
+     * <p>
+     * The image class is set to ImageClass.BUFFERED_IMAGE.
      *
      * @param images array of BufferedImage objects containing the image.
-     * The format and size must be the same as the current format in the
-     * image component.
+     * The size (width and height) of each image must be the same as the
+     * size of the image component, and the length of the images array
+     * must equal the depth of the image component.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      *
+     * @exception IllegalArgumentException if the length of the images array is
+     * not equal to the depth of this ImageComponent object.
+     *
+     * @exception IllegalArgumentException if the width and height of each
+     * image in the images array is not equal to the width and height of this
+     * ImageComponent object.
      */
     public void set(BufferedImage[] images) {
         checkForLiveOrCompiled();
@@ -275,13 +338,26 @@ public class ImageComponent3D extends ImageComponent {
      * then a shallow copy of the array of references to the
      * RenderedImage objects is made, but the RenderedImage
      * data is not necessarily copied.
+     * <p>
+     * The image class is set to ImageClass.RENDERED_IMAGE if the data access
+     * mode is by-reference and any of the specified RenderedImages
+     * is <i>not</i> an instance of BufferedImage. In all other cases,
+     * the image class is set to ImageClass.BUFFERED_IMAGE.
      *
      * @param images array of RenderedImage objects containing the image.
-     * The format and size must be the same as the current format in the
-     * image component.
+     * The size (width and height) of each image must be the same as the
+     * size of the image component, and the length of the images array
+     * must equal the depth of the image component.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalArgumentException if the length of the images array is
+     * not equal to the depth of this ImageComponent object.
+     *
+     * @exception IllegalArgumentException if the width and height of each
+     * image in the images array is not equal to the width and height of this
+     * ImageComponent object.
      *
      * @since Java 3D 1.2
      */
@@ -298,6 +374,43 @@ public class ImageComponent3D extends ImageComponent {
     }
 
     /**
+     * Sets the array of images in this image component to the
+     * specified array of NioImageBuffer objects.  If the data access
+     * mode is not by-reference, then the NioImageBuffer data is copied
+     * into this object.  If the data access mode is by-reference,
+     * then a shallow copy of the array of references to the
+     * NioImageBuffer objects is made, but the NioImageBuffer
+     * data is not necessarily copied.
+     * <p>
+     * The image class is set to ImageClass.NIO_IMAGE_BUFFER.
+     *
+     * @param images array of NioImageBuffer objects containing the image.
+     * The size (width and height) of each image must be the same as the
+     * size of the image component, and the length of the images array
+     * must equal the depth of the image component.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if this ImageComponent object
+     * is <i>not</i> yUp.
+     *
+     * @exception IllegalArgumentException if the length of the images array is
+     * not equal to the depth of this ImageComponent object.
+     *
+     * @exception IllegalArgumentException if the width and height of each
+     * image in the images array is not equal to the width and height of this
+     * ImageComponent object.
+     *
+     * @since Java 3D 1.5
+     */
+    public void set(NioImageBuffer[] images) {
+
+        // TODO: implement this
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
      * Sets this image component at the specified index to the
      * specified BufferedImage object.  If the data access mode is not
      * by-reference, then the BufferedImage data is copied into this
@@ -305,15 +418,21 @@ public class ImageComponent3D extends ImageComponent {
      * reference to the BufferedImage is saved, but the data is not
      * necessarily copied.
      *
-     * @param index the image index
+     * @param index the image index.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
      * @param image BufferedImage object containing the image.
-     * The format and size must be the same as the current format in this
-     * ImageComponent3D object.  The index must not exceed the depth of this
+     * The size (width and height) must be the same as the current size of this
      * ImageComponent3D object.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      *
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.BUFFERED_IMAGE.
+     *
+     * @exception IllegalArgumentException if the width and height the image
+     * is not equal to the width and height of this ImageComponent object.
      */
     public void set(int index, BufferedImage image) {
         checkForLiveOrCompiled();
@@ -334,14 +453,21 @@ public class ImageComponent3D extends ImageComponent {
      * reference to the RenderedImage is saved, but the data is not
      * necessarily copied.
      *
-     * @param index the image index
+     * @param index the image index.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
      * @param image RenderedImage object containing the image.
-     * The format and size must be the same as the current format in this
-     * ImageComponent3D object.  The index must not exceed the depth of this
+     * The size (width and height) must be the same as the current size of this
      * ImageComponent3D object.
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if the image class is not one of:
+     * ImageClass.BUFFERED_IMAGE or ImageClass.RENDERED_IMAGE.
+     *
+     * @exception IllegalArgumentException if the width and height the image
+     * is not equal to the width and height of this ImageComponent object.
      *
      * @since Java 3D 1.2
      */
@@ -358,6 +484,38 @@ public class ImageComponent3D extends ImageComponent {
     }
 
     /**
+     * Sets this image component at the specified index to the
+     * specified NioImageBuffer object.  If the data access mode is not
+     * by-reference, then the NioImageBuffer data is copied into this
+     * object.  If the data access mode is by-reference, then a
+     * reference to the NioImageBuffer is saved, but the data is not
+     * necessarily copied.
+     *
+     * @param index the image index.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
+     * @param image NioImageBuffer object containing the image.
+     * The size (width and height) must be the same as the current size of this
+     * ImageComponent3D object.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.NIO_IMAGE_BUFFER.
+     *
+     * @exception IllegalArgumentException if the width and height the image
+     * is not equal to the width and height of this ImageComponent object.
+     *
+     * @since Java 3D 1.5
+     */
+    public void set(int index, NioImageBuffer image) {
+
+        // TODO: implement this
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
      * Retrieves the images from this ImageComponent3D object.  If the
      * data access mode is not by-reference, then a copy of the images
      * is made.  If the data access mode is by-reference, then the
@@ -371,9 +529,8 @@ public class ImageComponent3D extends ImageComponent {
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      *
-     * @exception IllegalStateException if the data access mode is
-     * by-reference and any image referenced by this ImageComponent3D
-     * object is not an instance of BufferedImage.
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.BUFFERED_IMAGE.
      */
     public BufferedImage[] getImage() {
         if (isLiveOrCompiled()) 
@@ -396,6 +553,9 @@ public class ImageComponent3D extends ImageComponent {
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      *
+     * @exception IllegalStateException if the image class is not one of:
+     * ImageClass.BUFFERED_IMAGE or ImageClass.RENDERED_IMAGE.
+     *
      * @since Java 3D 1.2
      */
     public RenderedImage[] getRenderedImage() {
@@ -407,21 +567,48 @@ public class ImageComponent3D extends ImageComponent {
     }
 
     /**
+     * Retrieves the images from this ImageComponent3D object.  If the
+     * data access mode is not by-reference, then a copy of the images
+     * is made.  If the data access mode is by-reference, then the
+     * references are returned.
+     *
+     * @return either a new array of new RenderedImage objects created from
+     * the data
+     * in this image component, or a new array of
+     * references to the RenderedImages that this image component refers to.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.NIO_IMAGE_BUFFER.
+     *
+     * @since Java 3D 1.5
+     */
+    public NioImageBuffer[] getNioImage() {
+
+        // TODO: implement this
+        throw new RuntimeException("not implemented");
+    }
+
+    /**
      * Retrieves one of the images from this ImageComponent3D object.  If the
      * data access mode is not by-reference, then a copy of the image
      * is made.  If the data access mode is by-reference, then the
      * reference is returned.
      *
-     * @param index the index of the image to retrieve
+     * @param index the index of the image to retrieve.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
      * @return either a new BufferedImage object created from the data
      * in this image component, or the BufferedImage object referenced
      * by this image component.
+     *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
      *
-     * @exception IllegalStateException if the data access mode is
-     * by-reference and the image referenced by this ImageComponent3D
-     * object at the specified index is not an instance of BufferedImage.
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.BUFFERED_IMAGE.
      */
     public BufferedImage getImage(int index) {
         if (isLiveOrCompiled())
@@ -441,12 +628,18 @@ public class ImageComponent3D extends ImageComponent {
      * is made.  If the data access mode is by-reference, then the
      * reference is returned.
      *
-     * @param index the index of the image to retrieve
+     * @param index the index of the image to retrieve.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
      * @return either a new RenderedImage object created from the data
      * in this image component, or the RenderedImage object referenced
      * by this image component.
+     *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if the image class is not one of:
+     * ImageClass.BUFFERED_IMAGE or ImageClass.RENDERED_IMAGE.
      *
      * @since Java 3D 1.2
      */
@@ -456,6 +649,33 @@ public class ImageComponent3D extends ImageComponent {
             if(!this.getCapability(ImageComponent.ALLOW_IMAGE_READ))
              throw new CapabilityNotSetException(J3dI18N.getString("ImageComponent3D3"));
 	return ((ImageComponent3DRetained)this.retained).getImage(index);
+    }
+
+    /**
+     * Retrieves one of the images from this ImageComponent3D object.  If the
+     * data access mode is not by-reference, then a copy of the image
+     * is made.  If the data access mode is by-reference, then the
+     * reference is returned.
+     *
+     * @param index the index of the image to retrieve.
+     * The index must be less than the depth of this ImageComponent3D object.
+     *
+     * @return either a new NioImageBuffer object created from the data
+     * in this image component, or the NioImageBuffer object referenced
+     * by this image component.
+     *
+     * @exception CapabilityNotSetException if appropriate capability is
+     * not set and this object is part of live or compiled scene graph
+     *
+     * @exception IllegalStateException if the image class is not
+     * ImageClass.NIO_IMAGE_BUFFER.
+     *
+     * @since Java 3D 1.5
+     */
+    public NioImageBuffer getNioImage(int index) {
+
+        // TODO: implement this
+        throw new RuntimeException("not implemented");
     }
 
     /**
@@ -471,8 +691,8 @@ public class ImageComponent3D extends ImageComponent {
      * This method can only be used if the data access mode is
      * by-copy. If it is by-reference, see updateData().
      *
-     * @param index index of the image to be modified. The index must not
-     * exceed the depth of the object.
+     * @param index index of the image to be modified.
+     * The index must be less than the depth of this ImageComponent3D object.
      * @param image RenderedImage object containing the subimage.
      * @param width width of the subregion.
      * @param height height of the subregion.
@@ -485,21 +705,31 @@ public class ImageComponent3D extends ImageComponent {
      *
      * @exception CapabilityNotSetException if appropriate capability is
      * not set and this object is part of live or compiled scene graph
+     *
      * @exception IllegalStateException if the data access mode is
      * <code>BY_REFERENCE</code>.
+     *
      * @exception IllegalArgumentException if <code>width</code> or
      * <code>height</code> of
      * the subregion exceeds the dimension of the image in this object.
+     *
      * @exception IllegalArgumentException if <code>dstX</code> < 0, or
      * (<code>dstX</code> + <code>width</code>) > width of this object, or
      * <code>dstY</code> < 0, or
      * (<code>dstY</code> + <code>height</code>) > height of this object.
+     *
      * @exception IllegalArgumentException if <code>srcX</code> < 0, or
      * (<code>srcX</code> + <code>width</code>) > width of the RenderedImage
      * object containing the subimage, or
      * <code>srcY</code> < 0, or
      * (<code>srcY</code> + <code>height</code>) > height of the
      * RenderedImage object containing the subimage.
+     *
+     * @exception IllegalArgumentException if the specified RenderedImage
+     * is not compatible with the existing RenderedImage. 
+     *
+     * @exception IllegalStateException if the image class is not one of:
+     * ImageClass.BUFFERED_IMAGE or ImageClass.RENDERED_IMAGE.
      *
      * @since Java 3D 1.3
      */
@@ -550,8 +780,8 @@ public class ImageComponent3D extends ImageComponent {
      * <p>
      * @param updater object whose updateData callback method will be
      * called to update the data referenced by this ImageComponent3D object.
-     * @param index index of the image to be modified. The index must 
-     * not exceed the depth of this object.
+     * @param index index of the image to be modified.
+     * The index must be less than the depth of this ImageComponent3D object.
      * @param x starting X offset of the subregion.
      * @param y starting Y offset of the subregion.
      * @param width width of the subregion.
@@ -617,7 +847,7 @@ public class ImageComponent3D extends ImageComponent {
     public NodeComponent cloneNodeComponent() {
 	ImageComponent3DRetained rt = (ImageComponent3DRetained) retained;
 
-	ImageComponent3D img = new ImageComponent3D(rt.format,
+	ImageComponent3D img = new ImageComponent3D(rt.getFormat(),
 						    rt.width,
 						    rt.height,
 						    rt.depth);

@@ -142,8 +142,6 @@ class TextureUnitStateRetained extends NodeComponentRetained {
 	return (texGen == null ? null : (TexCoordGeneration)texGen.source);
     }
 
-    native void updateTextureUnitState(long ctx, int unitIndex, boolean enableFlag);
-
     void updateNative(int unitIndex, Canvas3D cv, 
 			boolean reload, boolean simulate) {
 
@@ -176,7 +174,7 @@ class TextureUnitStateRetained extends NodeComponentRetained {
 	    return;
         } else {
 
-	    updateTextureUnitState(cv.ctx, unitIndex, true);
+	    Pipeline.getPipeline().updateTextureUnitState(cv.ctx, unitIndex, true);
         }
 
         // reload is needed in a multi-texture case to bind the
@@ -499,9 +497,8 @@ class TextureUnitStateRetained extends NodeComponentRetained {
 		((texGen == null) || (texGen.isStatic())));
     }
 
-    /*
+    // Issue 209 - enable this method (was previously commented out)
     // Simply pass along to the NodeComponent
-
     void compile (CompileState compState) {
 	setCompiled();
 
@@ -512,7 +509,6 @@ class TextureUnitStateRetained extends NodeComponentRetained {
 	if (texGen != null)
 	    texGen.compile(compState);
     }
-    */
 
     boolean equals(TextureUnitStateRetained ts) {
         return ((ts == this) ||
